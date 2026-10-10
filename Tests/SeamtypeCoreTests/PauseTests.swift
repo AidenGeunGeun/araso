@@ -49,3 +49,19 @@ import Testing
         #expect(!session.paused)
     }
 }
+
+/// An app set to Strict keeps short commands as typed but still splits mixed words.
+@MainActor @Suite struct StrictSplitTests {
+    @Test func strictStillSplitsMixedWords() {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("seamtype-strict-\(UUID().uuidString).json")
+        let policies = AppPolicies(overrides: ["test.terminal": .init(conversionThreshold: AppPolicy.strictThreshold)])
+        let session = InputSession(engine: LearningEngine(base: splitting, storeURL: url), policies: policies)
+        session.activate(app: "test.terminal")
+        let field = FakeTextField()
+        for ch in "ciw githubdp xdp hellodnjfem " {
+            let key: InputSession.Key = ch.isLetter ? .letter(ch) : .printable(ch)
+            if !session.handle(key, client: field) { field.insertText(String(ch), replacing: nil) }
+        }
+        #expect(field.text == "ciw github에 x에 hello월드 ")
+    }
+}

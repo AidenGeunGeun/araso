@@ -80,6 +80,10 @@ public final class SplittingEngine: DecisionEngine, @unchecked Sendable {
     public var mixedWordSpellingCeiling = -2.7
     public var unknownWordSpellingCeiling = -3.2
 
+    /// How sure a split is: above Strict (`AppPolicy.strictThreshold`), since each rule already
+    /// asks for an English front it can stand on, so github에 splits in a terminal too.
+    public static let confidence = 0.98
+
     /// With Japanese on: English word + Japanese particle (githubで), decided the same way.
     public let japanese: JapaneseSegmenter?
 
@@ -99,21 +103,21 @@ public final class SplittingEngine: DecisionEngine, @unchecked Sendable {
            // A capital with no shifted jamo (the S of Slack) was typed as English on purpose,
            // even if the letters would also spell Korean (slackdptj, 님차에서).
            Self.hasEnglishOnlyCapital(mixed.english) || !readsAsKorean(keys) {
-            return Decision(language: .mixed, confidence: 0.9, output: mixed.text,
+            return Decision(language: .mixed, confidence: Self.confidence, output: mixed.text,
                             explanation: "split \(mixed.english)+\(mixed.korean)")
         }
         if let mixed = MixedWord.splitSingleLetter(keys), !english.isKnownWord(keys), !readsAsKorean(keys) {
-            return Decision(language: .mixed, confidence: 0.9, output: mixed.text,
+            return Decision(language: .mixed, confidence: Self.confidence, output: mixed.text,
                             explanation: "split \(mixed.english)+\(mixed.korean)")
         }
         if let mixed = englishThenKoreanWord(keys) {
-            return Decision(language: .mixed, confidence: 0.9, output: mixed.text,
+            return Decision(language: .mixed, confidence: Self.confidence, output: mixed.text,
                             explanation: "split \(mixed.english)+\(mixed.korean)")
         }
         // Not when the keys spell a Korean word: guswo is 현재, not gus + を (but slackwo,
         // 님차재, is no word, so slackを).
         if let (word, particle) = japanese?.englishWithParticle(keys), !isKoreanWord(keys) {
-            return Decision(language: .japanese, confidence: 0.9, output: word + particle,
+            return Decision(language: .japanese, confidence: Self.confidence, output: word + particle,
                             explanation: "split \(word)+\(particle)")
         }
         return base.decide(keys, context: context)

@@ -284,8 +284,8 @@ private func escapeExplanation(_ toApp: Bool) -> String {
 
 private func strictnessExplanation(_ threshold: Double) -> String {
     threshold >= AppPolicy.strictThreshold
-        ? L("Converts only words that are clearly Korean or Japanese, so short commands stay as typed (gst stays gst). For terminals.")
-        : L("Converts a word when it reads more like Korean or Japanese than English (gst → ㅎㄴㅅ).")
+        ? L("Converts only words that are clearly Korean or Japanese, so short commands stay as typed (ciw stays ciw). For terminals.")
+        : L("Converts a word when it reads more like Korean or Japanese than English (ciw → 챶).")
 }
 
 extension Language {

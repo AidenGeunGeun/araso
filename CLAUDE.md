@@ -41,8 +41,8 @@ made twice wins) → `SplittingEngine` (`MixedWord.swift`) → `HeuristicEngine`
 - `SplittingEngine` handles English + Korean particle (`github에`), a single letter + particle
   (`xdp` → `x에`, not 도/나 after a lowercase letter), English + whole Korean word (`hello월드`,
   using `Data/korean_vocabulary.txt`, which is only for this) and English + Japanese particle
-  (`githubで`). Its decisions have confidence 0.9, so an app set to Strict (0.97) keeps them as
-  English.
+  (`githubで`). Its decisions have confidence 0.98 (`SplittingEngine.confidence`), above Strict
+  (0.97), so they split in a strict app too.
 - `HeuristicEngine` scores the keys per keystroke as English, Korean and Japanese, then nudges
   toward the previous word's language.
 - `render(_:as: .mixed)` uses the engine's split when the engine makes one, else the plain

@@ -165,8 +165,8 @@ Locally, in this order — a keystroke's preview takes at most ~3 ms, a word's f
    Korean and Japanese typed together, `dlfurrireki` → `이력りれき` (Space for `履歴`),
    `rirekifmf` → `りれき를`, `kyouhaehtlfkrdms` → `きょうは도시락은` (the Japanese part is committed
    on the spot, so with live conversion it goes in as `履歴를`, `今日は도시락은`), only when the
-   Korean side breaks, so ordinary Japanese phrases stay whole. In an app set to Strict, none of
-   these split and the typed letters stay.
+   Korean side breaks, so ordinary Japanese phrases stay whole. These split in an app set to
+   Strict too.
 3. **Rules:** shift on a letter with no shifted jamo (`Hello`, `API`) is English.
 4. **Heuristic:** the keys are scored per keystroke as English (character trigrams, and a
    floor for words in the SCOWL list, by how common they are), Korean (2-set syllable
