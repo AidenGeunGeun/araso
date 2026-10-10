@@ -80,10 +80,12 @@ kyouhagoogledekensaku ␣ ⏎           →  今日はgoogleで検索
 치지 않습니다. `:wq⏎`, `ZZ`처럼 vim을 끝내도 다시 판단하니 셸로 돌아와서 그대로 치면 됩니다. 입력 모드로 들어가는 사용자
 매핑은 알아보지 못합니다. 그럴 때 ⇧Esc를 누르면 다시 단어를 판단합니다.
 
-**neovim이 모드를 알려 주게 하기 (추천):** 위의 방식은 키를 보고 모드를 짐작합니다. 그래서 vim을 막 켰을
-때(Esc를 아직 안 누른 노멀 모드)나 매핑은 놓칩니다. [`scripts/vim/seamtype.lua`](scripts/vim/seamtype.lua)를
-`~/.config/nvim/plugin/`에 넣으면 neovim이 모드가 바뀔 때마다(입력 모드 들어가기·나오기, 시작, 끝,
-포커스) Seamtype에 알려 줍니다. 그때부터는 짐작하지 않고 neovim이 입력 모드라고 할 때만 단어를 판단합니다.
+**vim이 모드를 알려 주게 하기 (추천):** 위의 방식은 키를 보고 모드를 짐작합니다. 그래서 vim을 막 켰을
+때(Esc를 아직 안 누른 노멀 모드)나 매핑은 놓칩니다. neovim은
+[`scripts/vim/seamtype.lua`](scripts/vim/seamtype.lua)를 `~/.config/nvim/plugin/`에, Vim(8.2 이상, `+job`)은
+[`scripts/vim/seamtype.vim`](scripts/vim/seamtype.vim)을 `~/.vim/plugin/`에 넣으세요. 모드가 바뀔 때마다(입력
+모드 들어가기·나오기, 시작, 끝, 포커스) Seamtype에 알려 줍니다. 그때부터는 짐작하지 않고 vim이 입력 모드라고
+할 때만 단어를 판단합니다.
 신호는 `Seamtype --vim insert|normal|off`로 보내고, 키마다가 아니라 모드가 바뀔 때만 보냅니다.
 
 ## 설정
