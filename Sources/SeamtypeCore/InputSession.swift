@@ -107,8 +107,9 @@ public final class InputSession {
     private var addedNMarker = false
     private var previousLanguage: Language?
     private var lastCommit: Committed?
-    /// Vim said it is outside insert mode (`vimChanged`): keys go straight through to it.
-    private var inVim = false
+    /// The mode vim last reported (`vimChanged`), nil when no vim is reporting. In normal mode
+    /// every key goes straight through; while vim reports at all, Esc is vim's.
+    private var vimMode: VimSignal?
     /// The user paused Seamtype in this text field (a right ⌘ tap): keys go through as typed
     /// until the next tap or another text field.
     public private(set) var paused = false
@@ -138,12 +139,12 @@ public final class InputSession {
     /// A new text field became active: pick its app's policy and forget the sentence context.
     public func activate(app bundleIdentifier: String?) {
         closeFlipWindow()
+        // Coming back to the same terminal leaves vim in whatever mode it was.
+        if bundleIdentifier != app { vimMode = nil }
         app = bundleIdentifier
         policy = policies.policy(for: bundleIdentifier)
         previousLanguage = nil
         paused = false
-        // Coming back to the same terminal leaves vim in whatever mode it was.
-        if !policy.vim { inVim = false }
     }
 
     /// Pauses or resumes Seamtype in this text field; what was being typed goes in first.
@@ -153,26 +154,25 @@ public final class InputSession {
         previousLanguage = nil
     }
 
-    /// Vim's mode, from `Seamtype --vim` (in an app set to "Esc: Vim"; ignored elsewhere).
+    /// Vim's mode, from `Seamtype --vim` (the caller checks it came from this app).
     public func vimChanged(to signal: VimSignal, client: TextClient?) {
-        guard policy.vim else { return }
-        if signal == .normal, !inVim {
+        if signal == .normal, vimMode != .normal {
             commit(client: client)
             previousLanguage = nil
         }
-        inVim = signal == .normal
+        vimMode = signal == .off ? nil : signal
     }
 
     /// Whether keys currently go straight to vim (normal, visual or command-line mode).
-    public var inVimNormalMode: Bool { inVim }
+    public var inVimNormalMode: Bool { vimMode == .normal }
 
     /// Returns true when the key was consumed.
     public func handle(_ key: Key, client: TextClient) -> Bool {
         guard policy.enabled, !paused else { return false }
-        if policy.vim, inVim {
+        if vimMode == .normal {
             // Vim's normal mode: every key is a command. ⇧Esc is the way out if vim's last word
             // was lost (Vim not seeing the terminal's focus change): it only says "decide words".
-            if key == .cycle { inVim = false; return true }
+            if key == .cycle { vimMode = nil; return true }
             previousLanguage = nil
             return false
         }
@@ -181,8 +181,8 @@ public final class InputSession {
         if case .printable = key, keys.isEmpty {} else { afterDigit = false }
         let pending = lastCommit
         lastCommit = nil
-        // Esc switches languages unless the app owns it (vim); ⇧Esc always does.
-        let switchesLanguage = key == .cycle || (key == .escape && !policy.escapeGoesToApp)
+        // Esc switches languages unless the app owns it (or a reporting vim); ⇧Esc always does.
+        let switchesLanguage = key == .cycle || (key == .escape && !policy.escapeToApp && vimMode == nil)
         if switchesLanguage, keys.isEmpty, let pending {
             if let changed = cycle(pending, client: client) {
                 lastCommit = changed

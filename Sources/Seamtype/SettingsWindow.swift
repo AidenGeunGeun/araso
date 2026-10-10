@@ -273,26 +273,12 @@ private enum Strictness {
     }
 }
 
-extension AppPolicy.EscapeKey {
-    var name: String {
-        switch self {
-        case .switchLanguage: return L("Switch language")
-        case .sendToApp: return L("Send to app")
-        case .vim: return L("Vim")
-        }
-    }
+private func escapeName(_ toApp: Bool) -> String { toApp ? L("Send to app") : L("Switch language") }
 
-    /// What the choice does, shown under the picker.
-    var explanation: String {
-        switch self {
-        case .switchLanguage:
-            return L("Esc changes the word you're typing, or the one just typed, to another language. The app doesn't get that Esc.")
-        case .sendToApp:
-            return L("Esc finishes the word and goes to the app. ⇧Esc changes the language.")
-        case .vim:
-            return L("Like Send to app, and outside insert mode every key goes straight to vim. Needs scripts/vim/seamtype.lua (neovim) or seamtype.vim.")
-        }
-    }
+/// What the Esc choice does, shown under the picker.
+private func escapeExplanation(_ toApp: Bool) -> String {
+    toApp ? L("Esc finishes the word and goes to the app. ⇧Esc changes the language.")
+          : L("Esc changes the word you're typing, or the one just typed, to another language. The app doesn't get that Esc.")
 }
 
 private func strictnessExplanation(_ threshold: Double) -> String {
@@ -529,11 +515,12 @@ private struct AppsPane: View {
                         Text(L("Strict")).tag(AppPolicy.strictThreshold)
                     }
                 }
-                ChoiceRow(title: L("Esc key"), explanation: model.defaultPolicy.escapeKey.explanation) {
+                ChoiceRow(title: L("Esc key"), explanation: escapeExplanation(model.defaultPolicy.escapeToApp)) {
                     Picker(L("Esc key"), selection: Binding(
-                        get: { model.defaultPolicy.escapeKey },
-                        set: { value in model.setDefault { $0.escapeKey = value } })) {
-                        ForEach(AppPolicy.EscapeKey.allCases, id: \.self) { Text($0.name).tag($0) }
+                        get: { model.defaultPolicy.escapeToApp },
+                        set: { value in model.setDefault { $0.escapeToApp = value } })) {
+                        Text(L("Switch language")).tag(false)
+                        Text(L("Send to app")).tag(true)
                     }
                 }
                 Toggle(isOn: Binding(
@@ -607,10 +594,10 @@ private struct AppRowView: View {
                 model.setEntry(for: row.id) { $0.conversionThreshold = value }
             }
             .frame(width: AppColumns.conversion, alignment: .leading)
-            FieldMenu(own: row.entry.escapeKey?.name,
-                      inherited: defaultPolicy.escapeKey.name,
-                      choices: AppPolicy.EscapeKey.allCases.map { ($0.name, $0) }) { value in
-                model.setEntry(for: row.id) { $0.escapeKey = value }
+            FieldMenu(own: row.entry.escapeToApp.map(escapeName),
+                      inherited: escapeName(defaultPolicy.escapeToApp),
+                      choices: [(L("Switch language"), false), (L("Send to app"), true)]) { value in
+                model.setEntry(for: row.id) { $0.escapeToApp = value }
             }
             .frame(width: AppColumns.escape, alignment: .leading)
             FieldMenu(own: row.entry.enabled.map { $0 ? L("On") : L("Off") },

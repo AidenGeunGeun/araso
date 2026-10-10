@@ -2,18 +2,15 @@ import Foundation
 import Testing
 @testable import SeamtypeCore
 
-/// A terminal set to "Esc: Vim", through a real session, with vim reporting its modes.
+/// A terminal left at the default policy (Esc switches language), through a real session, with
+/// vim reporting its modes.
 @MainActor @Suite struct VimSessionTests {
     let field = FakeTextField()
     let session: InputSession
 
     init() {
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("seamtype-vim-\(UUID().uuidString).json")
-        let policies = AppPolicies(overrides: [
-            "test.terminal": .init(conversionThreshold: AppPolicy.strictThreshold, escapeToApp: true, vim: true),
-            "test.editor": .init(escapeToApp: true),
-        ])
-        session = InputSession(engine: LearningEngine(base: sharedEngine, storeURL: url), policies: policies)
+        session = InputSession(engine: LearningEngine(base: sharedEngine, storeURL: url))
         session.activate(app: "test.terminal")
     }
 
@@ -89,29 +86,25 @@ import Testing
         #expect(type("dd") == "dd")
     }
 
-    @Test func modesAreIgnoredWhereEscIsntVims() {
-        session.activate(app: "test.editor")
+    @Test func escIsVimsWhileVimReportsEvenWhereEscSwitchesLanguage() {
+        session.vimChanged(to: .insert, client: field)
+        #expect(type("dkssud⎋") == "⎋")
+        #expect(field.text == "안녕")
+        // Right after a committed word too: Esc leaves insert mode instead of flipping the word.
+        type(" ")
+        session.vimChanged(to: .insert, client: field)
+        #expect(type("dkssud ⎋") == " ⎋")
+        #expect(field.text == "안녕 안녕 ")
+    }
+
+    @Test func withoutVimEscStillSwitchesLanguage() {
+        #expect(type("dkssud⎋") == "")
+        #expect(field.text == "dkssud")
+    }
+
+    @Test func anotherAppForgetsVim() {
         session.vimChanged(to: .normal, client: field)
-        #expect(type("dkssud") == "")
-    }
-}
-
-@Suite struct VimPolicyTests {
-    @Test func vimKeyInAppsJSON() throws {
-        let entry = try JSONDecoder().decode(AppPolicy.Override.self, from: Data(#"{"vim": true}"#.utf8))
-        let policy = entry.applied(to: .standard)
-        #expect(policy.vim && policy.escapeGoesToApp && policy.escapeKey == .vim)
-    }
-
-    @Test func escapeKeyNamesBothStoredKeys() {
-        var policy = AppPolicy()
-        policy.escapeKey = .vim
-        #expect(policy.escapeToApp && policy.vim)
-        policy.escapeKey = .sendToApp
-        #expect(policy.escapeToApp && !policy.vim)
-        var entry = AppPolicy.Override(vim: true)
-        #expect(entry.escapeKey == .vim)
-        entry.escapeKey = nil
-        #expect(entry == AppPolicy.Override())
+        session.activate(app: "test.other")
+        #expect(!session.inVimNormalMode)
     }
 }

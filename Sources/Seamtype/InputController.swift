@@ -50,14 +50,18 @@ final class InputController: IMKInputController {
         MainActor.assumeIsolated {
             Runtime.shared.active = self
             session.activate(app: app)
-            if let signal = Runtime.shared.lastVimSignal { vimChanged(to: signal) }
+            if let last = Runtime.shared.lastVim { vimChanged(to: last.signal, from: last.app) }
             let policy = session.policy
-            log.info("activate \(app ?? "?", privacy: .public) enabled=\(policy.enabled) threshold=\(policy.conversionThreshold) escapeToApp=\(policy.escapeToApp) vim=\(policy.vim)")
+            log.info("activate \(app ?? "?", privacy: .public) enabled=\(policy.enabled) threshold=\(policy.conversionThreshold) escapeToApp=\(policy.escapeToApp)")
         }
     }
 
-    /// Neovim changed mode (`Seamtype --vim`); it is in the text field this controller serves.
-    @MainActor func vimChanged(to signal: VimSignal) {
+    /// Vim changed mode (`Seamtype --vim`). Taken only when vim runs in this controller's app,
+    /// so a signal that arrives while focus moves between apps changes nothing elsewhere; a
+    /// signal without its app is taken where Esc goes to the app.
+    @MainActor func vimChanged(to signal: VimSignal, from app: String?) {
+        let session = session
+        guard app.map({ $0 == session.app }) ?? session.policy.escapeToApp else { return }
         session.vimChanged(to: signal, client: client().map { IMKClient($0 as IMKTextInput) })
         log.debug("vim \(signal.rawValue, privacy: .public)")
     }
@@ -231,9 +235,7 @@ final class InputController: IMKInputController {
                     indent: 1, value: app)
                 add(L("Normal — for writing Korean"), #selector(setNormal(_:)), on: policy.conversionThreshold < 0.9,
                     indent: 1, value: app)
-                add(L("Esc Goes to the App (⇧Esc switches)"), #selector(toggleEscapeToApp(_:)), on: policy.escapeGoesToApp,
-                    indent: 1, value: app)
-                add(L("Vim: Keys Go Straight to Vim Outside Insert Mode"), #selector(toggleVim(_:)), on: policy.vim,
+                add(L("Esc Goes to the App (⇧Esc switches)"), #selector(toggleEscapeToApp(_:)), on: policy.escapeToApp,
                     indent: 1, value: app)
                 add(L("Turn Off in This App"), #selector(toggleDisabled(_:)), on: !policy.enabled, indent: 1, value: app)
                 if listed {
@@ -283,13 +285,8 @@ final class InputController: IMKInputController {
     @objc func toggleEscapeToApp(_ sender: Any?) {
         guard let app = appOf(sender) else { return }
         MainActor.assumeIsolated {
-            Runtime.shared.updatePolicy(for: app) { $0.escapeKey = $0.escapeGoesToApp ? .switchLanguage : .sendToApp }
+            Runtime.shared.updatePolicy(for: app) { $0.escapeToApp.toggle() }
         }
-    }
-
-    @objc func toggleVim(_ sender: Any?) {
-        guard let app = appOf(sender) else { return }
-        MainActor.assumeIsolated { Runtime.shared.updatePolicy(for: app) { $0.escapeKey = $0.vim ? .sendToApp : .vim } }
     }
 
     @objc func togglePause(_ sender: Any?) {

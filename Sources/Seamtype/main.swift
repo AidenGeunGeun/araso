@@ -3,14 +3,19 @@ import Cocoa
 import InputMethodKit
 import Carbon
 
-// `Seamtype --vim insert|normal|off`: neovim tells the input method which mode it is in (see
-// README, "vim"), so normal-mode keys go straight through without guessing. Runs before
-// anything else loads: it is started on every mode change.
+// `Seamtype --vim insert|normal|off [--app <bundle id>]`: vim tells the input method which mode
+// it is in, and in which app (see README, "vim"), so normal-mode keys go straight through without
+// guessing. Runs before anything else loads: it is started on every mode change.
 if let flag = CommandLine.arguments.firstIndex(of: "--vim") {
-    let mode = CommandLine.arguments.dropFirst(flag + 1).first ?? ""
-    guard VimSignal(rawValue: mode) != nil else { print("usage: Seamtype --vim insert|normal|off"); exit(2) }
+    let args = CommandLine.arguments
+    let mode = args.dropFirst(flag + 1).first ?? ""
+    guard VimSignal(rawValue: mode) != nil else {
+        print("usage: Seamtype --vim insert|normal|off [--app <bundle id>]")
+        exit(2)
+    }
+    let app = args.firstIndex(of: "--app").flatMap { args.dropFirst($0 + 1).first }.flatMap { $0.isEmpty ? nil : $0 }
     DistributedNotificationCenter.default().postNotificationName(
-        VimSignal.notification, object: mode, userInfo: nil, deliverImmediately: true)
+        VimSignal.notification, object: mode, userInfo: app.map { [VimSignal.appKey: $0] }, deliverImmediately: true)
     exit(0)
 }
 

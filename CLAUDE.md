@@ -55,10 +55,10 @@ tests use `FakeTextField`). It owns the preview and hysteresis, commits, Esc rea
 - They only fire when the keys spell neither clean Hangul nor clean romaji. The Korean → Japanese
   one also needs the whole token not to read as Japanese on its own. Without those guards, ordinary
   Japanese phrases split (`chanwokoroshita` → `초무をころした`).
-- In an app set to "Esc: Vim" (`AppPolicy.vim`), vim reports its modes through
-  `scripts/vim/seamtype.{lua,vim}` (`Seamtype --vim`, a distributed notification handed to
-  `Runtime.active`). Outside insert mode every key passes straight through; nothing guesses the
-  mode from the keys.
+- Vim reports its modes through `scripts/vim/seamtype.{lua,vim}` (`Seamtype --vim <mode> --app
+  $__CFBundleIdentifier`, a distributed notification). `Runtime` hands it to the active controller
+  only if vim runs in that app. Outside insert mode every key passes straight through, and while
+  vim reports, Esc is vim's whatever the app's policy says; nothing guesses the mode from keys.
 - A right ⌘ tap (flagsChanged, in `InputController`) pauses the session until the next tap or
   `activate`; there is no indicator, since the menu icon can't change.
 - After a word ends with Space or punctuation, only the word is inserted and `handle` returns

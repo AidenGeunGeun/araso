@@ -1,5 +1,5 @@
-" Tells Seamtype which mode Vim is in, so that in an app whose Esc key is set to "Vim" every
-" normal-mode key goes straight to Vim and words are decided only in insert mode.
+" Tells Seamtype which mode Vim is in, so that every normal-mode key goes straight to Vim, Esc
+" always reaches it, and words are decided only in insert mode.
 " Put this file in ~/.vim/plugin/ (Vim 8.2 or later, with +job). Neovim: seamtype.lua.
 if exists('g:loaded_seamtype') || !has('job') || has('nvim')
   finish
@@ -17,9 +17,13 @@ if empty(s:seamtype)
   finish
 endif
 
+" The app Vim runs in (macOS gives every app's processes its bundle identifier), so the mode
+" reaches that app's text field and no other.
+let s:app = exists('$__CFBundleIdentifier') ? $__CFBundleIdentifier : ''
+
 function! s:Tell(mode) abort
   " Not stopped when Vim exits, so the last word still goes out when quitting.
-  call job_start([s:seamtype, '--vim', a:mode], {'stoponexit': ''})
+  call job_start([s:seamtype, '--vim', a:mode, '--app', s:app], {'stoponexit': ''})
 endfunction
 
 function! s:Current() abort

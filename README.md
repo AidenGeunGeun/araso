@@ -79,14 +79,16 @@ kyouhagoogledekensaku ␣ ⏎           →  今日はgoogleで検索
 더 누르거나 다른 앱·입력창으로 가면 다시 켜집니다. 메뉴 막대 아이콘으로는 보이지 않으니, 입력 메뉴의 체크
 표시로 확인하세요. 설정 창의 일반에서 이 키를 끌 수 있습니다.
 
-**vim:** vim을 쓰는 앱(터미널)에서는 Esc 키를 "Vim"으로 두고, vim이 모드를 알려 주도록 neovim은
-[`scripts/vim/seamtype.lua`](scripts/vim/seamtype.lua)를 `~/.config/nvim/plugin/`에, Vim(8.2 이상, `+job`)은
-[`scripts/vim/seamtype.vim`](scripts/vim/seamtype.vim)을 `~/.vim/plugin/`에 넣으세요. 입력 모드 밖(노멀,
-비주얼, 명령줄)에서는 키를 붙잡지 않고 바로 vim에 보내서 `s`, `dd`, `ciw`, `:wq⏎` 같은 명령이 키마다 바로
-실행되고, 입력 모드에서만 단어를 판단합니다. vim을 끝내면 셸에서 다시 단어를 판단합니다.
-- 신호는 `Seamtype --vim insert|normal|off`이고, 키마다가 아니라 모드가 바뀔 때(입력 모드 들어가기·나오기,
-  시작, 끝, 포커스)만 보냅니다.
-- 스크립트 없이 "Vim"으로 두면 "앱으로"와 같습니다.
+**vim:** neovim은 [`scripts/vim/seamtype.lua`](scripts/vim/seamtype.lua)를 `~/.config/nvim/plugin/`에,
+Vim(8.2 이상, `+job`)은 [`scripts/vim/seamtype.vim`](scripts/vim/seamtype.vim)을 `~/.vim/plugin/`에 넣으세요.
+vim이 모드가 바뀔 때마다 Seamtype에 알려 줘서, 입력 모드 밖(노멀, 비주얼, 명령줄)에서는 키를 붙잡지 않고
+바로 vim에 보냅니다. `s`, `dd`, `ciw`, `:wq⏎` 같은 명령이 키마다 바로 실행되고, 입력 모드에서만 단어를
+판단합니다. vim 안에서는 Esc가 늘 vim으로 가므로 앱별 설정은 필요 없습니다. vim을 끝내면 셸에서 다시 단어를
+판단합니다.
+- 신호는 `Seamtype --vim insert|normal|off --app <번들 ID>`이고, 키마다가 아니라 모드가 바뀔 때(입력 모드
+  들어가기·나오기, 시작, 끝, 포커스)만 보냅니다. 번들 ID는 macOS가 앱마다 넣어 주는 `$__CFBundleIdentifier`라서
+  터미널(Ghostty, Terminal, iTerm2, VS Code 등)마다 따로 설정할 것이 없고, 신호는 그 앱의 입력창에만 갑니다.
+- tmux 서버를 띄운 터미널과 다른 터미널에서 붙으면 번들 ID가 달라 신호가 무시됩니다.
 - Vim이 터미널의 포커스 변화를 모르면 vim 패널에서 셸 패널로 옮겨도 알 수 없습니다. 그럴 때는 ⇧Esc를
   누르면 다시 단어를 판단합니다.
 
@@ -95,7 +97,7 @@ kyouhagoogledekensaku ␣ ⏎           →  今日はgoogleで検索
 입력 메뉴(Seamtype을 고른 상태의 메뉴 막대)에서 할 수 있는 것:
 - 일본어와 실시간 변환 켜고 끄기
 - 이 입력창에서 일시정지(오른쪽 ⌘와 같음)
-- 지금 앞에 있는 앱에서 얼마나 엄격하게 바꿀지, Esc를 앱(또는 vim)에 넘길지 정하기, 그 앱에서 끄기
+- 지금 앞에 있는 앱에서 얼마나 엄격하게 바꿀지, Esc를 앱에 넘길지 정하기, 그 앱에서 끄기
 - 마지막으로 학습한 단어 되돌리기
 - 설정 창 열기
 
@@ -127,7 +129,7 @@ kyouhagoogledekensaku ␣ ⏎           →  今日はgoogleで検索
 
 ```json
 { "*":                     { "escapeToApp": true },
-  "com.apple.Terminal":    { "conversionThreshold": 0.97, "vim": true },
+  "com.apple.Terminal":    { "conversionThreshold": 0.97 },
   "com.example.Game":      { "enabled": false } }
 ```
 
@@ -136,8 +138,6 @@ kyouhagoogledekensaku ␣ ⏎           →  今日はgoogleで検索
   ("엄격하게")은 터미널에서 짧은 셸 명령이 한글로 바뀌지 않게 하고, `0.5`는 글을 쓸 때 한국어를 더 많이
   바꿉니다.
 - `escapeToApp` (기본값 false): Esc는 앱으로 가고 ⇧Esc로 읽기를 바꿉니다(편집기용).
-- `vim` (기본값 false): `escapeToApp`에 더해, vim이 알려 주는 모드를 따라 입력 모드 밖의 키를 바로
-  넘깁니다(위의 **vim** 참고).
 
 파일을 직접 고친 뒤에는 입력기를 다시 시작하세요: `pkill -x Seamtype`.
 

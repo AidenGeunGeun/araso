@@ -1,5 +1,5 @@
--- Tells Seamtype which mode neovim is in, so that in an app whose Esc key is set to "Vim" every
--- normal-mode key goes straight to neovim and words are decided only in insert mode.
+-- Tells Seamtype which mode neovim is in, so that every normal-mode key goes straight to neovim,
+-- Esc always reaches it, and words are decided only in insert mode.
 -- Put this file in ~/.config/nvim/plugin/ (or require it from init.lua). Vim: seamtype.vim.
 local seamtype
 for _, dir in ipairs({ vim.fn.expand('~/Library/Input Methods'), '/Library/Input Methods' }) do
@@ -11,9 +11,13 @@ for _, dir in ipairs({ vim.fn.expand('~/Library/Input Methods'), '/Library/Input
 end
 if not seamtype then return end
 
+-- The app neovim runs in (macOS gives every app's processes its bundle identifier), so the mode
+-- reaches that app's text field and no other.
+local app = vim.env.__CFBundleIdentifier or ''
+
 local function tell(mode)
   -- Detached, so the last word still goes out when neovim is quitting.
-  vim.fn.jobstart({ seamtype, '--vim', mode }, { detach = true })
+  vim.fn.jobstart({ seamtype, '--vim', mode, '--app', app }, { detach = true })
 end
 
 local function current()

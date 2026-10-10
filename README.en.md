@@ -83,16 +83,19 @@ htop), tap **right ⌘** on its own. The word in progress goes in, and in that t
 through as typed. Tap again, or move to another app or text field, to resume. The menu bar icon
 doesn't show it; the input menu has it checked. Turn the key off under General in the settings.
 
-**vim:** in an app where you use vim (a terminal), set the Esc key to "Vim" and let vim report its
-modes: for neovim put [`scripts/vim/seamtype.lua`](scripts/vim/seamtype.lua) in
+**vim:** for neovim put [`scripts/vim/seamtype.lua`](scripts/vim/seamtype.lua) in
 `~/.config/nvim/plugin/`; for Vim (8.2 or later, `+job`) put
-[`scripts/vim/seamtype.vim`](scripts/vim/seamtype.vim) in `~/.vim/plugin/`. Outside insert mode
-(normal, visual, command line) keys go straight to vim instead of being held as a word, so `s`,
-`dd`, `ciw` and `:wq⏎` run key by key; words are decided only in insert mode, and again at the
-shell once vim quits.
-- The signal is `Seamtype --vim insert|normal|off`, sent on mode changes (entering and leaving
-  insert mode, start, quit, focus), not on keys.
-- Set to "Vim" without the script, it is the same as "Send to app".
+[`scripts/vim/seamtype.vim`](scripts/vim/seamtype.vim) in `~/.vim/plugin/`. Vim then tells Seamtype on
+every mode change, and outside insert mode (normal, visual, command line) keys go straight to vim
+instead of being held as a word, so `s`, `dd`, `ciw` and `:wq⏎` run key by key; words are decided
+only in insert mode. Inside vim, Esc always goes to vim, so no per-app setting is needed. Once vim
+quits, words are decided again at the shell.
+- The signal is `Seamtype --vim insert|normal|off --app <bundle id>`, sent on mode changes
+  (entering and leaving insert mode, start, quit, focus), not on keys. The bundle identifier is
+  `$__CFBundleIdentifier`, which macOS sets for every app, so nothing needs setting up per terminal
+  (Ghostty, Terminal, iTerm2, VS Code…), and the signal reaches only that app's text field.
+- Attached to tmux from a different terminal than the one that started its server, the bundle
+  identifiers differ and the signal is ignored.
 - If Vim doesn't see the terminal's focus changes, moving from its pane to a shell pane goes
   unnoticed; press ⇧Esc there to start deciding words again.
 
@@ -100,7 +103,7 @@ shell once vim quits.
 
 The input menu (menu bar, while Seamtype is selected) switches Japanese and live conversion,
 pauses Seamtype in the text field (like right ⌘),
-sets how strict Seamtype is in the app in front and whether Esc goes to the app (or to vim), or
+sets how strict Seamtype is in the app in front and whether Esc goes to the app, or
 turns it off there, undoes the last
 learned word, and opens the settings window: general switches, per-app behavior, and the
 learned words (forget one or all); the kanji candidate order resets under Japanese. Changes apply at once.
@@ -127,7 +130,7 @@ names and follows the default for the rest. No app is listed unless you list it:
 
 ```json
 { "*":                     { "escapeToApp": true },
-  "com.apple.Terminal":    { "conversionThreshold": 0.97, "vim": true },
+  "com.apple.Terminal":    { "conversionThreshold": 0.97 },
   "com.example.Game":      { "enabled": false } }
 ```
 
@@ -136,8 +139,6 @@ names and follows the default for the rest. No app is listed unless you list it:
   least this sure. `0.97` ("엄격하게", strict) keeps short shell commands from turning into
   Hangul in a terminal; `0.5` converts more Korean when you write prose.
 - `escapeToApp` (default false): Esc goes to the app and ⇧Esc switches (for editors).
-- `vim` (default false): on top of `escapeToApp`, follows the modes vim reports and passes keys
-  straight through outside insert mode (see **vim** above).
 
 After editing these files by hand, restart the input method: `pkill -x Seamtype`.
 

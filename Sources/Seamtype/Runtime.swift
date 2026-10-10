@@ -14,9 +14,10 @@ final class Runtime {
     private(set) var generation = 0
     /// The controller of the text field in front, which a vim mode change is about.
     weak var active: InputController?
-    /// The latest vim mode change. Neovim's FocusGained can arrive before macOS activates the
-    /// terminal's controller (and FocusLost after), so an activated controller catches up on it.
-    private(set) var lastVimSignal: VimSignal?
+    /// The latest vim mode change and the app vim runs in. Vim's FocusGained can arrive before
+    /// macOS activates the terminal's controller (and FocusLost after), so a controller
+    /// activated in that app catches up on it.
+    private(set) var lastVim: (signal: VimSignal, app: String?)?
 
     private init() {
         settings = Settings.load()
@@ -29,9 +30,10 @@ final class Runtime {
         }
         center.addObserver(forName: VimSignal.notification, object: nil, queue: .main) { note in
             guard let signal = (note.object as? String).flatMap(VimSignal.init(rawValue:)) else { return }
+            let app = note.userInfo?[VimSignal.appKey] as? String
             MainActor.assumeIsolated {
-                Runtime.shared.lastVimSignal = signal
-                Runtime.shared.active?.vimChanged(to: signal)
+                Runtime.shared.lastVim = (signal, app)
+                Runtime.shared.active?.vimChanged(to: signal, from: app)
             }
         }
     }
