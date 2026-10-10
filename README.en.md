@@ -77,21 +77,18 @@ back to Seamtype's own guess forgets it.
 default's) to "Send to app" in the per-app settings — the word goes in as shown and the app gets
 Esc. Use ⇧Esc to switch there.
 
-**vim:** in an app where you use vim (a terminal), set the Esc key to "Vim". It works like "Send to
-app", and in normal mode after Esc (or ⌃[) keys go straight to vim instead of being held as a
-word, so `dd`, `ciw` and `:wq⏎` run key by key. Entering insert mode with `i a o I A O s S C R gi` or
-`c` plus its motion (`ciw`, `cw`) starts deciding words again. Letters inside commands (`diw`, `fa`,
-`ri`), visual mode and the `:`/`/` command line don't count as insert mode. Quitting vim (`:wq⏎`,
-`ZZ`) starts deciding words again too, so you can type at the shell right away. Mappings that enter
-insert mode can't be seen; press ⇧Esc to start deciding words again.
-
-**Let vim say which mode it is in (recommended):** the above reads the keys to guess the mode,
-so it misses vim just started (normal mode before any Esc) and mappings. For neovim put
-[`scripts/vim/seamtype.lua`](scripts/vim/seamtype.lua) in `~/.config/nvim/plugin/`; for Vim (8.2 or
-later, `+job`) put [`scripts/vim/seamtype.vim`](scripts/vim/seamtype.vim) in `~/.vim/plugin/`. It
-tells Seamtype on every mode change (entering and leaving insert mode, start, quit, focus). Seamtype
-then stops guessing and decides words only while vim says it is in insert mode. The signal is
-`Seamtype --vim insert|normal|off`, sent on mode changes, not on keys.
+**vim:** in an app where you use vim (a terminal), set the Esc key to "Vim" and let vim report its
+modes: for neovim put [`scripts/vim/seamtype.lua`](scripts/vim/seamtype.lua) in
+`~/.config/nvim/plugin/`; for Vim (8.2 or later, `+job`) put
+[`scripts/vim/seamtype.vim`](scripts/vim/seamtype.vim) in `~/.vim/plugin/`. Outside insert mode
+(normal, visual, command line) keys go straight to vim instead of being held as a word, so `s`,
+`dd`, `ciw` and `:wq⏎` run key by key; words are decided only in insert mode, and again at the
+shell once vim quits.
+- The signal is `Seamtype --vim insert|normal|off`, sent on mode changes (entering and leaving
+  insert mode, start, quit, focus), not on keys.
+- Set to "Vim" without the script, it is the same as "Send to app".
+- If Vim doesn't see the terminal's focus changes, moving from its pane to a shell pane goes
+  unnoticed; press ⇧Esc there to start deciding words again.
 
 ## Settings
 
@@ -131,8 +128,8 @@ names and follows the default for the rest. No app is listed unless you list it:
   least this sure. `0.97` ("엄격하게", strict) keeps short shell commands from turning into
   Hangul in a terminal; `0.5` converts more Korean when you write prose.
 - `escapeToApp` (default false): Esc goes to the app and ⇧Esc switches (for editors).
-- `vim` (default false): on top of `escapeToApp`, vim's normal-mode commands after Esc go straight
-  through (see **vim** above).
+- `vim` (default false): on top of `escapeToApp`, follows the modes vim reports and passes keys
+  straight through outside insert mode (see **vim** above).
 
 After editing these files by hand, restart the input method: `pkill -x Seamtype`.
 

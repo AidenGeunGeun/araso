@@ -290,7 +290,7 @@ extension AppPolicy.EscapeKey {
         case .sendToApp:
             return L("Esc finishes the word and goes to the app. ⇧Esc changes the language.")
         case .vim:
-            return L("Like Send to app, and after Esc vim commands (dd, ciw, :wq) go straight through until you start inserting with i, a, o….")
+            return L("Like Send to app, and outside insert mode every key goes straight to vim. Needs scripts/vim/seamtype.lua (neovim) or seamtype.vim.")
         }
     }
 }

@@ -110,7 +110,6 @@ final class InputController: IMKInputController {
             switch event.charactersIgnoringModifiers?.lowercased() {
             case "k": return .katakana
             case "j": return .hiragana
-            case "[": return .leaveInsert // not ⌃C: at a shell prompt it would start vim's normal mode
             default: return .other
             }
         }
@@ -204,7 +203,7 @@ final class InputController: IMKInputController {
                     indent: 1, value: app)
                 add(L("Esc Goes to the App (⇧Esc switches)"), #selector(toggleEscapeToApp(_:)), on: policy.escapeGoesToApp,
                     indent: 1, value: app)
-                add(L("Vim: Commands Go Straight Through After Esc"), #selector(toggleVim(_:)), on: policy.vim,
+                add(L("Vim: Keys Go Straight to Vim Outside Insert Mode"), #selector(toggleVim(_:)), on: policy.vim,
                     indent: 1, value: app)
                 add(L("Turn Off in This App"), #selector(toggleDisabled(_:)), on: !policy.enabled, indent: 1, value: app)
                 if listed {

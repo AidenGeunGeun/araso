@@ -12,8 +12,8 @@ public struct AppPolicy: Codable, Equatable, Sendable {
     /// Esc belongs to the app (vim, editors): it commits the word and goes through, and
     /// ⇧Esc switches the word's language instead.
     public var escapeToApp: Bool
-    /// Esc is vim's: besides going to the app, it puts Seamtype in vim's normal mode, where keys
-    /// go straight through until one starts insert mode (`VimNormalMode`).
+    /// Esc is vim's: it goes to the app, and the modes vim reports (`Seamtype --vim`, from
+    /// scripts/vim) are followed: outside insert mode every key goes straight to vim.
     public var vim: Bool
 
     public init(enabled: Bool = true, conversionThreshold: Double = 0.5, escapeToApp: Bool = false, vim: Bool = false) {

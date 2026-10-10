@@ -73,20 +73,16 @@ kyouhagoogledekensaku ␣ ⏎           →  今日はgoogleで検索
 **Esc를 앱이 써야 할 때**(편집기의 팝업 닫기): 앱별 설정에서 그 앱(또는 기본값)의 Esc 키를
 "앱으로"로 바꾸세요. 단어는 보이는 대로 들어가고 앱이 Esc를 받습니다. 거기서는 ⇧Esc로 읽기를 바꿉니다.
 
-**vim:** vim을 쓰는 앱(터미널)에서는 Esc 키를 "Vim"으로 두세요. "앱으로"와 같고, 더해서 Esc(또는 ⌃[) 뒤의
-노멀 모드에서는 키를 붙잡지 않고 바로 vim에 보냅니다. `dd`, `ciw`, `:wq⏎` 같은 명령이 키마다
-바로 실행됩니다. `i a o I A O s S C R gi`나 `c` 뒤의 동작(`ciw`, `cw`)으로 입력 모드에 들어가면 다시
-단어를 판단합니다. `diw`, `fa`, `ri` 같은 명령 안의 글자, 비주얼 모드, `:`·`/` 명령줄은 입력 모드로
-치지 않습니다. `:wq⏎`, `ZZ`처럼 vim을 끝내도 다시 판단하니 셸로 돌아와서 그대로 치면 됩니다. 입력 모드로 들어가는 사용자
-매핑은 알아보지 못합니다. 그럴 때 ⇧Esc를 누르면 다시 단어를 판단합니다.
-
-**vim이 모드를 알려 주게 하기 (추천):** 위의 방식은 키를 보고 모드를 짐작합니다. 그래서 vim을 막 켰을
-때(Esc를 아직 안 누른 노멀 모드)나 매핑은 놓칩니다. neovim은
+**vim:** vim을 쓰는 앱(터미널)에서는 Esc 키를 "Vim"으로 두고, vim이 모드를 알려 주도록 neovim은
 [`scripts/vim/seamtype.lua`](scripts/vim/seamtype.lua)를 `~/.config/nvim/plugin/`에, Vim(8.2 이상, `+job`)은
-[`scripts/vim/seamtype.vim`](scripts/vim/seamtype.vim)을 `~/.vim/plugin/`에 넣으세요. 모드가 바뀔 때마다(입력
-모드 들어가기·나오기, 시작, 끝, 포커스) Seamtype에 알려 줍니다. 그때부터는 짐작하지 않고 vim이 입력 모드라고
-할 때만 단어를 판단합니다.
-신호는 `Seamtype --vim insert|normal|off`로 보내고, 키마다가 아니라 모드가 바뀔 때만 보냅니다.
+[`scripts/vim/seamtype.vim`](scripts/vim/seamtype.vim)을 `~/.vim/plugin/`에 넣으세요. 입력 모드 밖(노멀,
+비주얼, 명령줄)에서는 키를 붙잡지 않고 바로 vim에 보내서 `s`, `dd`, `ciw`, `:wq⏎` 같은 명령이 키마다 바로
+실행되고, 입력 모드에서만 단어를 판단합니다. vim을 끝내면 셸에서 다시 단어를 판단합니다.
+- 신호는 `Seamtype --vim insert|normal|off`이고, 키마다가 아니라 모드가 바뀔 때(입력 모드 들어가기·나오기,
+  시작, 끝, 포커스)만 보냅니다.
+- 스크립트 없이 "Vim"으로 두면 "앱으로"와 같습니다.
+- Vim이 터미널의 포커스 변화를 모르면 vim 패널에서 셸 패널로 옮겨도 알 수 없습니다. 그럴 때는 ⇧Esc를
+  누르면 다시 단어를 판단합니다.
 
 ## 설정
 
@@ -132,7 +128,8 @@ kyouhagoogledekensaku ␣ ⏎           →  今日はgoogleで検索
   ("엄격하게")은 터미널에서 짧은 셸 명령이 한글로 바뀌지 않게 하고, `0.5`는 글을 쓸 때 한국어를 더 많이
   바꿉니다.
 - `escapeToApp` (기본값 false): Esc는 앱으로 가고 ⇧Esc로 읽기를 바꿉니다(편집기용).
-- `vim` (기본값 false): `escapeToApp`에 더해, Esc 뒤 vim의 노멀 모드 명령을 바로 넘깁니다(위의 **vim** 참고).
+- `vim` (기본값 false): `escapeToApp`에 더해, vim이 알려 주는 모드를 따라 입력 모드 밖의 키를 바로
+  넘깁니다(위의 **vim** 참고).
 
 파일을 직접 고친 뒤에는 입력기를 다시 시작하세요: `pkill -x Seamtype`.
 

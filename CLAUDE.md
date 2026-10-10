@@ -55,11 +55,10 @@ tests use `FakeTextField`). It owns the preview and hysteresis, commits, Esc rea
 - They only fire when the keys spell neither clean Hangul nor clean romaji. The Korean → Japanese
   one also needs the whole token not to read as Japanese on its own. Without those guards, ordinary
   Japanese phrases split (`chanwokoroshita` → `초무をころした`).
-- In an app set to "Esc: Vim" (`AppPolicy.vim`), Esc puts the session in vim's normal mode:
-  `VimNormalMode` follows the keys (operators, text objects, `f`/`r` arguments, visual mode, the
-  command line) and every key passes through until one enters insert mode. With
-  `scripts/vim/seamtype.lua` (neovim) or `seamtype.vim` (Vim), the editor reports its modes (`Seamtype --vim`, a distributed
-  notification to `Runtime.active`) and only its InsertEnter ends normal mode.
+- In an app set to "Esc: Vim" (`AppPolicy.vim`), vim reports its modes through
+  `scripts/vim/seamtype.{lua,vim}` (`Seamtype --vim`, a distributed notification handed to
+  `Runtime.active`). Outside insert mode every key passes straight through; nothing guesses the
+  mode from the keys.
 - After a word ends with Space or punctuation, only the word is inserted and `handle` returns
   false, so the app types the key itself, as the system Korean IME does. Inserting "word + space"
   left a stray character in Ghostty. Test harnesses must insert the passed-on key themselves.
