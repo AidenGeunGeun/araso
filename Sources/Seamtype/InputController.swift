@@ -116,6 +116,7 @@ final class InputController: IMKInputController {
     /// Right ⌘ pressed and released on its own, within a moment: pause or resume Seamtype in
     /// this text field. The app still gets the ⌘ events, as a lone ⌘ does nothing.
     @MainActor private func rightCommandChanged(_ event: NSEvent, client: IMKTextInput) {
+        guard Runtime.shared.settings.rightCommandPause else { return }
         guard event.keyCode == KeyCode.rightCommand else {
             rightCommandDown = nil // another modifier joined in
             return
@@ -217,7 +218,8 @@ final class InputController: IMKInputController {
             add(L("Live Conversion"), #selector(toggleLiveConversion(_:)), on: runtime.settings.liveConversion,
                 enabled: runtime.settings.japanese)
 
-            add(L("Pause in This Text Field (right ⌘)"), #selector(togglePause(_:)), on: current?.session.paused ?? false)
+            add(runtime.settings.rightCommandPause ? L("Pause in This Text Field (right ⌘)") : L("Pause in This Text Field"),
+                #selector(togglePause(_:)), on: current?.session.paused ?? false)
 
             if let app = current?.session.app ?? client()?.bundleIdentifier() {
                 let policies = AppPolicies.load()

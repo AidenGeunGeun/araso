@@ -81,7 +81,7 @@ Esc. Use ⇧Esc to switch there.
 **Pause:** where every key is a command, like a terminal program that moves with `hjkl` (lazygit,
 htop), tap **right ⌘** on its own. The word in progress goes in, and in that text field keys go
 through as typed. Tap again, or move to another app or text field, to resume. The menu bar icon
-doesn't show it; the input menu has it checked.
+doesn't show it; the input menu has it checked. Turn the key off under General in the settings.
 
 **vim:** in an app where you use vim (a terminal), set the Esc key to "Vim" and let vim report its
 modes: for neovim put [`scripts/vim/seamtype.lua`](scripts/vim/seamtype.lua) in
@@ -119,6 +119,7 @@ default), which can also be edited by hand:
   language). Short readings only change into kanji (`と` stays `と`, `私` converts). The top
   candidate is right for about 4 in 5 short phrases and 2 in 3 whole sentences (below), so
   glance before Return. Conversion takes 8–21 ms a keystroke.
+- `rightCommandPause` (default on): a right ⌘ tap pauses Seamtype in the text field (see **Pause** above).
 
 Per-app behavior lives in `apps.json` next to it. `"*"` is your default for every app; an
 app (by bundle identifier, a key ending in `.` matches as a prefix) changes only the keys it

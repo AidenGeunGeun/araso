@@ -11,16 +11,20 @@ public struct Settings: Codable, Equatable, Sendable {
     /// With Japanese on: show (and commit) the top kanji candidate while typing, like macOS
     /// Live Conversion. Space opens the other candidates, Esc shows the kana.
     public var liveConversion: Bool = false
+    /// A right ⌘ tap pauses Seamtype in the text field (keys go through as typed).
+    public var rightCommandPause: Bool = true
 
-    public init(japanese: Bool = false, liveConversion: Bool = false) {
+    public init(japanese: Bool = false, liveConversion: Bool = false, rightCommandPause: Bool = true) {
         self.japanese = japanese
         self.liveConversion = liveConversion
+        self.rightCommandPause = rightCommandPause
     }
 
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         japanese = try c.decodeIfPresent(Bool.self, forKey: .japanese) ?? false
         liveConversion = try c.decodeIfPresent(Bool.self, forKey: .liveConversion) ?? false
+        rightCommandPause = try c.decodeIfPresent(Bool.self, forKey: .rightCommandPause) ?? true
     }
 
     public static var storeURL: URL? {

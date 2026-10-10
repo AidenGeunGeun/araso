@@ -14,6 +14,15 @@ import Testing
         }
     }
 
+    @Test func rightCommandPauseIsOnUnlessTurnedOff() throws {
+        let url = dir.appendingPathComponent("settings.json")
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        try Data(#"{ "japanese": true }"#.utf8).write(to: url)
+        #expect(Settings.load(from: url).rightCommandPause)
+        try Settings(rightCommandPause: false).save(to: url)
+        #expect(!Settings.load(from: url).rightCommandPause)
+    }
+
     @Test func settingsSaveKeepsUnknownKeys() throws {
         let url = dir.appendingPathComponent("settings.json")
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)

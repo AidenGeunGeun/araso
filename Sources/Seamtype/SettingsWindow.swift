@@ -466,6 +466,12 @@ private struct GeneralPane: View {
                 .padding(.leading, 18)
                 .disabled(!model.settings.japanese)
             }
+            Section(L("Pause")) {
+                Toggle(isOn: binding(\.rightCommandPause)) {
+                    Text(L("Right ⌘ pauses"))
+                    Text(L("Tap right ⌘ on its own and keys go through as typed in that text field, for hjkl in terminal programs. Tap again, or move to another field, to resume."))
+                }
+            }
             Section(L("When a word comes out wrong")) {
                 LabeledContent {
                     Text(verbatim: "Esc").foregroundStyle(.secondary)
