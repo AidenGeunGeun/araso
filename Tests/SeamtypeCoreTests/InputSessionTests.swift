@@ -149,6 +149,15 @@ final class FakeTextField: TextClient {
         #expect(field.text == "hello월드 github서버 ")
     }
 
+    /// Return on an underlined word only confirms it; with nothing underlined it is the app's.
+    @Test func returnConfirmsThenGoesToTheApp() {
+        let session = session()
+        type(session, "dkssud")
+        #expect(session.handle(.enter, client: field))
+        #expect(field.text == "안녕" && field.marked.location == NSNotFound)
+        #expect(!session.handle(.enter, client: field))
+    }
+
     /// A single letter with a particle (a variable name, an axis) is typed as such.
     @Test func typesSingleLetterWithParticle() {
         type(session(), "xdp ndl Xfmf Xeh ")

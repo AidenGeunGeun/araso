@@ -23,7 +23,7 @@ public protocol TextClient: AnyObject {
 ///   Space          English/Korean: commit, then a space. Japanese: convert to kanji
 ///   , . ? ! - '    inside a Japanese phrase they are part of it (、。？！ー); otherwise
 ///                  they commit the word, then type the key
-///   Return         Japanese: commit the kana as is. Otherwise commit and pass Return on
+///   Return         commit the word as shown, and nothing else (the next Return is the app's)
 ///   anything else  commit and let the app handle the key
 /// While converting to kanji (candidate window open):
 ///   Space / ↓      next candidate          ↑      previous candidate
@@ -263,9 +263,11 @@ public final class InputSession {
 
         case .enter:
             guard !keys.isEmpty else { return false }
-            let japanese = currentLanguage() == .japanese
+            // Like a Japanese IME, Return on an underlined word only confirms it; the next Return
+            // is the app's. (Passing it on wasn't dependable anyway: terminals and web chats drop
+            // a Return that ended a composition.)
             commit(client: client)
-            return japanese // a Japanese IME's Return only confirms the text
+            return true
 
         case .katakana, .hiragana:
             // Only for a Japanese phrase; otherwise ⌃K/⌃J stay the app's shortcuts.

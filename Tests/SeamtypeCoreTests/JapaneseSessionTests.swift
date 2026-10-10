@@ -104,8 +104,9 @@ import Testing
         type("kanji")
         #expect(field.text == "kanji")
         let consumed = session.handle(.enter, client: field)
-        #expect(!consumed)
+        #expect(consumed) // Return only confirms, whatever the language
         #expect(field.text == "kanji")
+        #expect(field.marked.location == NSNotFound)
     }
 
     @Test func punctuationStaysInsideJapanesePhrase() {

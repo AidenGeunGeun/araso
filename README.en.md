@@ -45,7 +45,7 @@ While a word is being typed it is underlined and shows the language Seamtype exp
 | **Space** | commit, then a space | **convert to kanji** (candidate window) |
 | `, . ? !` | commit, then the key | stay in the phrase as 、。？！ |
 | `-` | commit, then `-` | ー |
-| Return | commit, and the app gets Return | commit the kana only (no newline) |
+| Return | commit only (press again for a newline or to send) | commit the kana only (no newline) |
 | ⌃K / F7, ⌃J / F6 | (the app's shortcut) | katakana / hiragana (Space flips, Return commits) |
 | Tab, arrows, ⌘/⌃/⌥ | commit, the app gets the key | same |
 | **Right ⌘** (tapped on its own) | pause / resume Seamtype in this text field | same |
