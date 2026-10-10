@@ -208,13 +208,13 @@ final class InputController: IMKInputController {
         do {
             let runtime = Runtime.shared
             let menu = NSMenu()
-            // Otherwise AppKit enables every item whose action the target answers, and the
-            // settings that don't apply (word conversion off, Japanese off) stay clickable.
-            menu.autoenablesItems = false
+            /// `enabled: false` leaves the action out: the input menu shows a copy of these items and
+            /// enables every one with an action, so only an item without one comes out greyed.
             func add(_ title: String, _ action: Selector?, on: Bool = false, enabled: Bool = true,
                      indent: Int = 0, value: Any? = nil) {
                 // The input menu ignores indentationLevel, so the levels are em spaces in the title.
-                let item = NSMenuItem(title: String(repeating: "\u{2003}", count: indent) + title, action: action, keyEquivalent: "")
+                let item = NSMenuItem(title: String(repeating: "\u{2003}", count: indent) + title,
+                                      action: enabled ? action : nil, keyEquivalent: "")
                 item.target = self
                 item.state = on ? .on : .off
                 item.isEnabled = enabled && action != nil
@@ -233,6 +233,7 @@ final class InputController: IMKInputController {
                 let listed = policies.overrides[app] != nil
                 add(listed ? L("%@ — App Settings", AppName.of(app)) : L("%@ — Default Settings", AppName.of(app)), nil)
                 add(L("Convert Words"), #selector(toggleDisabled(_:)), on: policy.enabled, indent: 1, value: app)
+                // Greyed while words aren't converted: they only matter while they are.
                 add(L("Converting to Hangul: Normal"), #selector(setNormal(_:)),
                     on: policy.conversionThreshold < AppPolicy.strictThreshold, enabled: policy.enabled, indent: 2, value: app)
                 add(L("Converting to Hangul: Strict"), #selector(setStrict(_:)),
