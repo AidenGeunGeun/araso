@@ -78,7 +78,7 @@ func runSettingsApp(tab: SettingsTab) -> Never {
     let window = NSWindow(contentViewController: NSHostingController(rootView: SettingsView(model: model)))
     window.title = L("Seamtype Settings")
     window.styleMask = [.titled, .closable, .miniaturizable, .fullSizeContentView]
-    window.setContentSize(NSSize(width: 780, height: 580))
+    window.setContentSize(NSSize(width: 780, height: 640))
     window.center()
     let delegate = SettingsAppDelegate()
     app.delegate = delegate
@@ -403,7 +403,7 @@ struct SettingsView: View {
             }
             .navigationTitle(model.tab.title)
         }
-        .frame(width: 780, height: 580)
+        .frame(width: 780, height: 640)
     }
 }
 
@@ -452,16 +452,6 @@ private struct GeneralPane: View {
                 .padding(.leading, 18)
                 .disabled(!model.settings.japanese)
             }
-            Section(L("Keys")) {
-                Toggle(isOn: binding(\.returnConfirmsOnly)) {
-                    Text(L("Return only confirms"))
-                    Text(L("Return on an underlined word confirms it, like a Japanese input method; press it again for a new line or to send. Off, the app gets that Return too."))
-                }
-                Toggle(isOn: binding(\.rightCommandPause)) {
-                    Text(L("Right ⌘ pauses"))
-                    Text(L("Tap right ⌘ on its own and keys go through as typed in that text field, for hjkl in terminal programs. Tap again, or move to another field, to resume."))
-                }
-            }
             Section(L("When a word comes out wrong")) {
                 LabeledContent {
                     Text(verbatim: "Esc").foregroundStyle(.secondary)
@@ -474,6 +464,16 @@ private struct GeneralPane: View {
                 } label: {
                     Text(L("Remembering"))
                     Text(L("Correct the same word the same way twice and Seamtype keeps it."))
+                }
+            }
+            Section(L("Keys")) {
+                Toggle(isOn: binding(\.returnConfirmsOnly)) {
+                    Text(L("Return only confirms"))
+                    Text(L("Return on an underlined English or Korean word confirms it; press it again for a new line or to send. Off, the app gets that Return too. Japanese is always only confirmed."))
+                }
+                Toggle(isOn: binding(\.rightCommandPause)) {
+                    Text(L("Right ⌘ pauses"))
+                    Text(L("Tap right ⌘ on its own and keys go through as typed in that text field, for hjkl in terminal programs. Tap again, or move to another field, to resume."))
                 }
             }
         }
@@ -710,14 +710,17 @@ private struct LearningPane: View {
             Text(showPending ? L("Correct one of these the same way once more and Seamtype keeps it.")
                              : L("Seamtype writes these keys this way. Forget one and it decides again."))
                 .font(.callout).foregroundStyle(.secondary)
-            List {
-                ForEach(words) { WordRow(word: $0, model: model) }
-                if words.isEmpty {
-                    Text(search.isEmpty ? L("Nothing yet.") : L("No matches."))
-                        .foregroundStyle(.secondary)
+            if words.isEmpty {
+                EmptyList(symbol: search.isEmpty ? "text.book.closed" : "magnifyingglass",
+                          title: search.isEmpty ? (showPending ? L("No words corrected once") : L("No remembered words yet"))
+                                                : L("No matches"),
+                          detail: search.isEmpty ? L("Press Esc on a word that came out wrong; correct it the same way twice and it's remembered here.") : nil)
+            } else {
+                List {
+                    ForEach(words) { WordRow(word: $0, model: model) }
                 }
+                .listStyle(.inset(alternatesRowBackgrounds: true))
             }
-            .listStyle(.inset(alternatesRowBackgrounds: true))
             HStack {
                 Spacer()
                 Button(L("Forget All…"), role: .destructive) { confirmForgetAll = true }
@@ -730,6 +733,26 @@ private struct LearningPane: View {
         } message: {
             Text(L("Words corrected once are forgotten too. This can't be undone."))
         }
+    }
+}
+
+/// In place of an empty list: what would be there, and how it fills up.
+private struct EmptyList: View {
+    let symbol: String
+    let title: String
+    let detail: String?
+
+    var body: some View {
+        VStack(spacing: 8) {
+            Image(systemName: symbol).font(.system(size: 30)).foregroundStyle(.tertiary)
+            Text(title).font(.headline).foregroundStyle(.secondary)
+            if let detail {
+                Text(detail).font(.callout).foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center).frame(maxWidth: 360)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(.quaternary.opacity(0.3), in: RoundedRectangle(cornerRadius: 8))
     }
 }
 

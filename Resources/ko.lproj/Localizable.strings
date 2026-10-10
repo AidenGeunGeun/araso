@@ -33,7 +33,6 @@
 "Kanji you picked before won't come first anymore. Remembered words stay." = "전에 고른 한자가 더는 앞에 나오지 않습니다. 기억한 단어는 그대로입니다.";
 "When a word comes out wrong" = "잘못 바뀌었을 때";
 "Switch its language" = "다른 언어로 바꾸기";
-"While typing, or right after the word." = "치는 중이나 확정 직후에.";
 "While typing, or right after the word. ⇧Esc in apps where Esc goes to the app." = "치는 중이나 확정 직후에. Esc를 앱으로 보내는 앱에서는 ⇧Esc.";
 "Remembering" = "기억하기";
 "Correct the same word the same way twice and Seamtype keeps it." = "같은 단어를 같은 쪽으로 두 번 고치면 다음부터 그대로 씁니다.";
@@ -72,8 +71,6 @@
 "Search keys or words" = "키나 단어로 찾기";
 "Seamtype writes these keys this way. Forget one and it decides again." = "이 키는 이렇게 씁니다. 잊으면 그 단어는 다시 Seamtype이 판단합니다.";
 "Correct one of these the same way once more and Seamtype keeps it." = "같은 쪽으로 한 번 더 고치면 기억합니다.";
-"Nothing yet." = "아직 없음.";
-"No matches." = "찾는 단어가 없음.";
 "Forget All…" = "모두 잊기…";
 "Forget All" = "모두 잊기";
 "Forget every remembered word?" = "기억한 단어를 모두 잊을까요?";
@@ -96,20 +93,20 @@
 /* 입력 메뉴 */
 "Japanese Input" = "일본어 입력";
 "Live Conversion" = "라이브 변환";
+"%@ — App Settings" = "%@ — 앱별 설정";
+"%@ — Default Settings" = "%@ — 기본 설정";
+"Convert Words" = "단어 변환";
+"Converting to Hangul: Normal" = "한글로 바꾸는 기준: 보통";
+"Converting to Hangul: Strict" = "한글로 바꾸는 기준: 엄격하게";
+"Esc Key: Send to App (⇧Esc switches)" = "Esc 키: 앱으로 (⇧Esc로 언어 바꾸기)";
+"Use Default Settings in This App" = "이 앱의 앱별 설정 지우기";
 "Pause in This Text Field (right ⌘)" = "이 입력창에서 일시정지 (오른쪽 ⌘)";
 "Pause in This Text Field" = "이 입력창에서 일시정지";
 "Keys" = "키";
 "Return only confirms" = "Return은 확정만";
-"Return on an underlined word confirms it, like a Japanese input method; press it again for a new line or to send. Off, the app gets that Return too." = "밑줄 친 단어에서 누른 Return은 일본어 입력기처럼 확정만 합니다. 줄바꿈이나 전송은 한 번 더 누르세요. 끄면 그 Return도 앱에 갑니다.";
+"Return on an underlined English or Korean word confirms it; press it again for a new line or to send. Off, the app gets that Return too. Japanese is always only confirmed." = "밑줄 친 영어·한국어 단어에서 누른 Return은 확정만 합니다. 줄바꿈이나 전송은 한 번 더 누르세요. 끄면 그 Return도 앱에 갑니다. 일본어는 항상 확정만 합니다.";
 "Right ⌘ pauses" = "오른쪽 ⌘로 일시정지";
 "Tap right ⌘ on its own and keys go through as typed in that text field, for hjkl in terminal programs. Tap again, or move to another field, to resume." = "오른쪽 ⌘만 눌렀다 떼면 그 입력창에서는 키가 친 그대로 갑니다. 터미널 프로그램의 hjkl 같은 곳에 씁니다. 한 번 더 누르거나 다른 입력창으로 가면 다시 켜집니다.";
-"In %@ (default)" = "%@에서 (기본 설정)";
-"In %@ (app settings)" = "%@에서 (앱별 설정)";
-"Strict — keeps commands intact" = "엄격하게 — 명령어를 지킴";
-"Normal — for writing Korean" = "보통 — 한글 문장 위주";
-"Esc Goes to the App (⇧Esc switches)" = "Esc는 앱으로 (⇧Esc로 전환)";
-"Turn Off in This App" = "이 앱에서 끄기";
-"Remove App Settings — Use Default" = "앱별 설정 빼기 — 기본 설정 따르기";
 "Undo Last Learned (%@)" = "마지막 학습 취소 (%@)";
 "Remembered Words…" = "기억한 단어…";
 "Seamtype Settings…" = "Seamtype 설정…";
@@ -124,3 +121,10 @@
 "How it was decided" = "판정 내용";
 "Type a word above to see its scores." = "위에 단어를 치면 언어별 점수가 보입니다.";
 "After a %@ word" = "앞 단어: %@";
+
+/* Learning, empty */
+"No words corrected once" = "한 번 고친 단어가 없습니다";
+"No remembered words yet" = "아직 기억한 단어가 없습니다";
+"No matches" = "찾는 단어가 없습니다";
+"Press Esc on a word that came out wrong; correct it the same way twice and it's remembered here." = "잘못 바뀐 단어에서 Esc를 누르세요. 같은 쪽으로 두 번 고치면 여기에 기억됩니다.";
+"Type here on the English layout, e.g. dkssud hello" = "여기에 영문 자판으로 쳐 보세요. 예: dkssud hello";

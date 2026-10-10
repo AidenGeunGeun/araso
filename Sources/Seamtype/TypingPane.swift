@@ -50,6 +50,13 @@ struct TypingPane: View {
                     .frame(minHeight: 96)
                     .focused($focused)
                     .scrollContentBackground(.hidden)
+                    .overlay(alignment: .topLeading) {
+                        if text.isEmpty {
+                            Text(L("Type here on the English layout, e.g. dkssud hello"))
+                                .font(.system(size: 15)).foregroundStyle(.tertiary)
+                                .padding(.leading, 5).allowsHitTesting(false)
+                        }
+                    }
                 HStack {
                     Text(L("Esc switches the word's reading; right after a word, Esc changes that word."))
                         .font(.caption).foregroundStyle(.secondary)

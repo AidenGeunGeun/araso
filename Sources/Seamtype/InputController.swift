@@ -218,30 +218,31 @@ final class InputController: IMKInputController {
                 item.representedObject = value
                 menu.addItem(item)
             }
-            add(L("Japanese Input"), #selector(toggleJapanese(_:)), on: runtime.settings.japanese)
-            add(L("Live Conversion"), #selector(toggleLiveConversion(_:)), on: runtime.settings.liveConversion,
-                enabled: runtime.settings.japanese)
-
-            add(runtime.settings.rightCommandPause ? L("Pause in This Text Field (right ⌘)") : L("Pause in This Text Field"),
-                #selector(togglePause(_:)), on: current?.session.paused ?? false)
-
+            // The app in front first: what changes how typing works right here. The names are the
+            // settings window's, so a choice reads the same in both.
             if let app = current?.session.app ?? client()?.bundleIdentifier() {
                 let policies = AppPolicies.load()
                 let policy = policies.policy(for: app)
                 let listed = policies.overrides[app] != nil
-                menu.addItem(.separator())
-                add(listed ? L("In %@ (app settings)", AppName.of(app)) : L("In %@ (default)", AppName.of(app)), nil)
-                add(L("Strict — keeps commands intact"), #selector(setStrict(_:)), on: policy.conversionThreshold >= 0.9,
-                    indent: 1, value: app)
-                add(L("Normal — for writing Korean"), #selector(setNormal(_:)), on: policy.conversionThreshold < 0.9,
-                    indent: 1, value: app)
-                add(L("Esc Goes to the App (⇧Esc switches)"), #selector(toggleEscapeToApp(_:)), on: policy.escapeToApp,
-                    indent: 1, value: app)
-                add(L("Turn Off in This App"), #selector(toggleDisabled(_:)), on: !policy.enabled, indent: 1, value: app)
+                add(listed ? L("%@ — App Settings", AppName.of(app)) : L("%@ — Default Settings", AppName.of(app)), nil)
+                add(runtime.settings.rightCommandPause ? L("Pause in This Text Field (right ⌘)") : L("Pause in This Text Field"),
+                    #selector(togglePause(_:)), on: current?.session.paused ?? false, indent: 1)
+                add(L("Convert Words"), #selector(toggleDisabled(_:)), on: policy.enabled, indent: 1, value: app)
+                add(L("Converting to Hangul: Normal"), #selector(setNormal(_:)),
+                    on: policy.conversionThreshold < AppPolicy.strictThreshold, enabled: policy.enabled, indent: 1, value: app)
+                add(L("Converting to Hangul: Strict"), #selector(setStrict(_:)),
+                    on: policy.conversionThreshold >= AppPolicy.strictThreshold, enabled: policy.enabled, indent: 1, value: app)
+                add(L("Esc Key: Send to App (⇧Esc switches)"), #selector(toggleEscapeToApp(_:)), on: policy.escapeToApp,
+                    enabled: policy.enabled, indent: 1, value: app)
                 if listed {
-                    add(L("Remove App Settings — Use Default"), #selector(removeAppEntry(_:)), indent: 1, value: app)
+                    add(L("Use Default Settings in This App"), #selector(removeAppEntry(_:)), indent: 1, value: app)
                 }
+                menu.addItem(.separator())
             }
+
+            add(L("Japanese Input"), #selector(toggleJapanese(_:)), on: runtime.settings.japanese)
+            add(L("Live Conversion"), #selector(toggleLiveConversion(_:)), on: runtime.settings.liveConversion,
+                enabled: runtime.settings.japanese, indent: 1)
 
             menu.addItem(.separator())
             if let keys = runtime.engine.lastLearned {
