@@ -23,7 +23,8 @@ public protocol TextClient: AnyObject {
 ///   Space          English/Korean: commit, then a space. Japanese: convert to kanji
 ///   , . ? ! - '    inside a Japanese phrase they are part of it (、。？！ー); otherwise
 ///                  they commit the word, then type the key
-///   Return         commit the word as shown, and nothing else (the next Return is the app's)
+///   Return         commit the word as shown, and nothing else (the next Return is the app's);
+///                  with `returnConfirmsOnly` off the app gets it too, except after Japanese
 ///   anything else  commit and let the app handle the key
 /// While converting to kanji (candidate window open):
 ///   Space / ↓      next candidate          ↑      previous candidate
@@ -120,17 +121,21 @@ public final class InputSession {
     /// Live conversion: a Japanese phrase is shown as its top kanji candidate while it is typed,
     /// and committed that way.
     public let liveConversion: Bool
+    /// Return on an underlined word only confirms it (`Settings.returnConfirmsOnly`).
+    public let returnConfirmsOnly: Bool
     /// Esc showed the current phrase's kana instead (the next Esc switches language as usual).
     private var liveSuppressed = false
     private var liveCache: (kana: String, candidate: ConversionCandidate?)?
 
     public init(engine: LearningEngine, policies: AppPolicies = AppPolicies(),
-                converter: JapaneseConverter? = nil, japaneseEnabled: Bool = false, liveConversion: Bool = false) {
+                converter: JapaneseConverter? = nil, japaneseEnabled: Bool = false, liveConversion: Bool = false,
+                returnConfirmsOnly: Bool = true) {
         self.engine = engine
         self.policies = policies
         self.converter = converter
         self.japaneseEnabled = japaneseEnabled
         self.liveConversion = liveConversion
+        self.returnConfirmsOnly = returnConfirmsOnly
         if japaneseEnabled, let model = JapaneseModel.shared {
             segmenter = JapaneseSegmenter(english: EnglishModel.shared, japanese: model)
         }
@@ -264,10 +269,11 @@ public final class InputSession {
         case .enter:
             guard !keys.isEmpty else { return false }
             // Like a Japanese IME, Return on an underlined word only confirms it; the next Return
-            // is the app's. (Passing it on wasn't dependable anyway: terminals and web chats drop
-            // a Return that ended a composition.)
+            // is the app's. Passed on (the setting off), terminals and web chats may still drop a
+            // Return that ended a composition. A Japanese phrase is only confirmed either way.
+            let japanese = currentLanguage() == .japanese
             commit(client: client)
-            return true
+            return returnConfirmsOnly || japanese
 
         case .katakana, .hiragana:
             // Only for a Japanese phrase; otherwise ⌃K/⌃J stay the app's shortcuts.

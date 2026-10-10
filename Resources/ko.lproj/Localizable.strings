@@ -98,7 +98,9 @@
 "Live Conversion" = "라이브 변환";
 "Pause in This Text Field (right ⌘)" = "이 입력창에서 일시정지 (오른쪽 ⌘)";
 "Pause in This Text Field" = "이 입력창에서 일시정지";
-"Pause" = "일시정지";
+"Keys" = "키";
+"Return only confirms" = "Return은 확정만";
+"Return on an underlined word confirms it, like a Japanese input method; press it again for a new line or to send. Off, the app gets that Return too." = "밑줄 친 단어에서 누른 Return은 일본어 입력기처럼 확정만 합니다. 줄바꿈이나 전송은 한 번 더 누르세요. 끄면 그 Return도 앱에 갑니다.";
 "Right ⌘ pauses" = "오른쪽 ⌘로 일시정지";
 "Tap right ⌘ on its own and keys go through as typed in that text field, for hjkl in terminal programs. Tap again, or move to another field, to resume." = "오른쪽 ⌘만 눌렀다 떼면 그 입력창에서는 키가 친 그대로 갑니다. 터미널 프로그램의 hjkl 같은 곳에 씁니다. 한 번 더 누르거나 다른 입력창으로 가면 다시 켜집니다.";
 "In %@ (default)" = "%@에서 (기본 설정)";

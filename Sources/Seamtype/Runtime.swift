@@ -49,7 +49,8 @@ final class Runtime {
     func makeSession() -> InputSession {
         InputSession(engine: engine, policies: AppPolicies.load(),
                      converter: settings.japanese ? converter : nil,
-                     japaneseEnabled: settings.japanese, liveConversion: settings.liveConversion)
+                     japaneseEnabled: settings.japanese, liveConversion: settings.liveConversion,
+                     returnConfirmsOnly: settings.returnConfirmsOnly)
     }
 
     /// Saves a settings change and applies it.

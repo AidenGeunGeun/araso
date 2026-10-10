@@ -21,6 +21,9 @@ import Testing
         #expect(Settings.load(from: url).rightCommandPause)
         try Settings(rightCommandPause: false).save(to: url)
         #expect(!Settings.load(from: url).rightCommandPause)
+        #expect(Settings.load(from: url).returnConfirmsOnly)
+        try Settings(returnConfirmsOnly: false).save(to: url)
+        #expect(!Settings.load(from: url).returnConfirmsOnly)
     }
 
     @Test func settingsSaveKeepsUnknownKeys() throws {

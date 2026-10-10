@@ -13,11 +13,16 @@ public struct Settings: Codable, Equatable, Sendable {
     public var liveConversion: Bool = false
     /// A right ⌘ tap pauses Seamtype in the text field (keys go through as typed).
     public var rightCommandPause: Bool = true
+    /// Return on an underlined word only confirms it, like a Japanese IME; off, the app gets the
+    /// Return too (a Japanese phrase is still only confirmed).
+    public var returnConfirmsOnly: Bool = true
 
-    public init(japanese: Bool = false, liveConversion: Bool = false, rightCommandPause: Bool = true) {
+    public init(japanese: Bool = false, liveConversion: Bool = false, rightCommandPause: Bool = true,
+                returnConfirmsOnly: Bool = true) {
         self.japanese = japanese
         self.liveConversion = liveConversion
         self.rightCommandPause = rightCommandPause
+        self.returnConfirmsOnly = returnConfirmsOnly
     }
 
     public init(from decoder: Decoder) throws {
@@ -25,6 +30,7 @@ public struct Settings: Codable, Equatable, Sendable {
         japanese = try c.decodeIfPresent(Bool.self, forKey: .japanese) ?? false
         liveConversion = try c.decodeIfPresent(Bool.self, forKey: .liveConversion) ?? false
         rightCommandPause = try c.decodeIfPresent(Bool.self, forKey: .rightCommandPause) ?? true
+        returnConfirmsOnly = try c.decodeIfPresent(Bool.self, forKey: .returnConfirmsOnly) ?? true
     }
 
     public static var storeURL: URL? {

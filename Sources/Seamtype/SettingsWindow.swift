@@ -452,7 +452,11 @@ private struct GeneralPane: View {
                 .padding(.leading, 18)
                 .disabled(!model.settings.japanese)
             }
-            Section(L("Pause")) {
+            Section(L("Keys")) {
+                Toggle(isOn: binding(\.returnConfirmsOnly)) {
+                    Text(L("Return only confirms"))
+                    Text(L("Return on an underlined word confirms it, like a Japanese input method; press it again for a new line or to send. Off, the app gets that Return too."))
+                }
                 Toggle(isOn: binding(\.rightCommandPause)) {
                     Text(L("Right ⌘ pauses"))
                     Text(L("Tap right ⌘ on its own and keys go through as typed in that text field, for hjkl in terminal programs. Tap again, or move to another field, to resume."))

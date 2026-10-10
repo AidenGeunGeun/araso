@@ -45,7 +45,7 @@ While a word is being typed it is underlined and shows the language Seamtype exp
 | **Space** | commit, then a space | **convert to kanji** (candidate window) |
 | `, . ? !` | commit, then the key | stay in the phrase as 、。？！ |
 | `-` | commit, then `-` | ー |
-| Return | commit only (press again for a newline or to send) | commit the kana only (no newline) |
+| Return | commit only (press again for a newline or to send; a setting) | commit the kana only (no newline) |
 | ⌃K / F7, ⌃J / F6 | (the app's shortcut) | katakana / hiragana (Space flips, Return commits) |
 | Tab, arrows, ⌘/⌃/⌥ | commit, the app gets the key | same |
 | **Right ⌘** (tapped on its own) | pause / resume Seamtype in this text field | same |
@@ -122,6 +122,8 @@ default), which can also be edited by hand:
   language). Short readings only change into kanji (`と` stays `と`, `私` converts). The top
   candidate is right for about 4 in 5 short phrases and 2 in 3 whole sentences (below), so
   glance before Return. Conversion takes 8–21 ms a keystroke.
+- `returnConfirmsOnly` (default on): Return on an underlined word only confirms it. Off, it
+  confirms and the app gets the Return too (a Japanese phrase is still only confirmed).
 - `rightCommandPause` (default on): a right ⌘ tap pauses Seamtype in the text field (see **Pause** above).
 
 Per-app behavior lives in `apps.json` next to it. `"*"` is your default for every app; an

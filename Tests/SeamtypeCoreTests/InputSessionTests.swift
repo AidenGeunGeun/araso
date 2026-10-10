@@ -158,6 +158,15 @@ final class FakeTextField: TextClient {
         #expect(!session.handle(.enter, client: field))
     }
 
+    /// With the setting off, Return confirms the word and the app gets it too.
+    @Test func returnGoesOnWhenItDoesntOnlyConfirm() {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("seamtype-return-\(UUID().uuidString).json")
+        let session = InputSession(engine: LearningEngine(base: sharedEngine, storeURL: url), returnConfirmsOnly: false)
+        type(session, "dkssud")
+        #expect(!session.handle(.enter, client: field))
+        #expect(field.text == "안녕" && field.marked.location == NSNotFound)
+    }
+
     /// A single letter with a particle (a variable name, an axis) is typed as such.
     @Test func typesSingleLetterWithParticle() {
         type(session(), "xdp ndl Xfmf Xeh ")
