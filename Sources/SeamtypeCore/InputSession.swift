@@ -113,6 +113,9 @@ public final class InputSession {
     /// Vim is in normal mode (Esc went to it in an app set to "Esc: Vim"): keys go straight
     /// through until one starts insert mode.
     private var vimMode: VimNormalMode?
+    /// Neovim reports its modes here (`vimChanged`), so only its InsertEnter ends normal mode:
+    /// the key-reading guess would miss mappings, and vim started in normal mode unseen.
+    private var vimReportsModes = false
     /// Language of the current preview, so in-phrase symbols know where they belong.
     private var previewLanguage: Language?
     /// The last key passed to the app was a digit (so "." there is a decimal point).
@@ -144,6 +147,26 @@ public final class InputSession {
         previousLanguage = nil
         // Coming back to the same terminal leaves vim in whatever mode it was.
         if !policy.vim { vimMode = nil }
+    }
+
+    /// Neovim's mode, from `Seamtype --vim` (in an app set to "Esc: Vim"; ignored elsewhere).
+    public func vimChanged(to signal: VimSignal, client: TextClient?) {
+        guard policy.vim else { return }
+        switch signal {
+        case .insert:
+            vimReportsModes = true
+            vimMode = nil
+        case .normal:
+            vimReportsModes = true
+            guard vimMode == nil else { return } // already following it (Esc came first)
+            commit(client: client)
+            previousLanguage = nil
+            vimMode = VimNormalMode()
+        case .off:
+            // Back to a shell: nothing reports modes until the next vim starts.
+            vimReportsModes = false
+            vimMode = nil
+        }
     }
 
     /// Whether keys currently go straight to vim (normal, visual or command-line mode).
@@ -279,9 +302,9 @@ public final class InputSession {
     private func passToVim(_ key: Key) -> Bool {
         switch key {
         case .letter(let ch), .printable(let ch):
-            if vimMode?.feed(ch) == true { vimMode = nil }
+            if vimMode?.feed(ch) == true, !vimReportsModes { vimMode = nil }
         case .enter:
-            if vimMode?.enter() == true { vimMode = nil }
+            if vimMode?.enter() == true, !vimReportsModes { vimMode = nil }
         case .escape, .leaveInsert:
             vimMode?.escape()
         case .delete:
@@ -289,6 +312,7 @@ public final class InputSession {
         case .cycle:
             // ⇧Esc: the way out when Seamtype got vim's mode wrong (a mapping that inserts).
             vimMode = nil
+            vimReportsModes = false
             return true
         default:
             break // arrows, shortcuts: vim's, and they start no insert

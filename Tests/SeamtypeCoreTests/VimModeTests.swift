@@ -160,6 +160,43 @@ import Testing
         #expect(field.text == "안녕 ")
     }
 
+    @Test func neovimStartingInNormalModeIsPassedThrough() {
+        session.vimChanged(to: .normal, client: field) // VimEnter, before any Esc
+        #expect(type("sdd") == "sdd")
+    }
+
+    @Test func onlyNeovimsInsertEnterStartsDecidingWords() {
+        session.vimChanged(to: .normal, client: field)
+        // A mapping (<space>i) that Seamtype would read as insert mode: vim says nothing, so keys
+        // keep going through.
+        #expect(type(" ijj") == " ijj")
+        #expect(type("o") == "o")
+        session.vimChanged(to: .insert, client: field)
+        type("dkssud ")
+        #expect(field.text.hasSuffix("안녕 "))
+    }
+
+    @Test func neovimInsertLeaveAfterEscKeepsFollowing() {
+        session.vimChanged(to: .insert, client: field)
+        type("dkssud⎋")
+        session.vimChanged(to: .normal, client: field) // InsertLeave arrives after the Esc
+        #expect(type("dd") == "dd")
+    }
+
+    @Test func leavingNeovimGivesTheShellWordsBack() {
+        session.vimChanged(to: .normal, client: field)
+        #expect(type(":wq⏎") == ":wq⏎")
+        session.vimChanged(to: .off, client: field) // VimLeavePre
+        type("dkssud ")
+        #expect(field.text.hasSuffix("안녕 "))
+    }
+
+    @Test func modesAreIgnoredWhereEscIsntVims() {
+        session.activate(app: "test.editor")
+        session.vimChanged(to: .normal, client: field)
+        #expect(type("dkssud") == "")
+    }
+
     @Test func controlBracketStartsNormalModeToo() {
         type("dkssud^")
         #expect(field.text == "안녕")

@@ -45,10 +45,18 @@ final class InputController: IMKInputController {
         client?.overrideKeyboard(withKeyboardNamed: "com.apple.keylayout.US")
         let app = client?.bundleIdentifier()
         MainActor.assumeIsolated {
+            Runtime.shared.active = self
             session.activate(app: app)
+            if let signal = Runtime.shared.lastVimSignal { vimChanged(to: signal) }
             let policy = session.policy
             log.info("activate \(app ?? "?", privacy: .public) enabled=\(policy.enabled) threshold=\(policy.conversionThreshold) escapeToApp=\(policy.escapeToApp) vim=\(policy.vim)")
         }
+    }
+
+    /// Neovim changed mode (`Seamtype --vim`); it is in the text field this controller serves.
+    @MainActor func vimChanged(to signal: VimSignal) {
+        session.vimChanged(to: signal, client: client().map { IMKClient($0 as IMKTextInput) })
+        log.debug("vim \(signal.rawValue, privacy: .public)")
     }
 
     override func deactivateServer(_ sender: Any!) {

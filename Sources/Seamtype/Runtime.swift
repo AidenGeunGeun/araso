@@ -12,6 +12,11 @@ final class Runtime {
     private(set) var engine: LearningEngine
     private(set) var converter: AzooKeyConverter?
     private(set) var generation = 0
+    /// The controller of the text field in front, which a vim mode change is about.
+    weak var active: InputController?
+    /// The latest vim mode change. Neovim's FocusGained can arrive before macOS activates the
+    /// terminal's controller (and FocusLost after), so an activated controller catches up on it.
+    private(set) var lastVimSignal: VimSignal?
 
     private init() {
         settings = Settings.load()
@@ -21,6 +26,13 @@ final class Runtime {
         center.addObserver(forName: SettingsNotice.changed, object: nil, queue: .main) { note in
             let kanjiReset = note.object as? String == SettingsNotice.kanjiReset
             MainActor.assumeIsolated { Runtime.shared.reloadFromDisk(kanjiReset: kanjiReset) }
+        }
+        center.addObserver(forName: VimSignal.notification, object: nil, queue: .main) { note in
+            guard let signal = (note.object as? String).flatMap(VimSignal.init(rawValue:)) else { return }
+            MainActor.assumeIsolated {
+                Runtime.shared.lastVimSignal = signal
+                Runtime.shared.active?.vimChanged(to: signal)
+            }
         }
     }
 

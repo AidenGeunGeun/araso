@@ -85,6 +85,13 @@ word, so `dd`, `ciw` and `:wq⏎` run key by key. Entering insert mode with `i a
 `ZZ`) starts deciding words again too, so you can type at the shell right away. Mappings that enter
 insert mode can't be seen; press ⇧Esc to start deciding words again.
 
+**Let neovim say which mode it is in (recommended):** the above reads the keys to guess the mode,
+so it misses vim just started (normal mode before any Esc) and mappings. Put
+[`scripts/vim/seamtype.lua`](scripts/vim/seamtype.lua) in `~/.config/nvim/plugin/` and neovim tells
+Seamtype on every mode change (entering and leaving insert mode, start, quit, focus). Seamtype then
+stops guessing and decides words only while neovim says it is in insert mode. The signal is
+`Seamtype --vim insert|normal|off`, sent on mode changes, not on keys.
+
 ## Settings
 
 The input menu (menu bar, while Seamtype is selected) switches Japanese and live conversion,

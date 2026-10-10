@@ -1,3 +1,6 @@
+import Foundation
+
+
 /// Follows vim's keys from normal mode until one starts insert mode, so that in an app set to
 /// "Esc: Vim" Seamtype passes normal-mode commands (`dd`, `ciw`, `:wq`) straight through instead
 /// of holding them as a word, and starts deciding words again once the user is typing text.
@@ -142,4 +145,17 @@ public struct VimNormalMode: Equatable, Sendable {
         }
         return false
     }
+}
+
+/// What neovim reports through `Seamtype --vim <mode>` on each mode change.
+public enum VimSignal: String, Sendable {
+    /// Insert (or replace) mode: words are decided.
+    case insert
+    /// Normal, visual or command-line mode: keys go straight to vim.
+    case normal
+    /// Vim quit, was suspended or lost focus: whatever is in front now isn't vim.
+    case off
+
+    /// The distributed notification carrying the mode as its object.
+    public static let notification = Notification.Name("com.aimdevlee.inputmethod.Seamtype.vimMode")
 }
