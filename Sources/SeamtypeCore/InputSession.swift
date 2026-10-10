@@ -109,6 +109,9 @@ public final class InputSession {
     private var lastCommit: Committed?
     /// Vim said it is outside insert mode (`vimChanged`): keys go straight through to it.
     private var inVim = false
+    /// The user paused Seamtype in this text field (a right ⌘ tap): keys go through as typed
+    /// until the next tap or another text field.
+    public private(set) var paused = false
     /// Language of the current preview, so in-phrase symbols know where they belong.
     private var previewLanguage: Language?
     /// The last key passed to the app was a digit (so "." there is a decimal point).
@@ -138,8 +141,16 @@ public final class InputSession {
         app = bundleIdentifier
         policy = policies.policy(for: bundleIdentifier)
         previousLanguage = nil
+        paused = false
         // Coming back to the same terminal leaves vim in whatever mode it was.
         if !policy.vim { inVim = false }
+    }
+
+    /// Pauses or resumes Seamtype in this text field; what was being typed goes in first.
+    public func togglePause(client: TextClient?) {
+        if !paused { commit(client: client) }
+        paused.toggle()
+        previousLanguage = nil
     }
 
     /// Vim's mode, from `Seamtype --vim` (in an app set to "Esc: Vim"; ignored elsewhere).
@@ -157,7 +168,7 @@ public final class InputSession {
 
     /// Returns true when the key was consumed.
     public func handle(_ key: Key, client: TextClient) -> Bool {
-        guard policy.enabled else { return false }
+        guard policy.enabled, !paused else { return false }
         if policy.vim, inVim {
             // Vim's normal mode: every key is a command. ⇧Esc is the way out if vim's last word
             // was lost (Vim not seeing the terminal's focus change): it only says "decide words".

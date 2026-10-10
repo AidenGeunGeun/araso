@@ -59,6 +59,8 @@ tests use `FakeTextField`). It owns the preview and hysteresis, commits, Esc rea
   `scripts/vim/seamtype.{lua,vim}` (`Seamtype --vim`, a distributed notification handed to
   `Runtime.active`). Outside insert mode every key passes straight through; nothing guesses the
   mode from the keys.
+- A right ⌘ tap (flagsChanged, in `InputController`) pauses the session until the next tap or
+  `activate`; there is no indicator, since the menu icon can't change.
 - After a word ends with Space or punctuation, only the word is inserted and `handle` returns
   false, so the app types the key itself, as the system Korean IME does. Inserting "word + space"
   left a stray character in Ghostty. Test harnesses must insert the passed-on key themselves.

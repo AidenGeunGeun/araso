@@ -12,6 +12,8 @@ private let log = Logger(subsystem: "com.aimdevlee.inputmethod.Seamtype", catego
 @objc(SeamtypeInputController)
 final class InputController: IMKInputController {
     private var current: (session: InputSession, generation: Int)?
+    /// When right ⌘ went down, while no other key has been pressed with it: a tap pauses.
+    private var rightCommandDown: Date?
 
     /// This client's session, rebuilt (after committing what was being typed) when a setting changed.
     @MainActor private var session: InputSession {
@@ -37,6 +39,7 @@ final class InputController: IMKInputController {
         static let up: UInt16 = 126
         static let f6: UInt16 = 97
         static let f7: UInt16 = 98
+        static let rightCommand: UInt16 = 54
     }
 
     override func activateServer(_ sender: Any!) {
@@ -82,14 +85,20 @@ final class InputController: IMKInputController {
     }
 
     override func recognizedEvents(_ sender: Any!) -> Int {
-        Int(NSEvent.EventTypeMask.keyDown.rawValue)
+        Int(NSEvent.EventTypeMask.keyDown.rawValue | NSEvent.EventTypeMask.flagsChanged.rawValue)
     }
 
     override func handle(_ event: NSEvent!, client sender: Any!) -> Bool {
-        guard let event, event.type == .keyDown, let input = sender as? IMKTextInput else {
+        guard let event, let input = sender as? IMKTextInput else { return false }
+        if event.type == .flagsChanged {
+            MainActor.assumeIsolated { rightCommandChanged(event, client: input) }
+            return false
+        }
+        guard event.type == .keyDown else {
             log.debug("handle: not a key event from a text client")
             return false
         }
+        rightCommandDown = nil // ⌘ with a key is a shortcut, not a tap
         return MainActor.assumeIsolated {
             let key = key(for: event)
             let handled = session.handle(key, client: IMKClient(input))
@@ -102,6 +111,23 @@ final class InputController: IMKInputController {
             log.debug("handle \(String(describing: key).prefix(while: { $0 != "(" }), privacy: .public) handled=\(handled) app=\(self.session.app ?? "?", privacy: .public)")
             return handled
         }
+    }
+
+    /// Right ⌘ pressed and released on its own, within a moment: pause or resume Seamtype in
+    /// this text field. The app still gets the ⌘ events, as a lone ⌘ does nothing.
+    @MainActor private func rightCommandChanged(_ event: NSEvent, client: IMKTextInput) {
+        guard event.keyCode == KeyCode.rightCommand else {
+            rightCommandDown = nil // another modifier joined in
+            return
+        }
+        if event.modifierFlags.contains(.command) {
+            rightCommandDown = Date()
+            return
+        }
+        guard let down = rightCommandDown, Date().timeIntervalSince(down) < 0.5 else { return }
+        rightCommandDown = nil
+        session.togglePause(client: IMKClient(client))
+        log.info("paused=\(self.session.paused) app=\(self.session.app ?? "?", privacy: .public)")
     }
 
     private func key(for event: NSEvent) -> InputSession.Key {
@@ -191,6 +217,8 @@ final class InputController: IMKInputController {
             add(L("Live Conversion"), #selector(toggleLiveConversion(_:)), on: runtime.settings.liveConversion,
                 enabled: runtime.settings.japanese)
 
+            add(L("Pause in This Text Field (right ⌘)"), #selector(togglePause(_:)), on: current?.session.paused ?? false)
+
             if let app = current?.session.app ?? client()?.bundleIdentifier() {
                 let policies = AppPolicies.load()
                 let policy = policies.policy(for: app)
@@ -260,6 +288,10 @@ final class InputController: IMKInputController {
     @objc func toggleVim(_ sender: Any?) {
         guard let app = appOf(sender) else { return }
         MainActor.assumeIsolated { Runtime.shared.updatePolicy(for: app) { $0.escapeKey = $0.vim ? .sendToApp : .vim } }
+    }
+
+    @objc func togglePause(_ sender: Any?) {
+        MainActor.assumeIsolated { session.togglePause(client: client().map { IMKClient($0 as IMKTextInput) }) }
     }
 
     @objc func toggleDisabled(_ sender: Any?) {

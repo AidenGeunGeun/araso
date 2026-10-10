@@ -48,6 +48,7 @@ While a word is being typed it is underlined and shows the language Seamtype exp
 | Return | commit, and the app gets Return | commit the kana only (no newline) |
 | ⌃K / F7, ⌃J / F6 | (the app's shortcut) | katakana / hiragana (Space flips, Return commits) |
 | Tab, arrows, ⌘/⌃/⌥ | commit, the app gets the key | same |
+| **Right ⌘** (tapped on its own) | pause / resume Seamtype in this text field | same |
 
 While converting (candidate window open):
 
@@ -77,6 +78,11 @@ back to Seamtype's own guess forgets it.
 default's) to "Send to app" in the per-app settings — the word goes in as shown and the app gets
 Esc. Use ⇧Esc to switch there.
 
+**Pause:** where every key is a command, like a terminal program that moves with `hjkl` (lazygit,
+htop), tap **right ⌘** on its own. The word in progress goes in, and in that text field keys go
+through as typed. Tap again, or move to another app or text field, to resume. The menu bar icon
+doesn't show it; the input menu has it checked.
+
 **vim:** in an app where you use vim (a terminal), set the Esc key to "Vim" and let vim report its
 modes: for neovim put [`scripts/vim/seamtype.lua`](scripts/vim/seamtype.lua) in
 `~/.config/nvim/plugin/`; for Vim (8.2 or later, `+job`) put
@@ -93,6 +99,7 @@ shell once vim quits.
 ## Settings
 
 The input menu (menu bar, while Seamtype is selected) switches Japanese and live conversion,
+pauses Seamtype in the text field (like right ⌘),
 sets how strict Seamtype is in the app in front and whether Esc goes to the app (or to vim), or
 turns it off there, undoes the last
 learned word, and opens the settings window: general switches, per-app behavior, and the

@@ -98,6 +98,7 @@
 /* 입력 메뉴 */
 "Japanese Input" = "일본어 입력";
 "Live Conversion" = "라이브 변환";
+"Pause in This Text Field (right ⌘)" = "이 입력창에서 일시정지 (오른쪽 ⌘)";
 "In %@ (default)" = "%@에서 (기본 설정)";
 "In %@ (app settings)" = "%@에서 (앱별 설정)";
 "Strict — keeps commands intact" = "엄격하게 — 명령어를 지킴";
