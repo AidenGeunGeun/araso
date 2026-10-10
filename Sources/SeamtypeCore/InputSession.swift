@@ -17,7 +17,8 @@ public protocol TextClient: AnyObject {
 /// While a word is being composed:
 ///   letters        extend it; the underlined preview shows the likely language
 ///   Esc            cycle it: english → english+particle (github에) → korean → japanese
-///                  (in terminals/editors Esc commits and goes to the app; ⇧Esc cycles)
+///                  (where the app's Esc is set to go to the app, or inside a vim that reports
+///                  its modes, Esc commits and goes to the app; ⇧Esc cycles)
 ///   ⇧Esc           cycle it, in every app
 ///   Delete         remove the last keystroke
 ///   Space          English/Korean: commit, then a space. Japanese: convert to kanji
@@ -33,7 +34,8 @@ public protocol TextClient: AnyObject {
 ///   A candidate that covers only the start of the reading commits that part and
 ///   continues converting the rest.
 /// Right after a word was committed with space/punctuation:
-///   Esc / ⇧Esc     cycle that committed word the same way (⇧Esc only in terminals/editors).
+///   Esc / ⇧Esc     cycle that committed word the same way (Esc where it switches languages,
+///                  ⇧Esc everywhere).
 ///                  The same correction made twice is learned for good.
 @MainActor
 public final class InputSession {
@@ -54,7 +56,7 @@ public final class InputSession {
         /// ⌃K / F7 and ⌃J / F6: the Japanese reading as katakana / hiragana.
         case katakana
         case hiragana
-        /// Tab, ←/→, shortcuts…: commit and let the app handle the key.
+        /// Tab, shortcuts…: commit and let the app handle the key.
         case other
     }
 

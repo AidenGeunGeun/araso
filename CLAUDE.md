@@ -38,29 +38,36 @@ is a thin IMK layer over it. `seamtype-cli` is for tuning and evaluation.
 
 **Decision chain** (built in `Runtime.makeEngine`): `LearningEngine` (lexicon.json: a correction
 made twice wins) → `SplittingEngine` (`MixedWord.swift`) → `HeuristicEngine`.
-- `SplittingEngine` handles English + Korean particle (`github에`), English + whole Korean word
-  (`hello월드`, using `Data/korean_vocabulary.txt`, which is only for this) and English + Japanese
-  particle (`githubで`).
+- `SplittingEngine` handles English + Korean particle (`github에`), a single letter + particle
+  (`xdp` → `x에`, not 도/나 after a lowercase letter), English + whole Korean word (`hello월드`,
+  using `Data/korean_vocabulary.txt`, which is only for this) and English + Japanese particle
+  (`githubで`). Its decisions have confidence 0.9, so an app set to Strict (0.97) keeps them as
+  English.
 - `HeuristicEngine` scores the keys per keystroke as English, Korean and Japanese, then nudges
   toward the previous word's language.
-- `render(_:as: .mixed)` takes the engine's own decision output, so a split exists only if the
-  engine produces it.
+- `render(_:as: .mixed)` uses the engine's split when the engine makes one, else the plain
+  particle split (what an Esc-forced mixed reading shows).
 
 **`InputSession`** is one state machine per text client, behind the `TextClient` protocol (the
 tests use `FakeTextField`). It owns the preview and hysteresis, commits, Esc reading cycling, the
 "flip the word just committed" window, kana-kanji conversion and live conversion.
-- Two splits happen here, not in the engine, because the Japanese half needs live conversion:
-  Korean → Japanese (`이력` + `rireki`) and Japanese → Korean (`rireki` + `를`, `kyouha` + `도시락`).
-  The Korean (or Japanese) part is committed mid-word and the rest keeps composing.
-- They only fire when the keys spell neither clean Hangul nor clean romaji. The Korean → Japanese
-  one also needs the whole token not to read as Japanese on its own. Without those guards, ordinary
-  Japanese phrases split (`chanwokoroshita` → `초무をころした`).
+- Some splits happen here, not in the engine, because the part after the split keeps composing
+  (the Japanese half needs conversion): Korean → English or Japanese (`오늘은` + `google에서`,
+  `이력` + `rireki`) and Japanese → Korean (`rireki` + `를`, `kyouha` + `도시락`). The front part
+  is committed mid-word (Japanese as kana, or the live candidate) and the rest keeps composing.
+- Korean → other fires only when the whole token reads as broken Hangul, and for Japanese also
+  not as Japanese on its own; Japanese → Korean only when the romaji has stray letters. Without
+  those guards, ordinary Japanese phrases split (`chanwokoroshita` → `초무をころした`).
+- Return on an underlined word only confirms it (`returnConfirmsOnly`, on by default); off, the
+  app gets the Return too, except after Japanese.
 - Vim reports its modes through `scripts/vim/seamtype.{lua,vim}` (`Seamtype --vim <mode> --app
-  $__CFBundleIdentifier`, a distributed notification). `Runtime` hands it to the active controller
-  only if vim runs in that app. Outside insert mode every key passes straight through, and while
+  $__CFBundleIdentifier`, a distributed notification). `Runtime` hands it to the active controller,
+  which takes it only if vim runs in its app (a signal without `--app`, only where Esc goes to the
+  app). Outside insert mode every key passes straight through, and while
   vim reports, Esc is vim's whatever the app's policy says; nothing guesses the mode from keys.
-- A right ⌘ tap (flagsChanged, in `InputController`) pauses the session until the next tap or
-  `activate`; there is no indicator, since the menu icon can't change.
+- A right ⌘ tap (flagsChanged, in `InputController`) pauses the session until the next tap,
+  `activate`, or a settings change (a fresh session); there is no indicator, since the menu icon
+  can't change.
 - After a word ends with Space or punctuation, only the word is inserted and `handle` returns
   false, so the app types the key itself, as the system Korean IME does. Inserting "word + space"
   left a stray character in Ghostty. Test harnesses must insert the passed-on key themselves.
@@ -107,7 +114,7 @@ runtime.
   `releases/latest/download/Seamtype.zip`. `SEAMTYPE_ZIP=build/release/Seamtype.zip sh scripts/get.sh`
   tries it locally. The pkg installs into `/Library/Input Methods` and is not relocatable; its
   postinstall runs `Seamtype --register` as the logged-in user (users have no Swift toolchain, so
-  registration can't use the scripts). The app is signed with the hardened runtime even ad hoc,
+  registration can't use the scripts). `release.sh` signs the app with the hardened runtime even ad hoc,
   and `build-app.sh` runs the self-test under Rosetta too for a universal build.
 - **Stale registrations:** extra copies of the app registered with LaunchServices (`build/`,
   the old `AutoIME.app`) can make macOS launch the wrong one. `build-app.sh` unregisters its copy.

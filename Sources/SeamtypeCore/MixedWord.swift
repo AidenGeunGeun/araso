@@ -64,9 +64,10 @@ extension DubeolsikLayout {
     }
 }
 
-/// Decides `mixed` when the keys end in a Korean particle and the front looks
-/// English, unless the whole token is itself a known English word or reads as
-/// ordinary Korean (every syllable is one people actually use).
+/// Decides `mixed` for English and Korean typed as one token: English + particle (github에),
+/// a single letter + particle (x에), English + Korean word (hello월드), and with Japanese on
+/// English + Japanese particle (githubで). Never when the whole token is a known English word or
+/// reads as ordinary Korean (every syllable is one people actually use).
 public final class SplittingEngine: DecisionEngine, @unchecked Sendable {
     public let base: DecisionEngine
     public let english: EnglishModel

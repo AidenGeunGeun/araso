@@ -38,8 +38,8 @@ final class Runtime {
         }
     }
 
-    /// Order of authority: words the user changed with Esc (twice), then English+particle
-    /// splitting (github에, githubで), then the heuristic.
+    /// Order of authority: words the user changed with Esc (twice), then mixed-word splitting
+    /// (github에, x에, hello월드, githubで), then the heuristic.
     private static func makeEngine(japanese: Bool) -> LearningEngine {
         let heuristic = HeuristicEngine(japanese: japanese ? JapaneseModel.shared : nil)
         return LearningEngine(base: SplittingEngine(base: heuristic, english: heuristic.english,

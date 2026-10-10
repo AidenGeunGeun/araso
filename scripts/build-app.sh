@@ -1,6 +1,7 @@
 #!/bin/zsh
 # Builds build/Seamtype.app from the SwiftPM product, with its data files in
-# Contents/Resources (kana model, AzooKey's Japanese dictionary), then checks the
+# Contents/Resources (the kana and text trigrams, Korean and English data, AzooKey's Japanese
+# dictionary, the menu icon, third-party notices), then checks the
 # bundle can actually load them with `Seamtype --selftest`.
 #
 #   scripts/build-app.sh                               this Mac's architecture

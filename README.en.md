@@ -45,7 +45,7 @@ While a word is being typed it is underlined and shows the language Seamtype exp
 | **Space** | commit, then a space | **convert to kanji** (candidate window) |
 | `, . ? !` | commit, then the key | stay in the phrase as 、。？！ |
 | `-` | commit, then `-` | ー |
-| Return | commit only (press again for a newline or to send; a setting) | commit the kana only (no newline) |
+| Return | commit only (press again for a newline or to send; a setting) | commit as shown, kana or live-converted kanji (no newline) |
 | ⌃K / F7, ⌃J / F6 | (the app's shortcut) | katakana / hiragana (Space flips, Return commits) |
 | Tab, arrows, ⌘/⌃/⌥ | commit, the app gets the key | same |
 | **Right ⌘** (tapped on its own) | pause / resume Seamtype in this text field | same |
@@ -80,7 +80,7 @@ Esc. Use ⇧Esc to switch there.
 
 **Pause:** where every key is a command, like a terminal program that moves with `hjkl` (lazygit,
 htop), tap **right ⌘** on its own. The word in progress goes in, and in that text field keys go
-through as typed. Tap again, or move to another app or text field, to resume. The menu bar icon
+through as typed. Tap again, move to another app or text field, or change a setting, to resume. The menu bar icon
 doesn't show it; the input menu has it checked. Turn the key off under General in the settings.
 
 **vim:** for neovim put [`scripts/vim/seamtype.lua`](scripts/vim/seamtype.lua) in
@@ -93,7 +93,8 @@ quits, words are decided again at the shell.
 - The signal is `Seamtype --vim insert|normal|off --app <bundle id>`, sent on mode changes
   (entering and leaving insert mode, start, quit, focus), not on keys. The bundle identifier is
   `$__CFBundleIdentifier`, which macOS sets for every app, so nothing needs setting up per terminal
-  (Ghostty, Terminal, iTerm2, VS Code…), and the signal reaches only that app's text field.
+  (Ghostty, Terminal, iTerm2, VS Code…), and the signal reaches only that app's text field. A
+  signal without `--app` is taken only where Esc goes to the app.
 - Attached to tmux from a different terminal than the one that started its server, the bundle
   identifiers differ and the signal is ignored.
 - If Vim doesn't see the terminal's focus changes, moving from its pane to a shell pane goes
@@ -101,12 +102,14 @@ quits, words are decided again at the shell.
 
 ## Settings
 
-The input menu (menu bar, while Seamtype is selected) switches Japanese and live conversion,
-pauses Seamtype in the text field (like right ⌘),
-sets how strict Seamtype is in the app in front and whether Esc goes to the app, or
-turns it off there, undoes the last
-learned word, and opens the settings window: general switches, per-app behavior, and the
-learned words (forget one or all); the kanji candidate order resets under Japanese. Changes apply at once.
+The input menu (menu bar, while Seamtype is selected) pauses Seamtype in the text field (like
+right ⌘); for the app in front, turns word conversion on or off and, under it, sets the conversion
+threshold (Normal/Strict) and whether Esc goes to the app (both greyed while conversion is off), or
+drops the app's settings; switches Japanese and live conversion; undoes the last learned word; and
+opens Try Typing, the remembered words and the settings window. The settings window has general
+switches, Try Typing (how each word was decided, with scores), per-app behavior, the learned words
+(forget one or all) and About; the kanji candidate order resets under Japanese. Changes apply at
+once.
 
 Both write `~/Library/Application Support/Seamtype/settings.json` (missing keys keep the
 default), which can also be edited by hand:
@@ -151,14 +154,19 @@ Locally, in this order — a keystroke's preview takes at most ~3 ms, a word's f
 
 1. **Your corrections** (made twice, see Learning) always win (`lexicon.json`).
 2. **Mixed words:** `githubdp` → `github에`, `UIrkxdmsrjs` → `UI같은건` when the front
-   looks English (or is typed in capitals) and the end is a Korean particle or ending (also a
-   single letter, as in a variable name: `xdp` → `x에`, though not `도`/`나` after a lowercase
-   letter, which are common English endings: `heh`, `tsk`);
-   `hellodnjfem` → `hello월드` for an English word and a Korean word that are both in the word
-   lists. With Japanese on: `githubde` → `githubで` for a known English word plus one case
-   particle, and Korean and Japanese typed together, `dlfurrireki` → `이력履歴`, `rirekifmf` →
-   `履歴를`, `kyouhaehtlfkrdms` → `今日は도시락은`, only when the keys break both as Hangul and as
-   romaji, so ordinary Japanese phrases stay whole.
+   looks English (or is typed in capitals) and the end is a Korean particle or ending. Also a
+   single letter, as in a variable name: `xdp` → `x에`, `Xfmf` → `X를`, though not `도`/`나`
+   after a lowercase letter, which are common English endings (`heh`, `tsk`; a capital gives
+   `X도`). `hellodnjfem` → `hello월드`, `githubtjqj` → `github서버` for a known English word (or a
+   name typed with capitals) and a Korean word from the word lists (or, when the whole token spells
+   nothing like English, any Hangul of common syllables). Korean then an English word,
+   `dhsmfdmsgoogledptj` → `오늘은google에서`: the Korean goes in and the rest keeps composing.
+   With Japanese on: `githubde` → `githubで` for a known English word plus one case particle, and
+   Korean and Japanese typed together, `dlfurrireki` → `이력りれき` (Space for `履歴`),
+   `rirekifmf` → `りれき를`, `kyouhaehtlfkrdms` → `きょうは도시락은` (the Japanese part is committed
+   on the spot, so with live conversion it goes in as `履歴를`, `今日は도시락은`), only when the
+   Korean side breaks, so ordinary Japanese phrases stay whole. In an app set to Strict, none of
+   these split and the typed letters stay.
 3. **Rules:** shift on a letter with no shifted jamo (`Hello`, `API`) is English.
 4. **Heuristic:** the keys are scored per keystroke as English (character trigrams, and a
    floor for words in the SCOWL list, by how common they are), Korean (2-set syllable
@@ -250,13 +258,13 @@ Resources: ~50 MB of memory (plus the ~35 MB Japanese dictionary when Japanese i
 ## Develop
 
 ```sh
-swift test                     # 102 tests: composers, engines, sessions, settings, end to end
+swift test                     # tests: composers, engines, sessions, settings, end to end
 scripts/typing-test/run.sh     # real key events into TextEdit through the installed Seamtype
 scripts/record-demo/record.sh  # records the README demo (docs/media/demo.gif) from real typing
 swift scripts/make-readme-logo.swift docs/media  # the README logo (animated SVG)
-scripts/release.sh             # universal (arm64 + x86_64) zip and pkg for a release; signed and notarized with a Developer ID
+scripts/release.sh             # universal (arm64 + x86_64) zip and pkg for a release; with a Developer ID also signed (the pkg notarized)
 tools/prepare.sh               # accuracy (downloads word lists, Tatoeba and SCOWL once)
-tools/prepare.sh --models      # rebuild the data in Sources/SeamtypeCore/Data first
+tools/prepare.sh --models      # rebuild the data in Sources/SeamtypeCore/Data first (not korean_vocabulary.txt)
 SEAMTYPE_TIMING=1 swift run -c release seamtype-cli --decide --japanese < keys.tsv  # + time per decision
 swift run seamtype-cli -v "dkssud gksrmf hello"               # English/Korean, with scores
 printf 'kyouhagoogledekensaku\t\n' | swift run seamtype-cli --decide --japanese
@@ -266,7 +274,7 @@ printf 'きょうはいいてんきですね\n' | swift run seamtype-cli --conve
 | Path | What |
 | --- | --- |
 | `Sources/SeamtypeCore` | composers, engines, conversion, `InputSession` (all typing logic) |
-| `Sources/Seamtype` | InputMethodKit server, a thin controller over `InputSession`, candidate window |
+| `Sources/Seamtype` | InputMethodKit server, a thin controller over `InputSession`, candidate window, settings window |
 | `Sources/SeamtypeCore/Data` | kana and written-Japanese trigrams, Korean syllables and words, English words |
 | `tools/` | corpus → romaji, model builders, evaluation set and accuracy (python3, no packages) |
 

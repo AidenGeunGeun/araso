@@ -44,7 +44,7 @@ kyouhagoogledekensaku ␣ ⏎           →  今日はgoogleで検索
 | **Space** | 확정, 그리고 띄어쓰기 | **한자로 변환** (후보 창) |
 | `, . ? !` | 확정, 그리고 그 키 | 구절 안에서 、。？！ |
 | `-` | 확정, 그리고 `-` | ー |
-| Return | 확정만 (줄바꿈·전송은 한 번 더 누르기, 설정에서 바꿀 수 있음) | 가나만 확정 (줄바꿈 없음) |
+| Return | 확정만 (줄바꿈·전송은 한 번 더 누르기, 설정에서 바꿀 수 있음) | 보이는 대로 확정: 가나, 라이브 변환이면 한자 (줄바꿈 없음) |
 | ⌃K / F7, ⌃J / F6 | (앱의 단축키) | 가타카나 / 히라가나 (Space로 전환, Return으로 확정) |
 | Tab, 방향키, ⌘/⌃/⌥ | 확정, 앱이 그 키를 받음 | 같음 |
 | **오른쪽 ⌘** (단독으로 눌렀다 떼기) | 이 입력창에서 일시정지 / 다시 켜기 | 같음 |
@@ -76,7 +76,7 @@ kyouhagoogledekensaku ␣ ⏎           →  今日はgoogleで検索
 
 **일시정지:** 터미널에서 `hjkl`로 움직이는 프로그램(lazygit, htop 등)처럼 키 하나하나가 명령인 곳에서는
 **오른쪽 ⌘**를 단독으로 눌렀다 떼세요. 치던 단어를 확정하고, 그 입력창에서는 키를 친 그대로 넘깁니다. 한 번
-더 누르거나 다른 앱·입력창으로 가면 다시 켜집니다. 메뉴 막대 아이콘으로는 보이지 않으니, 입력 메뉴의 체크
+더 누르거나 다른 앱·입력창으로 가거나 설정을 바꾸면 다시 켜집니다. 메뉴 막대 아이콘으로는 보이지 않으니, 입력 메뉴의 체크
 표시로 확인하세요. 설정 창의 일반에서 이 키를 끌 수 있습니다.
 
 **vim:** neovim은 [`scripts/vim/seamtype.lua`](scripts/vim/seamtype.lua)를 `~/.config/nvim/plugin/`에,
@@ -88,6 +88,7 @@ vim이 모드가 바뀔 때마다 Seamtype에 알려 줘서, 입력 모드 밖(�
 - 신호는 `Seamtype --vim insert|normal|off --app <번들 ID>`이고, 키마다가 아니라 모드가 바뀔 때(입력 모드
   들어가기·나오기, 시작, 끝, 포커스)만 보냅니다. 번들 ID는 macOS가 앱마다 넣어 주는 `$__CFBundleIdentifier`라서
   터미널(Ghostty, Terminal, iTerm2, VS Code 등)마다 따로 설정할 것이 없고, 신호는 그 앱의 입력창에만 갑니다.
+  `--app` 없는 신호는 Esc를 앱으로 보내는 앱에서만 받습니다.
 - tmux 서버를 띄운 터미널과 다른 터미널에서 붙으면 번들 ID가 달라 신호가 무시됩니다.
 - Vim이 터미널의 포커스 변화를 모르면 vim 패널에서 셸 패널로 옮겨도 알 수 없습니다. 그럴 때는 ⇧Esc를
   누르면 다시 단어를 판단합니다.
@@ -95,14 +96,14 @@ vim이 모드가 바뀔 때마다 Seamtype에 알려 줘서, 입력 모드 밖(�
 ## 설정
 
 입력 메뉴(Seamtype을 고른 상태의 메뉴 막대)에서 할 수 있는 것:
-- 일본어와 실시간 변환 켜고 끄기
 - 이 입력창에서 일시정지(오른쪽 ⌘와 같음)
-- 지금 앞에 있는 앱에서 얼마나 엄격하게 바꿀지, Esc를 앱에 넘길지 정하기, 그 앱에서 끄기
-- 마지막으로 학습한 단어 되돌리기
-- 설정 창 열기
+- 지금 앞에 있는 앱의 단어 변환 켜고 끄기, 그 아래 변환 기준(보통·엄격하게)과 Esc 키(앱으로) 정하기, 그 앱을
+  기본 설정으로 되돌리기. 단어 변환이 꺼져 있으면 아래 두 항목은 흐리게 나옵니다
+- 일본어와 라이브 변환 켜고 끄기
+- 마지막으로 학습한 단어 되돌리기, 입력해 보기, 기억한 단어, 설정 창 열기
 
-설정 창에는 일반 설정, 앱별 동작, 학습한 단어(하나씩 또는 전부 잊기)가 있고, 한자 후보 순서 초기화는
-일본어 항목 아래에 있습니다. 바꾼 내용은 바로 적용됩니다.
+설정 창에는 일반 설정, 입력해 보기(단어마다 어떻게 판단했는지와 점수), 앱별 동작, 학습한 단어(하나씩 또는
+전부 잊기), 정보가 있고, 한자 후보 순서 초기화는 일본어 항목 아래에 있습니다. 바꾼 내용은 바로 적용됩니다.
 
 메뉴와 설정 창 모두 `~/Library/Application Support/Seamtype/settings.json`에 씁니다. 없는 항목은
 기본값을 따르고, 직접 고쳐도 됩니다:
@@ -154,13 +155,18 @@ vim이 모드가 바뀔 때마다 Seamtype에 알려 줘서, 입력 모드 밖(�
      예: `githubdp` → `github에`, `UIrkxdmsrjs` → `UI같은건`.
    - 영어 한 글자 + 조사(변수 이름 등): `xdp` → `x에`, `Xfmf` → `X를`. 소문자 뒤의 `도`·`나`는 영어에 흔한
      끝(`heh`, `tsk`)이라 나누지 않습니다(대문자는 `X도`).
-   - 영어 + 한국어 단어: 둘 다 단어 목록에 있으면 나눕니다. 예: `hellodnjfem` → `hello월드`,
+   - 영어 + 한국어 단어: 앞이 아는 영어 단어(또는 대문자로 친 이름)이고 뒤가 한국어 단어 목록에 있으면
+     나눕니다(전체가 영어와 전혀 닮지 않았으면 흔한 음절로 된 한글도). 예: `hellodnjfem` → `hello월드`,
      `githubtjqj` → `github서버`.
+   - 한국어 뒤에 붙인 영어 단어: `dhsmfdmsgoogledptj` → `오늘은google에서`. 한국어 부분을 먼저 확정하고
+     나머지를 이어서 칩니다.
    - 일본어를 켰을 때:
      - 아는 영어 단어 + 격조사 하나: `githubde` → `githubで`
-     - 한국어 뒤에 붙인 일본어: `dlfurrireki` → `이력履歴`
-     - 일본어 뒤에 붙인 한국어 조사나 단어: `rirekifmf` → `履歴를`, `kyouhaehtlfkrdms` → `今日は도시락은`
-     - 한글로도 로마자로도 깨지는 키일 때만 나눠서, 평소 일본어 문장은 자르지 않습니다.
+     - 한국어 뒤에 붙인 일본어: `dlfurrireki` → `이력りれき`(Space로 `履歴`)
+     - 일본어 뒤에 붙인 한국어 조사나 단어: `rirekifmf` → `りれき를`, `kyouhaehtlfkrdms` → `きょうは도시락은`.
+       일본어 부분은 그 자리에서 확정되므로, 라이브 변환을 켜면 `履歴를`, `今日は도시락은`처럼 한자로 들어갑니다.
+     - 한국어 쪽이 깨지는 키일 때만 나눠서, 평소 일본어 문장은 자르지 않습니다.
+   - 변환 기준이 엄격하게인 앱에서는 이 나누기도 하지 않고 친 영문 그대로 둡니다.
 3. **규칙:** 쌍자음이 없는 글자에 Shift를 누르면(`Hello`, `API`) 영어입니다.
 4. **휴리스틱:** 키를 키 하나당 점수로 매겨 세 언어를 비교하고, 앞 단어의 언어 쪽으로 조금 기울입니다.
    - 영어: 글자 3-그램과, SCOWL 목록에 있는 단어는 얼마나 흔한지에 따른 하한 점수
@@ -250,13 +256,13 @@ pkg로 설치했다면 앱은 `/Library/Input Methods/Seamtype.app`에 있습니
 ## 개발
 
 ```sh
-swift test                     # 테스트 102개: 조합기, 엔진, 세션, 설정, 처음부터 끝까지
+swift test                     # 테스트: 조합기, 엔진, 세션, 설정, 처음부터 끝까지
 scripts/typing-test/run.sh     # 설치된 Seamtype으로 TextEdit에 실제 키 입력
 scripts/record-demo/record.sh  # README 움짤(docs/media/demo.gif)을 실제 입력으로 녹화
 swift scripts/make-readme-logo.swift docs/media  # README 로고(애니메이션 SVG)
-scripts/release.sh             # 릴리스용 범용(arm64 + x86_64) zip과 pkg; Developer ID가 있으면 서명·공증까지
+scripts/release.sh             # 릴리스용 범용(arm64 + x86_64) zip과 pkg; Developer ID가 있으면 서명(pkg는 공증까지)
 tools/prepare.sh               # 정확도 (단어 목록, Tatoeba, SCOWL을 처음 한 번 내려받음)
-tools/prepare.sh --models      # 먼저 Sources/SeamtypeCore/Data의 데이터를 다시 만듦
+tools/prepare.sh --models      # 먼저 Sources/SeamtypeCore/Data의 데이터를 다시 만듦(korean_vocabulary.txt 빼고)
 SEAMTYPE_TIMING=1 swift run -c release seamtype-cli --decide --japanese < keys.tsv  # + 판단당 시간
 swift run seamtype-cli -v "dkssud gksrmf hello"               # 영어/한국어, 점수와 함께
 printf 'kyouhagoogledekensaku\t\n' | swift run seamtype-cli --decide --japanese
