@@ -149,7 +149,9 @@ Locally, in this order — a keystroke's preview takes at most ~3 ms, a word's f
 
 1. **Your corrections** (made twice, see Learning) always win (`lexicon.json`).
 2. **Mixed words:** `githubdp` → `github에`, `UIrkxdmsrjs` → `UI같은건` when the front
-   looks English (or is typed in capitals) and the end is a Korean particle or ending;
+   looks English (or is typed in capitals) and the end is a Korean particle or ending (also a
+   single letter, as in a variable name: `xdp` → `x에`, though not `도`/`나` after a lowercase
+   letter, which are common English endings: `heh`, `tsk`);
    `hellodnjfem` → `hello월드` for an English word and a Korean word that are both in the word
    lists. With Japanese on: `githubde` → `githubで` for a known English word plus one case
    particle, and Korean and Japanese typed together, `dlfurrireki` → `이력履歴`, `rirekifmf` →

@@ -17,6 +17,27 @@ public struct MixedWord: Equatable, Sendable {
     이라는 라는 이란 에선 으론 로서 으로서
     """.split(whereSeparator: \.isWhitespace).map(String.init))
 
+    /// Particles that follow a single letter (x에, n이, a를, X축의 X): case particles only, not
+    /// endings like 해/한, so short English (ago) doesn't split.
+    static let singleLetterParticles: Set<String> = Set("""
+    에 에서 에게 에는 에서는 에도 의 을 를 은 는 이 가 도 로 으로 와 과 랑 이랑 하고 한테 까지 부터 만 보다
+    처럼 이나 나 이라 이라고 라고 이랑은 으로는 로는 같은 같이
+    """.split(whereSeparator: \.isWhitespace).map(String.init))
+
+    /// A single letter and a particle: `xdp` → `x에`, `Xfmf` → `X를`. One key on its own can't
+    /// make a Hangul syllable before another consonant, so the keys never read as Korean.
+    public static func splitSingleLetter(_ keys: String) -> MixedWord? {
+        guard keys.count >= 2, let first = keys.first, first.isASCII, first.isLetter else { return nil }
+        let suffixKeys = String(keys.dropFirst())
+        guard suffixKeys.first.map(DubeolsikLayout.startsSyllable) == true,
+              let composed = HangulComposer.compose(keys: suffixKeys), composed.strayJamo.isEmpty,
+              singleLetterParticles.contains(composed.text) else { return nil }
+        // 도 and 나 are the keys eh and sk, common English endings (heh, meh, yeh, tsk): after a
+        // lowercase letter they stay English. A capital (X도) was typed on purpose.
+        if first.isLowercase, ["도", "나"].contains(composed.text) { return nil }
+        return MixedWord(english: String(first), koreanKeys: suffixKeys, korean: composed.text)
+    }
+
     /// Splits off the longest Korean particle/ending at the end of `keys`.
     /// Only the shape is checked here; whether the front really is English is
     /// up to the caller (see `SplittingEngine`).
@@ -77,6 +98,10 @@ public final class SplittingEngine: DecisionEngine, @unchecked Sendable {
            // A capital with no shifted jamo (the S of Slack) was typed as English on purpose,
            // even if the letters would also spell Korean (slackdptj, 님차에서).
            Self.hasEnglishOnlyCapital(mixed.english) || !readsAsKorean(keys) {
+            return Decision(language: .mixed, confidence: 0.9, output: mixed.text,
+                            explanation: "split \(mixed.english)+\(mixed.korean)")
+        }
+        if let mixed = MixedWord.splitSingleLetter(keys), !english.isKnownWord(keys), !readsAsKorean(keys) {
             return Decision(language: .mixed, confidence: 0.9, output: mixed.text,
                             explanation: "split \(mixed.english)+\(mixed.korean)")
         }

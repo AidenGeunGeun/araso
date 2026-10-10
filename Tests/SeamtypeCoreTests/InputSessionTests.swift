@@ -149,6 +149,18 @@ final class FakeTextField: TextClient {
         #expect(field.text == "hello월드 github서버 ")
     }
 
+    /// A single letter with a particle (a variable name, an axis) is typed as such.
+    @Test func typesSingleLetterWithParticle() {
+        type(session(), "xdp ndl Xfmf Xeh ")
+        #expect(field.text == "x에 n이 X를 X도 ")
+    }
+
+    /// Short English ending in the keys of 도 or 나 stays English.
+    @Test func keepsShortEnglishEndingInEhOrSk() {
+        type(session(), "heh meh tsk ")
+        #expect(field.text == "heh meh tsk ")
+    }
+
     /// Korean then romaji with no space: the Korean goes in, the rest is a Japanese word.
     @Test func typesKoreanThenJapaneseWord() {
         type(session(japanese: true), "qusruddlfurrireki dlfurrireki ")
