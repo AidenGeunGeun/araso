@@ -208,6 +208,9 @@ final class InputController: IMKInputController {
         do {
             let runtime = Runtime.shared
             let menu = NSMenu()
+            // Otherwise AppKit enables every item whose action the target answers, and the
+            // settings that don't apply (word conversion off, Japanese off) stay clickable.
+            menu.autoenablesItems = false
             func add(_ title: String, _ action: Selector?, on: Bool = false, enabled: Bool = true,
                      indent: Int = 0, value: Any? = nil) {
                 // The input menu ignores indentationLevel, so the levels are em spaces in the title.
