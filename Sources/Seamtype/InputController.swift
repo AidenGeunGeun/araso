@@ -210,30 +210,32 @@ final class InputController: IMKInputController {
             let menu = NSMenu()
             func add(_ title: String, _ action: Selector?, on: Bool = false, enabled: Bool = true,
                      indent: Int = 0, value: Any? = nil) {
-                let item = NSMenuItem(title: title, action: action, keyEquivalent: "")
+                // The input menu ignores indentationLevel, so the levels are em spaces in the title.
+                let item = NSMenuItem(title: String(repeating: "\u{2003}", count: indent) + title, action: action, keyEquivalent: "")
                 item.target = self
                 item.state = on ? .on : .off
                 item.isEnabled = enabled && action != nil
-                item.indentationLevel = indent
                 item.representedObject = value
                 menu.addItem(item)
             }
-            // The app in front first: what changes how typing works right here. The names are the
+            // A temporary state of this text field first, then the app's saved settings: word
+            // conversion and, under it, what only matters while it is on. The names are the
             // settings window's, so a choice reads the same in both.
+            add(runtime.settings.rightCommandPause ? L("Pause in This Text Field (right ⌘)") : L("Pause in This Text Field"),
+                #selector(togglePause(_:)), on: current?.session.paused ?? false)
+            menu.addItem(.separator())
             if let app = current?.session.app ?? client()?.bundleIdentifier() {
                 let policies = AppPolicies.load()
                 let policy = policies.policy(for: app)
                 let listed = policies.overrides[app] != nil
                 add(listed ? L("%@ — App Settings", AppName.of(app)) : L("%@ — Default Settings", AppName.of(app)), nil)
-                add(runtime.settings.rightCommandPause ? L("Pause in This Text Field (right ⌘)") : L("Pause in This Text Field"),
-                    #selector(togglePause(_:)), on: current?.session.paused ?? false, indent: 1)
                 add(L("Convert Words"), #selector(toggleDisabled(_:)), on: policy.enabled, indent: 1, value: app)
                 add(L("Converting to Hangul: Normal"), #selector(setNormal(_:)),
-                    on: policy.conversionThreshold < AppPolicy.strictThreshold, enabled: policy.enabled, indent: 1, value: app)
+                    on: policy.conversionThreshold < AppPolicy.strictThreshold, enabled: policy.enabled, indent: 2, value: app)
                 add(L("Converting to Hangul: Strict"), #selector(setStrict(_:)),
-                    on: policy.conversionThreshold >= AppPolicy.strictThreshold, enabled: policy.enabled, indent: 1, value: app)
+                    on: policy.conversionThreshold >= AppPolicy.strictThreshold, enabled: policy.enabled, indent: 2, value: app)
                 add(L("Esc Key: Send to App (⇧Esc switches)"), #selector(toggleEscapeToApp(_:)), on: policy.escapeToApp,
-                    enabled: policy.enabled, indent: 1, value: app)
+                    enabled: policy.enabled, indent: 2, value: app)
                 if listed {
                     add(L("Use Default Settings in This App"), #selector(removeAppEntry(_:)), indent: 1, value: app)
                 }

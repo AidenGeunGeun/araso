@@ -510,29 +510,34 @@ private struct AppsPane: View {
     var body: some View {
         Form {
             Section(L("Default — every app")) {
-                ChoiceRow(title: L("Converting to Hangul"),
-                          explanation: strictnessExplanation(model.defaultPolicy.conversionThreshold)) {
-                    Picker(L("Converting to Hangul"), selection: Binding(
-                        get: { model.defaultPolicy.conversionThreshold },
-                        set: { value in model.setDefault { $0.conversionThreshold = value } })) {
-                        Text(L("Normal")).tag(AppPolicy.standard.conversionThreshold)
-                        Text(L("Strict")).tag(AppPolicy.strictThreshold)
-                    }
-                }
-                ChoiceRow(title: L("Esc key"), explanation: escapeExplanation(model.defaultPolicy.escapeToApp)) {
-                    Picker(L("Esc key"), selection: Binding(
-                        get: { model.defaultPolicy.escapeToApp },
-                        set: { value in model.setDefault { $0.escapeToApp = value } })) {
-                        Text(L("Switch language")).tag(false)
-                        Text(L("Send to app")).tag(true)
-                    }
-                }
                 Toggle(isOn: Binding(
                     get: { model.defaultPolicy.enabled },
                     set: { value in model.setDefault { $0.enabled = value } })) {
                     Text(L("Convert words"))
                     Text(L("Off: keys go to the app as typed, as with the ABC layout."))
                 }
+                Group {
+                    ChoiceRow(title: L("Converting to Hangul"),
+                              explanation: strictnessExplanation(model.defaultPolicy.conversionThreshold)) {
+                        Picker(L("Converting to Hangul"), selection: Binding(
+                            get: { model.defaultPolicy.conversionThreshold },
+                            set: { value in model.setDefault { $0.conversionThreshold = value } })) {
+                            Text(L("Normal")).tag(AppPolicy.standard.conversionThreshold)
+                            Text(L("Strict")).tag(AppPolicy.strictThreshold)
+                        }
+                    }
+                    ChoiceRow(title: L("Esc key"), explanation: escapeExplanation(model.defaultPolicy.escapeToApp)) {
+                        Picker(L("Esc key"), selection: Binding(
+                            get: { model.defaultPolicy.escapeToApp },
+                            set: { value in model.setDefault { $0.escapeToApp = value } })) {
+                            Text(L("Switch language")).tag(false)
+                            Text(L("Send to app")).tag(true)
+                        }
+                    }
+                }
+                // Only matter while words are converted.
+                .padding(.leading, 18)
+                .disabled(!model.defaultPolicy.enabled)
             }
             Section {
                 if model.apps.isEmpty {
@@ -592,24 +597,27 @@ private struct AppRowView: View {
             }
             .buttonStyle(.plain)
             .accessibilityAddTraits(selected ? .isSelected : [])
-            FieldMenu(own: row.entry.conversionThreshold.map(Strictness.name),
-                      inherited: Strictness.name(defaultPolicy.conversionThreshold),
-                      choices: [(L("Normal"), AppPolicy.standard.conversionThreshold), (L("Strict"), AppPolicy.strictThreshold)]) { value in
-                model.setEntry(for: row.id) { $0.conversionThreshold = value }
-            }
-            .frame(width: AppColumns.conversion, alignment: .leading)
-            FieldMenu(own: row.entry.escapeToApp.map(escapeName),
-                      inherited: escapeName(defaultPolicy.escapeToApp),
-                      choices: [(L("Switch language"), false), (L("Send to app"), true)]) { value in
-                model.setEntry(for: row.id) { $0.escapeToApp = value }
-            }
-            .frame(width: AppColumns.escape, alignment: .leading)
             FieldMenu(own: row.entry.enabled.map { $0 ? L("On") : L("Off") },
                       inherited: defaultPolicy.enabled ? L("On") : L("Off"),
                       choices: [(L("On"), true), (L("Off"), false)]) { value in
                 model.setEntry(for: row.id) { $0.enabled = value }
             }
             .frame(width: AppColumns.enabled, alignment: .leading)
+            Group {
+                FieldMenu(own: row.entry.conversionThreshold.map(Strictness.name),
+                          inherited: Strictness.name(defaultPolicy.conversionThreshold),
+                          choices: [(L("Normal"), AppPolicy.standard.conversionThreshold), (L("Strict"), AppPolicy.strictThreshold)]) { value in
+                    model.setEntry(for: row.id) { $0.conversionThreshold = value }
+                }
+                .frame(width: AppColumns.conversion, alignment: .leading)
+                FieldMenu(own: row.entry.escapeToApp.map(escapeName),
+                          inherited: escapeName(defaultPolicy.escapeToApp),
+                          choices: [(L("Switch language"), false), (L("Send to app"), true)]) { value in
+                    model.setEntry(for: row.id) { $0.escapeToApp = value }
+                }
+                .frame(width: AppColumns.escape, alignment: .leading)
+            }
+            .disabled(!(row.entry.enabled ?? defaultPolicy.enabled))
         }
         .padding(.vertical, 2)
         .listRowBackground(selected ? Color.accentColor.opacity(0.15) : nil)
@@ -649,9 +657,9 @@ private struct AppColumnsHeader: View {
     var body: some View {
         HStack(spacing: 10) {
             Text(L("App")).frame(maxWidth: .infinity, alignment: .leading)
+            Text(L("Convert words")).frame(width: AppColumns.enabled, alignment: .leading)
             Text(L("Converting to Hangul")).frame(width: AppColumns.conversion, alignment: .leading)
             Text(L("Esc key")).frame(width: AppColumns.escape, alignment: .leading)
-            Text(L("Convert words")).frame(width: AppColumns.enabled, alignment: .leading)
         }
         .font(.caption).foregroundStyle(.secondary).lineLimit(1)
         .accessibilityHidden(true)
