@@ -74,11 +74,12 @@ enum AppName {
 func runSettingsApp(tab: SettingsTab) -> Never {
     let app = NSApplication.shared
     app.setActivationPolicy(.regular)
+    if let icon = SeamMark.appIcon() { app.applicationIconImage = icon }
     let model = SettingsModel(tab: tab)
     let window = NSWindow(contentViewController: NSHostingController(rootView: SettingsView(model: model)))
     window.title = L("Seamtype Settings")
     window.styleMask = [.titled, .closable, .miniaturizable, .fullSizeContentView]
-    window.setContentSize(NSSize(width: 780, height: 640))
+    window.setContentSize(NSSize(width: 860, height: 640))
     window.center()
     let delegate = SettingsAppDelegate()
     app.delegate = delegate
@@ -312,8 +313,37 @@ extension Language {
 /// shows only the joined mark.
 struct SeamMark: View {
     var height: CGFloat = 96
+    /// Just the joined mark, for a picture (the app icon): no animation.
+    var still = false
+    /// Fixed colors for a picture; nil follows the appearance.
+    var plateColor: Color? = nil
+    var letterColor: Color? = nil
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var stage = 0
+
+    init(height: CGFloat = 96, still: Bool = false, plateColor: Color? = nil, letterColor: Color? = nil) {
+        self.height = height
+        self.still = still
+        self.plateColor = plateColor
+        self.letterColor = letterColor
+        _stage = State(initialValue: still ? Self.all.count : 0)
+    }
+
+    /// The app icon: the joined mark on a squircle, drawn at launch (the signed bundle can't
+    /// carry one that changes, and an input method has none of its own).
+    @MainActor static func appIcon() -> NSImage? {
+        let ink = Color(red: 0.11, green: 0.11, blue: 0.12), paper = Color(red: 0.95, green: 0.95, blue: 0.96)
+        let icon = ZStack {
+            RoundedRectangle(cornerRadius: 185, style: .continuous).fill(ink)
+                .frame(width: 824, height: 824)
+                .shadow(color: .black.opacity(0.3), radius: 12, y: 8)
+            SeamMark(height: 560, still: true, plateColor: ink, letterColor: paper)
+        }
+        .frame(width: 1024, height: 1024)
+        let renderer = ImageRenderer(content: icon)
+        renderer.scale = 1
+        return renderer.nsImage
+    }
 
     private static let all: [(String, CGFloat)] = [("A", 0.64), ("아", 0.6), ("あ", 0.6)]
     private var letters: [(String, CGFloat)] { Self.all }
@@ -323,7 +353,7 @@ struct SeamMark: View {
 
     var body: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: height * 0.28, style: .continuous).fill(.primary)
+            RoundedRectangle(cornerRadius: height * 0.28, style: .continuous).fill(plateColor ?? .primary)
             Group {
                 if stage == joined { joinedMark } else { letter(letters[stage]) }
             }
@@ -334,7 +364,7 @@ struct SeamMark: View {
         }
         .frame(width: height * 1.25, height: height)
         .task(id: reduceMotion) {
-            guard !reduceMotion else { stage = joined; return }
+            guard !reduceMotion, !still else { stage = joined; return }
             stage = 0
             while !Task.isCancelled {
                 // The joined mark stays a little longer: it's where the sequence lands.
@@ -352,7 +382,7 @@ struct SeamMark: View {
     private func letter(_ item: (String, CGFloat)) -> some View {
         Text(verbatim: item.0)
             .font(.system(size: height * item.1, weight: .heavy, design: .rounded))
-            .foregroundStyle(Color(nsColor: .windowBackgroundColor))
+            .foregroundStyle(letterColor ?? Color(nsColor: .windowBackgroundColor))
     }
 
     /// Each letter shows only in its own row of the letters' height, with a thin gap between rows.
@@ -403,7 +433,7 @@ struct SettingsView: View {
             }
             .navigationTitle(model.tab.title)
         }
-        .frame(width: 780, height: 640)
+        .frame(width: 860, height: 640)
     }
 }
 
@@ -590,7 +620,7 @@ private struct AppRowView: View {
                     } else {
                         Image(systemName: "app.dashed").frame(width: 22, height: 22)
                     }
-                    Text(row.name).lineLimit(1)
+                    Text(row.name).lineLimit(1).truncationMode(.middle).help(row.name)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .contentShape(Rectangle())
@@ -619,8 +649,10 @@ private struct AppRowView: View {
             }
             .disabled(!(row.entry.enabled ?? defaultPolicy.enabled))
         }
-        .padding(.vertical, 2)
-        .listRowBackground(selected ? Color.accentColor.opacity(0.15) : nil)
+        .padding(.vertical, 4).padding(.horizontal, 6)
+        // A grouped form ignores listRowBackground, so the selection is drawn on the row itself.
+        .background(selected ? Color.accentColor.opacity(0.22) : .clear, in: RoundedRectangle(cornerRadius: 6))
+        .padding(.horizontal, -6)
     }
 }
 
@@ -647,8 +679,8 @@ private struct ChoiceRow<Choice: View>: View {
 
 /// Column widths shared by the exceptions' header and rows.
 private enum AppColumns {
-    static let conversion: CGFloat = 130
-    static let escape: CGFloat = 150
+    static let conversion: CGFloat = 140
+    static let escape: CGFloat = 190
     static let enabled: CGFloat = 100
 }
 
