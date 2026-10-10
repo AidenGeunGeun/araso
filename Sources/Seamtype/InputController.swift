@@ -234,9 +234,9 @@ final class InputController: IMKInputController {
                 add(listed ? L("%@ — App Settings", AppName.of(app)) : L("%@ — Default Settings", AppName.of(app)), nil)
                 add(L("Convert Words"), #selector(toggleDisabled(_:)), on: policy.enabled, indent: 1, value: app)
                 // Greyed while words aren't converted: they only matter while they are.
-                add(L("Converting to Hangul: Normal"), #selector(setNormal(_:)),
+                add(L("Conversion: Normal"), #selector(setNormal(_:)),
                     on: policy.conversionThreshold < AppPolicy.strictThreshold, enabled: policy.enabled, indent: 2, value: app)
-                add(L("Converting to Hangul: Strict"), #selector(setStrict(_:)),
+                add(L("Conversion: Strict"), #selector(setStrict(_:)),
                     on: policy.conversionThreshold >= AppPolicy.strictThreshold, enabled: policy.enabled, indent: 2, value: app)
                 add(L("Esc Key: Send to App (⇧Esc switches)"), #selector(toggleEscapeToApp(_:)), on: policy.escapeToApp,
                     enabled: policy.enabled, indent: 2, value: app)

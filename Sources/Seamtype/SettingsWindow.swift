@@ -284,8 +284,8 @@ private func escapeExplanation(_ toApp: Bool) -> String {
 
 private func strictnessExplanation(_ threshold: Double) -> String {
     threshold >= AppPolicy.strictThreshold
-        ? L("Converts only words that are clearly Korean, so short commands stay as typed (gst stays gst). For terminals.")
-        : L("Converts a word when it reads more like Korean than English (gst → ㅎㄴㅅ).")
+        ? L("Converts only words that are clearly Korean or Japanese, so short commands stay as typed (gst stays gst). For terminals.")
+        : L("Converts a word when it reads more like Korean or Japanese than English (gst → ㅎㄴㅅ).")
 }
 
 extension Language {
@@ -547,9 +547,9 @@ private struct AppsPane: View {
                     Text(L("Off: keys go to the app as typed, as with the ABC layout."))
                 }
                 Group {
-                    ChoiceRow(title: L("Converting to Hangul"),
+                    ChoiceRow(title: L("Conversion"),
                               explanation: strictnessExplanation(model.defaultPolicy.conversionThreshold)) {
-                        Picker(L("Converting to Hangul"), selection: Binding(
+                        Picker(L("Conversion"), selection: Binding(
                             get: { model.defaultPolicy.conversionThreshold },
                             set: { value in model.setDefault { $0.conversionThreshold = value } })) {
                             Text(L("Normal")).tag(AppPolicy.standard.conversionThreshold)
@@ -690,7 +690,7 @@ private struct AppColumnsHeader: View {
         HStack(spacing: 10) {
             Text(L("App")).frame(maxWidth: .infinity, alignment: .leading)
             Text(L("Convert words")).frame(width: AppColumns.enabled, alignment: .leading)
-            Text(L("Converting to Hangul")).frame(width: AppColumns.conversion, alignment: .leading)
+            Text(L("Conversion")).frame(width: AppColumns.conversion, alignment: .leading)
             Text(L("Esc key")).frame(width: AppColumns.escape, alignment: .leading)
         }
         .font(.caption).foregroundStyle(.secondary).lineLimit(1)
