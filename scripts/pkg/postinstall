@@ -1,0 +1,12 @@
+#!/bin/sh
+# Register the input method for the logged-in user (the installer runs this as root) and
+# refresh the input menu. Adding it in System Settings → Keyboard → Input Sources may still
+# be needed; never fail the install over it.
+app="/Library/Input Methods/Seamtype.app"
+user=$(stat -f %Su /dev/console)
+if [ -n "$user" ] && [ "$user" != root ]; then
+  uid=$(id -u "$user")
+  launchctl asuser "$uid" sudo -u "$user" "$app/Contents/MacOS/Seamtype" --register || true
+  launchctl asuser "$uid" sudo -u "$user" killall TextInputMenuAgent 2>/dev/null || true
+fi
+exit 0

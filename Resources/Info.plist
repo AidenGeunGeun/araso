@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>en</string>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>en</string>
+		<string>ko</string>
+	</array>
+	<key>CFBundleExecutable</key>
+	<string>Seamtype</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.aimdevlee.inputmethod.Seamtype</string>
+	<key>CFBundleName</key>
+	<string>Seamtype</string>
+	<key>CFBundleDisplayName</key>
+	<string>Seamtype</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>0.1.0</string>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>13.0</string>
+	<key>LSBackgroundOnly</key>
+	<true/>
+	<key>LSUIElement</key>
+	<true/>
+	<key>NSPrincipalClass</key>
+	<string>NSApplication</string>
+	<key>InputMethodConnectionName</key>
+	<string>com.aimdevlee.inputmethod.Seamtype_Connection</string>
+	<key>InputMethodServerControllerClass</key>
+	<string>SeamtypeInputController</string>
+	<key>TISInputSourceID</key>
+	<string>com.aimdevlee.inputmethod.Seamtype</string>
+	<key>TISIntendedLanguage</key>
+	<string>ko</string>
+	<key>tsInputMethodCharacterRepertoireKey</key>
+	<array>
+		<string>Latn</string>
+		<string>Hang</string>
+	</array>
+	<key>tsInputMethodIconFileKey</key>
+	<string>Seamtype.tiff</string>
+	<key>TISIconIsTemplate</key>
+	<true/>
+</dict>
+</plist>

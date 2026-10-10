@@ -1,0 +1,4 @@
+/* The name System Settings and the input menu show for the input source. */
+CFBundleName = "Seamtype";
+CFBundleDisplayName = "Seamtype";
+"com.aimdevlee.inputmethod.Seamtype" = "Seamtype";
