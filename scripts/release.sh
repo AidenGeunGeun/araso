@@ -29,6 +29,8 @@ codesign $sign "$app" 2>/dev/null
 codesign --verify --strict "$app"
 # The hardened runtime must not stop the bundle from loading its models.
 "$app/Contents/MacOS/Seamtype" --selftest >/dev/null
+# Running it registered build/Seamtype.app with LaunchServices again (build-app.sh had taken it off).
+/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -u "$app" 2>/dev/null || true
 
 # Not relocatable: the installer must not "upgrade" a copy it finds elsewhere (a development
 # install in ~/Library/Input Methods) instead of installing into /Library/Input Methods.
