@@ -58,10 +58,10 @@ import Testing
         let session = InputSession(engine: LearningEngine(base: splitting, storeURL: url), policies: policies)
         session.activate(app: "test.terminal")
         let field = FakeTextField()
-        for ch in "ciw githubdp xdp hellodnjfem " {
+        for ch in "ciw gst githubdp xdp hellodnjfem " {
             let key: InputSession.Key = ch.isLetter ? .letter(ch) : .printable(ch)
             if !session.handle(key, client: field) { field.insertText(String(ch), replacing: nil) }
         }
-        #expect(field.text == "ciw github에 x에 hello월드 ")
+        #expect(field.text == "ciw gst github에 x에 hello월드 ")
     }
 }

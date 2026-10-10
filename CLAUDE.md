@@ -58,6 +58,8 @@ tests use `FakeTextField`). It owns the preview and hysteresis, commits, Esc rea
 - Korean → other fires only when the whole token reads as broken Hangul, and for Japanese also
   not as Japanese on its own; Japanese → Korean only when the romaji has stray letters. Without
   those guards, ordinary Japanese phrases split (`chanwokoroshita` → `초무をころした`).
+- In a Strict app, a token of 3 keys or fewer kept English by the threshold wins over a Korean
+  preview shown along the way (`gst` stays `gst`); longer words keep the preview's hysteresis.
 - Return on an underlined word only confirms it (`returnConfirmsOnly`, on by default); off, the
   app gets the Return too, except after Japanese.
 - Vim reports its modes through `scripts/vim/seamtype.{lua,vim}` (`Seamtype --vim <mode> --app

@@ -105,6 +105,10 @@ public final class InputSession {
     /// The language the engine itself showed last, before any Esc: what a commit compares
     /// against, so a forced reading is never mistaken for the engine's own choice.
     private var enginePreview: Language?
+    /// The last `decide` kept a short token (3 keys or fewer, like a command) English only
+    /// because the app is set to Strict. Longer words keep the hysteresis: applied to them it
+    /// left 8% of Korean words English, against 5% this way, for the same English kept.
+    private var keptEnglishByStrict = false
     /// "henkan" came back from conversion as "henkan'" (the final n stays ん); dropped again
     /// if the word leaves Japanese, so English doesn't get an apostrophe nobody typed.
     private var addedNMarker = false
@@ -565,7 +569,9 @@ public final class InputSession {
 
     private func decide(partial: Bool) -> Decision {
         let d = engine.decide(keys, context: DecisionContext(previousLanguage: previousLanguage, partial: partial))
-        let decision = d.language != .english && d.confidence < policy.conversionThreshold
+        let kept = d.language != .english && d.confidence < policy.conversionThreshold
+        keptEnglishByStrict = kept && policy.conversionThreshold >= AppPolicy.strictThreshold && keys.count <= 3
+        let decision = kept
             ? Decision(language: .english, confidence: 1 - d.confidence, output: keys,
                        explanation: String(format: "kept English (%.2f < %.2f); ", d.confidence,
                                            policy.conversionThreshold) + d.explanation)
@@ -590,8 +596,8 @@ public final class InputSession {
     }
 
     /// What Space/Return commits without Esc: the full-word decision, except that a hesitant
-    /// change away from the reading on screen doesn't win (어떻게 shown, then "kept English"
-    /// at 0.969 < 0.97 on Space). The same rule as the preview, so what you see is what you get.
+    /// change away from the reading on screen doesn't win (unless Strict kept it English). The
+    /// same rule as the preview, so what you see is what you get.
     private func committedLanguage() -> Language {
         let d = decide(partial: false)
         if let shown = enginePreview, shown != d.language, !isWeakFlipAllowed(to: d, from: shown) {
@@ -600,11 +606,13 @@ public final class InputSession {
         return d.language
     }
 
-    /// Whether `decision` may replace the reading on screen: when it's confident, or when it's
-    /// a dictionary English word (which is what Space/Return will commit).
+    /// Whether `decision` may replace the reading on screen: when it's confident, when it's
+    /// a dictionary English word (which is what Space/Return will commit), or when a Strict app
+    /// kept a short token English: there the typed letters win over a reading shown along the
+    /// way (gs showed ㅎㄴ, but gst stays gst).
     private func isWeakFlipAllowed(to decision: Decision, from shown: Language) -> Bool {
         decision.confidence >= Self.previewFlipConfidence
-            || (decision.language == .english && EnglishModel.shared.isKnownWord(keys))
+            || (decision.language == .english && (keptEnglishByStrict || EnglishModel.shared.isKnownWord(keys)))
             || preview(as: shown) == nil
     }
 
