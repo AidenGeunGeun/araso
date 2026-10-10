@@ -55,6 +55,9 @@ public final class InputSession {
         case hiragana
         /// Tab, ←/→, shortcuts…: commit and let the app handle the key.
         case other
+        /// ⌃[: vim's other way out of insert mode, so it starts normal mode like Esc
+        /// where the app's Esc is vim's; elsewhere the same as `other`.
+        case leaveInsert
     }
 
     /// A kana→kanji conversion in progress.
@@ -107,6 +110,9 @@ public final class InputSession {
     private var addedNMarker = false
     private var previousLanguage: Language?
     private var lastCommit: Committed?
+    /// Vim is in normal mode (Esc went to it in an app set to "Esc: Vim"): keys go straight
+    /// through until one starts insert mode.
+    private var vimMode: VimNormalMode?
     /// Language of the current preview, so in-phrase symbols know where they belong.
     private var previewLanguage: Language?
     /// The last key passed to the app was a digit (so "." there is a decimal point).
@@ -136,18 +142,30 @@ public final class InputSession {
         app = bundleIdentifier
         policy = policies.policy(for: bundleIdentifier)
         previousLanguage = nil
+        // Coming back to the same terminal leaves vim in whatever mode it was.
+        if !policy.vim { vimMode = nil }
     }
+
+    /// Whether keys currently go straight to vim (normal, visual or command-line mode).
+    public var inVimNormalMode: Bool { vimMode != nil }
 
     /// Returns true when the key was consumed.
     public func handle(_ key: Key, client: TextClient) -> Bool {
         guard policy.enabled else { return false }
+        if policy.vim, vimMode != nil { return passToVim(key) }
+        if key == .leaveInsert {
+            commit(client: client)
+            previousLanguage = nil
+            if policy.vim { vimMode = VimNormalMode() }
+            return false
+        }
         if conversion != nil { return handleConverting(key, client: client) }
 
         if case .printable = key, keys.isEmpty {} else { afterDigit = false }
         let pending = lastCommit
         lastCommit = nil
         // Esc switches languages unless the app owns it (vim); ⇧Esc always does.
-        let switchesLanguage = key == .cycle || (key == .escape && !policy.escapeToApp)
+        let switchesLanguage = key == .cycle || (key == .escape && !policy.escapeGoesToApp)
         if switchesLanguage, keys.isEmpty, let pending {
             if let changed = cycle(pending, client: client) {
                 lastCommit = changed
@@ -173,6 +191,13 @@ public final class InputSession {
             return true
 
         case .escape, .cycle:
+            if key == .escape, policy.vim {
+                // Vim's Esc: the word goes in as shown, and vim is in normal mode now.
+                commit(client: client)
+                previousLanguage = nil
+                vimMode = VimNormalMode()
+                return false
+            }
             guard !keys.isEmpty else { return false }
             guard switchesLanguage else {
                 // The app's Esc: the word goes in as shown, then the app gets the key.
@@ -241,11 +266,35 @@ public final class InputSession {
             showKanaForms(key == .katakana, client: client)
             return true
 
-        case .up, .down, .left, .right, .other:
+        case .up, .down, .left, .right, .other, .leaveInsert:
             commit(client: client)
             previousLanguage = nil
             return false
         }
+    }
+
+    /// A key in vim's normal mode goes to vim as it is; the one that starts insert mode (or
+    /// quits vim) does too, and words are decided again from the next key. ⇧Esc is kept: it only
+    /// tells Seamtype to decide words again.
+    private func passToVim(_ key: Key) -> Bool {
+        switch key {
+        case .letter(let ch), .printable(let ch):
+            if vimMode?.feed(ch) == true { vimMode = nil }
+        case .enter:
+            if vimMode?.enter() == true { vimMode = nil }
+        case .escape, .leaveInsert:
+            vimMode?.escape()
+        case .delete:
+            vimMode?.delete()
+        case .cycle:
+            // ⇧Esc: the way out when Seamtype got vim's mode wrong (a mapping that inserts).
+            vimMode = nil
+            return true
+        default:
+            break // arrows, shortcuts: vim's, and they start no insert
+        }
+        previousLanguage = nil
+        return false
     }
 
     /// Commits whatever is in progress as-is (focus change, shortcut, deactivation).
@@ -477,7 +526,7 @@ public final class InputSession {
             commit(client: client)
             return handle(key, client: client)
 
-        case .other:
+        case .other, .leaveInsert:
             commit(client: client)
             return false
         }

@@ -73,14 +73,23 @@ the window.
 same keys the same way a second time and Seamtype remembers it for good; switching a word
 back to Seamtype's own guess forgets it.
 
-**Esc that belongs to the app** (vim in a terminal, closing popups in an editor): set
-"Esc는 앱으로" for that app (or as the default) in the per-app settings — the word goes in as
-shown and the app gets Esc. Use ⇧Esc to switch there.
+**Esc that belongs to the app** (closing popups in an editor): set that app's Esc key (or the
+default's) to "Send to app" in the per-app settings — the word goes in as shown and the app gets
+Esc. Use ⇧Esc to switch there.
+
+**vim:** in an app where you use vim (a terminal), set the Esc key to "Vim". It works like "Send to
+app", and in normal mode after Esc (or ⌃[) keys go straight to vim instead of being held as a
+word, so `dd`, `ciw` and `:wq⏎` run key by key. Entering insert mode with `i a o I A O s S C R gi` or
+`c` plus its motion (`ciw`, `cw`) starts deciding words again. Letters inside commands (`diw`, `fa`,
+`ri`), visual mode and the `:`/`/` command line don't count as insert mode. Quitting vim (`:wq⏎`,
+`ZZ`) starts deciding words again too, so you can type at the shell right away. Mappings that enter
+insert mode can't be seen; press ⇧Esc to start deciding words again.
 
 ## Settings
 
 The input menu (menu bar, while Seamtype is selected) switches Japanese and live conversion,
-sets how strict Seamtype is in the app in front (or turns it off there), undoes the last
+sets how strict Seamtype is in the app in front and whether Esc goes to the app (or to vim), or
+turns it off there, undoes the last
 learned word, and opens the settings window: general switches, per-app behavior, and the
 learned words (forget one or all); the kanji candidate order resets under Japanese. Changes apply at once.
 
@@ -105,7 +114,7 @@ names and follows the default for the rest. No app is listed unless you list it:
 
 ```json
 { "*":                     { "escapeToApp": true },
-  "com.apple.Terminal":    { "conversionThreshold": 0.97 },
+  "com.apple.Terminal":    { "conversionThreshold": 0.97, "vim": true },
   "com.example.Game":      { "enabled": false } }
 ```
 
@@ -113,7 +122,9 @@ names and follows the default for the rest. No app is listed unless you list it:
 - `conversionThreshold` (default `0.5`): convert away from the typed letters only when at
   least this sure. `0.97` ("엄격하게", strict) keeps short shell commands from turning into
   Hangul in a terminal; `0.5` converts more Korean when you write prose.
-- `escapeToApp` (default false): Esc goes to the app and ⇧Esc switches (for vim, editors).
+- `escapeToApp` (default false): Esc goes to the app and ⇧Esc switches (for editors).
+- `vim` (default false): on top of `escapeToApp`, vim's normal-mode commands after Esc go straight
+  through (see **vim** above).
 
 After editing these files by hand, restart the input method: `pkill -x Seamtype`.
 

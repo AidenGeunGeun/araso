@@ -38,7 +38,7 @@ struct TypingPane: View {
                         Label(L("Seamtype isn't the input source in use."), systemImage: "exclamationmark.triangle")
                             .foregroundStyle(.secondary)
                         Spacer()
-                        Button(L("Use Seamtype")) {
+                        Button(L("Switch to Seamtype")) {
                             SeamtypeSource.select()
                             seamtypeOn = SeamtypeSource.isCurrent
                             focused = true

@@ -47,7 +47,7 @@ final class InputController: IMKInputController {
         MainActor.assumeIsolated {
             session.activate(app: app)
             let policy = session.policy
-            log.info("activate \(app ?? "?", privacy: .public) enabled=\(policy.enabled) threshold=\(policy.conversionThreshold) escapeToApp=\(policy.escapeToApp)")
+            log.info("activate \(app ?? "?", privacy: .public) enabled=\(policy.enabled) threshold=\(policy.conversionThreshold) escapeToApp=\(policy.escapeToApp) vim=\(policy.vim)")
         }
     }
 
@@ -102,6 +102,7 @@ final class InputController: IMKInputController {
             switch event.charactersIgnoringModifiers?.lowercased() {
             case "k": return .katakana
             case "j": return .hiragana
+            case "[": return .leaveInsert // not ⌃C: at a shell prompt it would start vim's normal mode
             default: return .other
             }
         }
@@ -193,7 +194,9 @@ final class InputController: IMKInputController {
                     indent: 1, value: app)
                 add(L("Normal — for writing Korean"), #selector(setNormal(_:)), on: policy.conversionThreshold < 0.9,
                     indent: 1, value: app)
-                add(L("Esc Goes to the App (⇧Esc switches)"), #selector(toggleEscapeToApp(_:)), on: policy.escapeToApp,
+                add(L("Esc Goes to the App (⇧Esc switches)"), #selector(toggleEscapeToApp(_:)), on: policy.escapeGoesToApp,
+                    indent: 1, value: app)
+                add(L("Vim: Commands Go Straight Through After Esc"), #selector(toggleVim(_:)), on: policy.vim,
                     indent: 1, value: app)
                 add(L("Turn Off in This App"), #selector(toggleDisabled(_:)), on: !policy.enabled, indent: 1, value: app)
                 if listed {
@@ -242,7 +245,14 @@ final class InputController: IMKInputController {
 
     @objc func toggleEscapeToApp(_ sender: Any?) {
         guard let app = appOf(sender) else { return }
-        MainActor.assumeIsolated { Runtime.shared.updatePolicy(for: app) { $0.escapeToApp.toggle() } }
+        MainActor.assumeIsolated {
+            Runtime.shared.updatePolicy(for: app) { $0.escapeKey = $0.escapeGoesToApp ? .switchLanguage : .sendToApp }
+        }
+    }
+
+    @objc func toggleVim(_ sender: Any?) {
+        guard let app = appOf(sender) else { return }
+        MainActor.assumeIsolated { Runtime.shared.updatePolicy(for: app) { $0.escapeKey = $0.vim ? .sendToApp : .vim } }
     }
 
     @objc func toggleDisabled(_ sender: Any?) {

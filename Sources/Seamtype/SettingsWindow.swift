@@ -273,7 +273,33 @@ private enum Strictness {
     }
 }
 
-private func escapeName(_ toApp: Bool) -> String { toApp ? L("Send to app") : L("Switch language") }
+extension AppPolicy.EscapeKey {
+    var name: String {
+        switch self {
+        case .switchLanguage: return L("Switch language")
+        case .sendToApp: return L("Send to app")
+        case .vim: return L("Vim")
+        }
+    }
+
+    /// What the choice does, shown under the picker.
+    var explanation: String {
+        switch self {
+        case .switchLanguage:
+            return L("Esc changes the word you're typing, or the one just typed, to another language. The app doesn't get that Esc.")
+        case .sendToApp:
+            return L("Esc finishes the word and goes to the app. ⇧Esc changes the language.")
+        case .vim:
+            return L("Like Send to app, and after Esc vim commands (dd, ciw, :wq) go straight through until you start inserting with i, a, o….")
+        }
+    }
+}
+
+private func strictnessExplanation(_ threshold: Double) -> String {
+    threshold >= AppPolicy.strictThreshold
+        ? L("Converts only words that are clearly Korean, so short commands stay as typed (gst stays gst). For terminals.")
+        : L("Converts a word when it reads more like Korean than English (gst → ㅎㄴㅅ).")
+}
 
 extension Language {
     var displayName: String {
@@ -442,10 +468,10 @@ private struct GeneralPane: View {
             }
             Section(L("When a word comes out wrong")) {
                 LabeledContent {
-                    Text(L("esc · ⇧esc where Esc goes to the app")).foregroundStyle(.secondary)
+                    Text(verbatim: "Esc").foregroundStyle(.secondary)
                 } label: {
                     Text(L("Switch its language"))
-                    Text(L("While typing, or right after the word."))
+                    Text(L("While typing, or right after the word. ⇧Esc in apps where Esc goes to the app."))
                 }
                 LabeledContent {
                     Button(L("Show Remembered Words")) { model.tab = .learning }
@@ -488,39 +514,35 @@ private struct AppsPane: View {
     var body: some View {
         Form {
             Section(L("Default — every app")) {
-                LabeledContent {
+                ChoiceRow(title: L("Converting to Hangul"),
+                          explanation: strictnessExplanation(model.defaultPolicy.conversionThreshold)) {
                     Picker(L("Converting to Hangul"), selection: Binding(
                         get: { model.defaultPolicy.conversionThreshold },
                         set: { value in model.setDefault { $0.conversionThreshold = value } })) {
                         Text(L("Normal")).tag(AppPolicy.standard.conversionThreshold)
                         Text(L("Strict")).tag(AppPolicy.strictThreshold)
                     }
-                    .pickerStyle(.segmented).labelsHidden().fixedSize()
-                } label: {
-                    Text(L("Converting to Hangul"))
-                    Text(L("Strict converts only when quite sure, which keeps shell commands intact."))
                 }
-                LabeledContent {
+                ChoiceRow(title: L("Esc key"), explanation: model.defaultPolicy.escapeKey.explanation) {
                     Picker(L("Esc key"), selection: Binding(
-                        get: { model.defaultPolicy.escapeToApp },
-                        set: { value in model.setDefault { $0.escapeToApp = value } })) {
-                        Text(L("Switch language")).tag(false)
-                        Text(L("Send to app")).tag(true)
+                        get: { model.defaultPolicy.escapeKey },
+                        set: { value in model.setDefault { $0.escapeKey = value } })) {
+                        ForEach(AppPolicy.EscapeKey.allCases, id: \.self) { Text($0.name).tag($0) }
                     }
-                    .pickerStyle(.segmented).labelsHidden().fixedSize()
-                } label: {
-                    Text(L("Esc key"))
-                    Text(L("When Esc goes to the app, ⇧Esc switches the language."))
                 }
-                Toggle(L("Use Seamtype"), isOn: Binding(
+                Toggle(isOn: Binding(
                     get: { model.defaultPolicy.enabled },
-                    set: { value in model.setDefault { $0.enabled = value } }))
+                    set: { value in model.setDefault { $0.enabled = value } })) {
+                    Text(L("Convert words"))
+                    Text(L("Off: keys go to the app as typed, as with the ABC layout."))
+                }
             }
             Section {
                 if model.apps.isEmpty {
                     Text(L("None. Add an app that should work differently."))
                         .foregroundStyle(.secondary)
                 } else {
+                    AppColumnsHeader()
                     ForEach(model.apps) { row in
                         AppRowView(row: row, defaultPolicy: model.defaultPolicy, model: model,
                                    selected: selection.contains(row.id)) {
@@ -540,7 +562,7 @@ private struct AppsPane: View {
                             .disabled(selection.isEmpty)
                     }
                     .fixedSize()
-                    Text(L("Blue values differ from the default; the rest follow it."))
+                    Text(L("“Default” follows the setting above; anything else applies to this app only."))
                         .font(.caption).foregroundStyle(.secondary)
                     Spacer()
                 }
@@ -578,26 +600,69 @@ private struct AppRowView: View {
                       choices: [(L("Normal"), AppPolicy.standard.conversionThreshold), (L("Strict"), AppPolicy.strictThreshold)]) { value in
                 model.setEntry(for: row.id) { $0.conversionThreshold = value }
             }
-            .frame(width: 110, alignment: .leading)
-            FieldMenu(own: row.entry.escapeToApp.map(escapeName),
-                      inherited: escapeName(defaultPolicy.escapeToApp),
-                      choices: [(L("Switch language"), false), (L("Send to app"), true)]) { value in
-                model.setEntry(for: row.id) { $0.escapeToApp = value }
+            .frame(width: AppColumns.conversion, alignment: .leading)
+            FieldMenu(own: row.entry.escapeKey?.name,
+                      inherited: defaultPolicy.escapeKey.name,
+                      choices: AppPolicy.EscapeKey.allCases.map { ($0.name, $0) }) { value in
+                model.setEntry(for: row.id) { $0.escapeKey = value }
             }
-            .frame(width: 130, alignment: .leading)
+            .frame(width: AppColumns.escape, alignment: .leading)
             FieldMenu(own: row.entry.enabled.map { $0 ? L("On") : L("Off") },
                       inherited: defaultPolicy.enabled ? L("On") : L("Off"),
                       choices: [(L("On"), true), (L("Off"), false)]) { value in
                 model.setEntry(for: row.id) { $0.enabled = value }
             }
-            .frame(width: 70, alignment: .leading)
+            .frame(width: AppColumns.enabled, alignment: .leading)
         }
         .padding(.vertical, 2)
         .listRowBackground(selected ? Color.accentColor.opacity(0.15) : nil)
     }
 }
 
-/// One per-app value: the app's own (in the accent color) or "Default" (follows the default).
+/// A setting with a segmented choice on its title line and what the current choice does under
+/// it, across the whole row (a long explanation beside the picker would push it onto its own line).
+private struct ChoiceRow<Choice: View>: View {
+    let title: String
+    let explanation: String
+    @ViewBuilder let choice: Choice
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                Text(title)
+                Spacer(minLength: 12)
+                choice.pickerStyle(.segmented).labelsHidden().fixedSize()
+            }
+            Text(explanation)
+                .font(.subheadline).foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+}
+
+/// Column widths shared by the exceptions' header and rows.
+private enum AppColumns {
+    static let conversion: CGFloat = 130
+    static let escape: CGFloat = 150
+    static let enabled: CGFloat = 100
+}
+
+/// Names the exceptions' columns after the default settings above them.
+private struct AppColumnsHeader: View {
+    var body: some View {
+        HStack(spacing: 10) {
+            Text(L("App")).frame(maxWidth: .infinity, alignment: .leading)
+            Text(L("Converting to Hangul")).frame(width: AppColumns.conversion, alignment: .leading)
+            Text(L("Esc key")).frame(width: AppColumns.escape, alignment: .leading)
+            Text(L("Convert words")).frame(width: AppColumns.enabled, alignment: .leading)
+        }
+        .font(.caption).foregroundStyle(.secondary).lineLimit(1)
+        .accessibilityHidden(true)
+    }
+}
+
+/// One per-app value: the app's own, or "Default · <value>" while it follows the default. The
+/// difference is in the words: a borderless menu's label shows no color or weight.
 private struct FieldMenu<Value>: View {
     let own: String?
     let inherited: String
@@ -612,9 +677,7 @@ private struct FieldMenu<Value>: View {
                 Button(choices[i].0) { set(choices[i].1) }
             }
         } label: {
-            Text(own ?? L("Default"))
-                .foregroundStyle(own == nil ? Color.secondary : Color.accentColor)
-                .fontWeight(own == nil ? .regular : .semibold)
+            Text(own ?? L("Default · %@", inherited))
         }
         .menuStyle(.borderlessButton)
         .fixedSize()

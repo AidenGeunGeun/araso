@@ -12,11 +12,28 @@ public struct AppPolicy: Codable, Equatable, Sendable {
     /// Esc belongs to the app (vim, editors): it commits the word and goes through, and
     /// ⇧Esc switches the word's language instead.
     public var escapeToApp: Bool
+    /// Esc is vim's: besides going to the app, it puts Seamtype in vim's normal mode, where keys
+    /// go straight through until one starts insert mode (`VimNormalMode`).
+    public var vim: Bool
 
-    public init(enabled: Bool = true, conversionThreshold: Double = 0.5, escapeToApp: Bool = false) {
+    public init(enabled: Bool = true, conversionThreshold: Double = 0.5, escapeToApp: Bool = false, vim: Bool = false) {
         self.enabled = enabled
         self.conversionThreshold = conversionThreshold
         self.escapeToApp = escapeToApp
+        self.vim = vim
+    }
+
+    /// Whether Esc goes to the app (it does in vim mode too).
+    public var escapeGoesToApp: Bool { escapeToApp || vim }
+
+    /// What Esc does, as the settings offer it: the two stored keys in one choice.
+    public enum EscapeKey: CaseIterable, Sendable {
+        case switchLanguage, sendToApp, vim
+    }
+
+    public var escapeKey: EscapeKey {
+        get { vim ? .vim : escapeToApp ? .sendToApp : .switchLanguage }
+        set { escapeToApp = newValue != .switchLanguage; vim = newValue == .vim }
     }
 
     public static let standard = AppPolicy()
@@ -30,24 +47,40 @@ public struct AppPolicy: Codable, Equatable, Sendable {
         public var enabled: Bool?
         public var conversionThreshold: Double?
         public var escapeToApp: Bool?
+        public var vim: Bool?
 
-        public init(enabled: Bool? = nil, conversionThreshold: Double? = nil, escapeToApp: Bool? = nil) {
+        public init(enabled: Bool? = nil, conversionThreshold: Double? = nil, escapeToApp: Bool? = nil, vim: Bool? = nil) {
             self.enabled = enabled
             self.conversionThreshold = conversionThreshold
             self.escapeToApp = escapeToApp
+            self.vim = vim
+        }
+
+        /// The app's own Esc choice; nil follows the default. Setting it names both stored keys.
+        public var escapeKey: EscapeKey? {
+            get {
+                if vim == true { return .vim }
+                return escapeToApp.map { $0 ? .sendToApp : .switchLanguage }
+            }
+            set {
+                escapeToApp = newValue.map { $0 != .switchLanguage }
+                vim = newValue.map { $0 == .vim }
+            }
         }
 
         /// The keys of `policy` that differ from `base`.
         init(difference policy: AppPolicy, from base: AppPolicy) {
             self.init(enabled: policy.enabled == base.enabled ? nil : policy.enabled,
                       conversionThreshold: policy.conversionThreshold == base.conversionThreshold ? nil : policy.conversionThreshold,
-                      escapeToApp: policy.escapeToApp == base.escapeToApp ? nil : policy.escapeToApp)
+                      escapeToApp: policy.escapeToApp == base.escapeToApp ? nil : policy.escapeToApp,
+                      vim: policy.vim == base.vim ? nil : policy.vim)
         }
 
         func applied(to base: AppPolicy) -> AppPolicy {
             AppPolicy(enabled: enabled ?? base.enabled,
                       conversionThreshold: conversionThreshold ?? base.conversionThreshold,
-                      escapeToApp: escapeToApp ?? base.escapeToApp)
+                      escapeToApp: escapeToApp ?? base.escapeToApp,
+                      vim: vim ?? base.vim)
         }
     }
 }
