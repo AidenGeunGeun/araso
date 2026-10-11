@@ -7,6 +7,8 @@ private let log = Logger(subsystem: "com.aimdevlee.inputmethod.Seamtype", catego
 
 /// The candidate window shared by all controllers (one is visible at a time).
 @MainActor var candidatesWindow: IMKCandidates?
+/// What the candidate window was last given: its list and the line it highlights.
+@MainActor private var candidatesShown: (texts: [String], selected: Int)?
 
 /// Adapts InputMethodKit to `InputSession`, which holds all the typing logic.
 @objc(SeamtypeInputController)
@@ -176,9 +178,19 @@ final class InputController: IMKInputController {
             candidatesWindow = IMKCandidates(server: server(), panelType: kIMKSingleColumnScrollingCandidatePanel)
         }
         guard let window = candidatesWindow else { return }
-        window.update()
-        window.show(kIMKLocateCandidatesBelowHint)
-        window.selectCandidate(withIdentifier: window.candidateIdentifier(atLineNumber: conversion.selected))
+        // The highlight is moved a line at a time: candidateIdentifier(atLineNumber:) returns 0
+        // for every line (macOS 27), so selectCandidate(withIdentifier:) never moved it.
+        let texts = conversion.candidates.map(\.text)
+        var line = 0
+        if let shown = candidatesShown, shown.texts == texts, window.isVisible() {
+            line = shown.selected
+        } else {
+            window.update() // reloads the list and highlights the first line
+            window.show(kIMKLocateCandidatesBelowHint)
+        }
+        for _ in line..<max(line, conversion.selected) { window.moveDown(nil) }
+        for _ in conversion.selected..<max(conversion.selected, line) { window.moveUp(nil) }
+        candidatesShown = (texts, conversion.selected)
     }
 
     override func candidates(_ sender: Any!) -> [Any]! {
