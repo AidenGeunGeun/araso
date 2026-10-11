@@ -9,7 +9,7 @@
 
 <p align="center"><b>흐름대로 써진다 · 流れるままに · Type as it flows</b></p>
 
-<p align="center">한국어 · <a href="README.en.md">English</a></p>
+<p align="center"><a href="https://nyttastudio.com/seamtype/">웹사이트</a> · 한국어 · <a href="README.en.md">English</a></p>
 
 모든 글을 영문(QWERTY) 자판으로 치세요. 한/영 키는 이제 누르지 않아도 됩니다.
 Seamtype은 macOS 입력기로, **단어마다** 영어인지 한국어(두벌식)인지, 켜 두었다면 일본어(로마자)인지

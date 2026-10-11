@@ -9,7 +9,7 @@
 
 <p align="center"><b>흐름대로 써진다 · 流れるままに · Type as it flows</b></p>
 
-<p align="center"><a href="README.md">한국어</a> · English</p>
+<p align="center"><a href="https://nyttastudio.com/seamtype/">Website (Korean)</a> · <a href="README.md">한국어</a> · English</p>
 
 Type everything on the English (QWERTY) layout and stop pressing the language-switch key.
 Seamtype is a macOS input method that decides **per word** whether you meant English,
