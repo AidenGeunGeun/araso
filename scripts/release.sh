@@ -2,10 +2,12 @@
 # Builds a universal Seamtype.app and packages it for a GitHub release, in build/release:
 #   Seamtype-<version>.zip, Seamtype.zip   the app, for scripts/get.sh (~/Library/Input Methods;
 #                                          Seamtype.zip keeps releases/latest/download stable)
-#   Seamtype-<version>.pkg                 an installer into /Library/Input Methods that registers
-#                                          it for the logged-in user
+#   Seamtype-<version>.pkg, Seamtype.pkg   an installer into /Library/Input Methods that registers
+#                                          it for the logged-in user (Seamtype.pkg keeps
+#                                          releases/latest/download stable for the website)
 #
-# With a Developer ID, it is also signed (hardened runtime), notarized and stapled:
+# With a Developer ID, the app and the package are also signed (hardened runtime), notarized and
+# stapled:
 #   SEAMTYPE_APP_SIGN="Developer ID Application: Name (TEAMID)"
 #   SEAMTYPE_PKG_SIGN="Developer ID Installer: Name (TEAMID)"
 #   SEAMTYPE_NOTARY_PROFILE=seamtype   # once: xcrun notarytool store-credentials seamtype …
@@ -32,6 +34,15 @@ codesign --verify --strict "$app"
 # Running it registered build/Seamtype.app with LaunchServices again (build-app.sh had taken it off).
 /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -u "$app" 2>/dev/null || true
 
+# Notarize the app itself, not only the package, so a Seamtype.zip downloaded in a browser opens
+# too. The stapled ticket travels inside the bundle, into both the zip and the package.
+if [[ -n ${SEAMTYPE_NOTARY_PROFILE:-} ]]; then
+  ditto -c -k --keepParent "$app" $out/notarize.zip
+  xcrun notarytool submit $out/notarize.zip --keychain-profile "$SEAMTYPE_NOTARY_PROFILE" --wait
+  xcrun stapler staple "$app"
+  rm $out/notarize.zip
+fi
+
 # Not relocatable: the installer must not "upgrade" a copy it finds elsewhere (a development
 # install in ~/Library/Input Methods) instead of installing into /Library/Input Methods.
 cp -R "$app" $out/root/
@@ -41,7 +52,10 @@ pkgbuild --root $out/root --component-plist $out/component.plist --install-locat
   --scripts scripts/pkg --identifier com.aimdevlee.inputmethod.Seamtype.pkg --version "$version" \
   $out/Seamtype-component.pkg | grep -v '^pkgbuild: ' || true
 pkg=$out/Seamtype-$version.pkg
-productbuild --package $out/Seamtype-component.pkg ${SEAMTYPE_PKG_SIGN:+--sign "$SEAMTYPE_PKG_SIGN"} $pkg | grep -v '^productbuild: ' || true
+# An array: zsh would pass ${…:+--sign "$name"} as one word, which productbuild rejects.
+pkgsign=()
+[[ -n ${SEAMTYPE_PKG_SIGN:-} ]] && pkgsign=(--sign "$SEAMTYPE_PKG_SIGN" --timestamp)
+productbuild --package $out/Seamtype-component.pkg $pkgsign $pkg | grep -v '^productbuild: ' || true
 # pkgbuild registered the staged copy with LaunchServices; like build-app.sh, unregister it so
 # macOS never picks it when it launches the input method.
 /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -u "$out/root/Seamtype.app" 2>/dev/null || true
@@ -55,5 +69,6 @@ if [[ -n ${SEAMTYPE_NOTARY_PROFILE:-} ]]; then
   xcrun notarytool submit $pkg --keychain-profile "$SEAMTYPE_NOTARY_PROFILE" --wait
   xcrun stapler staple $pkg
 fi
-echo "built $out/Seamtype-$version.zip, $out/Seamtype.zip, $pkg"
+cp $pkg $out/Seamtype.pkg
+echo "built $out/Seamtype-$version.zip, $out/Seamtype.zip, $pkg, $out/Seamtype.pkg"
 echo "  (${SEAMTYPE_APP_SIGN:-ad-hoc app}, ${SEAMTYPE_PKG_SIGN:-unsigned pkg}${SEAMTYPE_NOTARY_PROFILE:+, notarized})"
