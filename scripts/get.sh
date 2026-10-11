@@ -30,6 +30,8 @@ mv "$work/Seamtype.app" "$app"
 xattr -dr com.apple.quarantine "$app" 2>/dev/null || true
 "$app/Contents/MacOS/Seamtype" --register
 killall TextInputMenuAgent 2>/dev/null || true
+# The switch indicator by the caret keeps the icon it read first (they ignore SIGTERM).
+killall -KILL CursorUIViewService TextInputSwitcher 2>/dev/null || true
 
 [ -d "/Library/Input Methods/Seamtype.app" ] &&
   echo "Note: another copy is in /Library/Input Methods; remove one of them."

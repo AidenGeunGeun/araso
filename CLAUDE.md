@@ -112,8 +112,10 @@ runtime.
   - The CLI only shows the engine's decision, so also test through a session: an earlier split
     looked right in the CLI but never reached real typing.
 - **Install refreshes:** after a reinstall, the input menu keeps its old list until
-  `TextInputMenuAgent` restarts (`install.sh` does this). A fresh process can still take 10–30 s
-  to see the source as enabled, hence `enable-input-source.swift --check` with retries.
+  `TextInputMenuAgent` restarts, and the switch indicator by the caret keeps the icon it read
+  first until `CursorUIViewService` and `TextInputSwitcher` do (they ignore SIGTERM, so the install
+  paths SIGKILL them). A fresh process can still take 10–30 s to see the source as enabled, hence
+  `enable-input-source.swift --check` with retries.
 - **Releases** are signed with the Developer ID and notarized, the app and the pkg alike; run
   `release.sh` with `SEAMTYPE_APP_SIGN="Developer ID Application: Dongbin Lee (2UZ65T3U82)"`,
   `SEAMTYPE_PKG_SIGN="Developer ID Installer: Dongbin Lee (2UZ65T3U82)"` and

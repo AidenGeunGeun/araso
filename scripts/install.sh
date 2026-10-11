@@ -22,8 +22,10 @@ if swift scripts/enable-input-source.swift "$dest/Seamtype.app" $id; then enable
     swift scripts/enable-input-source.swift --check $id && { enabled=true; break; }
   done
 fi
-# The input menu keeps the list from before the reinstall (without Seamtype) until it restarts.
+# The input menu keeps the list from before the reinstall (without Seamtype) until it restarts,
+# and the switch indicator by the caret its icon (they ignore SIGTERM; launchd brings them back).
 $enabled && killall TextInputMenuAgent 2>/dev/null || true
+$enabled && killall -KILL CursorUIViewService TextInputSwitcher 2>/dev/null || true
 $enabled && echo "input source $id is enabled" ||
   echo "input source $id isn't enabled: add it in System Settings → Keyboard → Input Sources"
 

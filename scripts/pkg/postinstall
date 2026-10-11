@@ -8,5 +8,7 @@ if [ -n "$user" ] && [ "$user" != root ]; then
   uid=$(id -u "$user")
   launchctl asuser "$uid" sudo -u "$user" "$app/Contents/MacOS/Seamtype" --register || true
   launchctl asuser "$uid" sudo -u "$user" killall TextInputMenuAgent 2>/dev/null || true
+  # The switch indicator by the caret keeps the icon it read first (they ignore SIGTERM).
+  launchctl asuser "$uid" sudo -u "$user" killall -KILL CursorUIViewService TextInputSwitcher 2>/dev/null || true
 fi
 exit 0
