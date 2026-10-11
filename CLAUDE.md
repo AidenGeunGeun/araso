@@ -72,7 +72,7 @@ tests use `FakeTextField`). It owns the preview and hysteresis, commits, Esc rea
 - A right ⌘ tap (flagsChanged, in `InputController`) pauses the session until the next tap,
   `activate`, or a settings change (a fresh session). The menu icon can't change, so `PauseHUD`
   shows the icon under the caret for a moment, struck through when paused (drawn by
-  `make-icon.swift --hud [--slash]`), for the menu's toggle too.
+  `make-icon.swift --slash`), for the menu's toggle too.
 - After a word ends with Space or punctuation, only the word is inserted and `handle` returns
   false, so the app types the key itself, as the system Korean IME does. Inserting "word + space"
   left a stray character in Ghostty. Test harnesses must insert the passed-on key themselves.

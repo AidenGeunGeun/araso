@@ -2,7 +2,8 @@ import Cocoa
 
 /// Seamtype's icon shown for a moment under the caret when it pauses (struck through) or
 /// resumes in a text field. The menu bar icon can't show it (the bundle is signed, so the icon
-/// is fixed). The icons are drawn at build time (scripts/make-icon.swift --hud).
+/// is fixed). Menu bar size, like the system's input source indicator; the struck-through icon
+/// is drawn at build time (scripts/make-icon.swift --slash).
 @MainActor enum PauseHUD {
     private static var panel: NSPanel?
     private static var imageView: NSImageView?
@@ -15,7 +16,7 @@ import Cocoa
             image?.isTemplate = true
             return image
         }
-        guard let on = load("SeamtypeHUD"), let paused = load("SeamtypeHUDPaused") else { return nil }
+        guard let on = load("Seamtype"), let paused = load("SeamtypePaused") else { return nil }
         return (on, paused)
     }()
 
@@ -26,7 +27,7 @@ import Cocoa
         let image = paused ? icons.paused : icons.on
         imageView.image = image
         imageView.setAccessibilityLabel(paused ? L("Seamtype paused") : L("Seamtype resumed"))
-        let size = NSSize(width: image.size.width + 20, height: image.size.height + 16)
+        let size = NSSize(width: image.size.width + 14, height: image.size.height + 8)
         panel.setFrame(NSRect(origin: origin(for: size, caret: caret), size: size), display: true)
         panel.alphaValue = 1
         panel.orderFrontRegardless()
@@ -75,7 +76,7 @@ import Cocoa
         background.material = .hudWindow
         background.state = .active
         background.wantsLayer = true
-        background.layer?.cornerRadius = 9
+        background.layer?.cornerRadius = 6
         background.layer?.masksToBounds = true
 
         let imageView = NSImageView()
