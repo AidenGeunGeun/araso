@@ -16,6 +16,15 @@ import Testing
         #expect(r.isClean)
     }
 
+    /// Delete rewrites the keys from these spellings, so each must compose back to its kana,
+    /// also with a vowel typed after it (ん before あ).
+    @Test func respellingsComposeBack() {
+        for (kana, romaji) in RomajiComposer.spelling {
+            #expect(RomajiComposer.compose(romaji, partial: true).text == String(kana), "\(kana) \(romaji)")
+            #expect(RomajiComposer.compose(romaji + "a").text == String(kana) + "あ", "\(kana) \(romaji)a")
+        }
+    }
+
     @Test func pendingWhileTyping() {
         let r = RomajiComposer.compose("konnic", partial: true)
         #expect(r.text == "こんにc")

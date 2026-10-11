@@ -124,6 +124,49 @@ final class FakeTextField: TextClient {
         session.handle(.delete, client: field)
         #expect(field.text == "안녀")
     }
+
+    /// As the system's 2-set input: the syllable being typed goes jamo by jamo, earlier ones whole.
+    @Test func deleteKoreanLikeTheSystem() {
+        type("gksrnr")
+        #expect(field.text == "한국")
+        for expected in ["한구", "한ㄱ", "한", ""] {
+            session.handle(.delete, client: field)
+            #expect(field.text == expected)
+        }
+        type("dkssudgktpdy")
+        for expected in ["안녕하세ㅇ", "안녕하세", "안녕하", "안녕"] {
+            session.handle(.delete, client: field)
+            #expect(field.text == expected)
+        }
+        type("gk")
+        #expect(field.text == "안녕하")
+        session.handle(.delete, client: field)
+        #expect(field.text == "안녕ㅎ")
+    }
+
+    /// After a Delete the syllable being typed stays apart from the ones before, as in the system
+    /// input: 세요 → 세ㅇ → 세유 (not 셍, 셍ㅠ).
+    @Test func retypingAfterDeleteKeepsSyllablesApart() {
+        type("dkssudgktpdy")
+        session.handle(.delete, client: field)
+        type("b ")
+        #expect(field.text == "안녕하세유 ")
+    }
+
+    @Test func deleteKeepsTheLanguageShown() {
+        type("gksrnr")
+        session.handle(.delete, client: field)
+        session.handle(.delete, client: field)
+        #expect(field.text == "한ㄱ")
+        type(" ")
+        #expect(field.text == "한ㄱ ")
+    }
+
+    @Test func deleteEnglishKeyByKey() {
+        type("hello")
+        session.handle(.delete, client: field)
+        #expect(field.text == "hell")
+    }
 }
 
 @MainActor @Suite struct MixedWordSessionTests {

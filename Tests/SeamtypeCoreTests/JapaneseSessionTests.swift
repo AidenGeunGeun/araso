@@ -87,7 +87,41 @@ import Testing
         #expect(session.conversion == nil)
         #expect(field.text == "へんかん")
         session.handle(.delete, client: field)
-        #expect(field.text == "へんかn")
+        #expect(field.text == "へんか")
+    }
+
+    @Test func deleteTakesOffAWholeKana() {
+        type("kannkoku")
+        #expect(field.text == "かんこく")
+        session.handle(.delete, client: field)
+        #expect(field.text == "かんこ")
+        session.handle(.delete, client: field)
+        #expect(field.text == "かん")
+        type("ji ")
+        #expect(converter.learned.isEmpty)
+        #expect(session.conversion?.kana == "かんじ")
+    }
+
+    @Test func deleteKeepsAPendingLetterSeparate() {
+        type("kannkok")
+        #expect(field.text == "かんこk")
+        session.handle(.delete, client: field)
+        #expect(field.text == "かんこ")
+    }
+
+    @Test func deleteSplitsContractedAndDoubledKana() {
+        type("kyouha")
+        session.handle(.delete, client: field)
+        session.handle(.delete, client: field)
+        #expect(field.text == "きょ")
+        session.handle(.delete, client: field)
+        #expect(field.text == "き")
+        type("tte")
+        #expect(field.text == "きって")
+        session.handle(.delete, client: field)
+        #expect(field.text == "きっ")
+        type("ta")
+        #expect(field.text == "きった")
     }
 
     @Test func returnWithoutConvertingCommitsKanaOnly() {

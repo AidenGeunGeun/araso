@@ -93,7 +93,7 @@ While a word is being typed it is underlined and shows the language Seamtype exp
 | letters | extend the word | extend the phrase (kana preview) |
 | **Esc** | switch reading: English → English+particle → Korean → Japanese | same |
 | **⇧Esc** | switch reading, in every app (where Esc is set to go to the app) | same |
-| Delete | remove the last keystroke | same |
+| Delete | English: the last letter. Korean: the syllable being typed jamo by jamo, earlier ones whole (한국 → 한구 → 한ㄱ → 한 → gone, as the system's 2-set does) | one kana at a time (かんこく → かんこ) |
 | **Space** | commit, then a space | **convert to kanji** (candidate window) |
 | `, . ? !` | commit, then the key | stay in the phrase as 、。？！ |
 | `-` | commit, then `-` | ー |

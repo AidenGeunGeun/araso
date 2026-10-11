@@ -20,7 +20,9 @@ public protocol TextClient: AnyObject {
 ///                  (where the app's Esc is set to go to the app, or inside a vim that reports
 ///                  its modes, Esc commits and goes to the app; ⇧Esc cycles)
 ///   ⇧Esc           cycle it, in every app
-///   Delete         remove the last keystroke
+///   Delete         remove the last kana of a Japanese phrase; in Korean the last jamo of the
+///                  syllable being typed, then whole syllables (as the system's 2-set does);
+///                  else the last keystroke. The word keeps its language until the next letter.
 ///   Space          English/Korean: commit, then a space. Japanese: convert to kanji
 ///   , . ? ! - '    inside a Japanese phrase they are part of it (、。？！ー); otherwise
 ///                  they commit the word, then type the key
@@ -129,6 +131,13 @@ public final class InputSession {
     public let liveConversion: Bool
     /// Return on an underlined word only confirms it (`Settings.returnConfirmsOnly`).
     public let returnConfirmsOnly: Bool
+    /// The language shown when Delete was pressed, held until the next letter: a shorter word
+    /// may read differently (한국 → 한구, not 한rn), but it shouldn't change under the user.
+    private var pinned: Language?
+    /// Where the Korean syllable being typed starts once Delete was used in the word: the system's
+    /// 2-set input has committed everything before it, so those syllables delete whole and new
+    /// jamo don't join them (세요 → 세ㅇ, not 셍). Nil until then: the word composes as one.
+    private var syllableStart: Int?
     /// Esc showed the current phrase's kana instead (the next Esc switches language as usual).
     private var liveSuppressed = false
     private var liveCache: (kana: String, candidate: ConversionCandidate?)?
@@ -206,15 +215,22 @@ public final class InputSession {
         case .letter(let ch):
             if keys.isEmpty { lastRecorded = nil; liveSuppressed = false } // a new word
             addedNMarker = false
+            pinned = nil
             keys.append(ch)
             updatePreview(client)
             return true
 
         case .delete:
             guard !keys.isEmpty else { return false }
-            keys.removeLast()
+            let shown = forced ?? pinned ?? previewLanguage
+            if forced == nil { pinned = shown }
+            switch shown {
+            case .japanese: deleteKana()
+            case .korean: deleteJamoOrSyllable()
+            default: keys.removeLast()
+            }
             addedNMarker = false
-            if keys.isEmpty { forced = nil; forcedByUser = false }
+            if keys.isEmpty { forced = nil; forcedByUser = false; pinned = nil; syllableStart = nil }
             updatePreview(client)
             return true
 
@@ -232,8 +248,9 @@ public final class InputSession {
                 return true
             }
             // Cycle from what the user sees.
-            let shown = forced ?? previewLanguage ?? decide(partial: true).language
+            let shown = forced ?? pinned ?? previewLanguage ?? decide(partial: true).language
             forced = shown.next(for: keys, japanese: japaneseEnabled)
+            pinned = nil
             forcedByUser = true
             if forced != .japanese { dropNMarker() }
             updatePreview(client)
@@ -425,6 +442,8 @@ public final class InputSession {
         keys = ""
         forced = nil
         forcedByUser = false
+        pinned = nil
+        syllableStart = nil
         enginePreview = nil
         previousLanguage = .japanese
         client.setMarkedText(conversion!.display)
@@ -440,6 +459,8 @@ public final class InputSession {
         keys = ""
         forced = nil
         forcedByUser = false
+        pinned = nil
+        syllableStart = nil
         enginePreview = nil
         previousLanguage = .japanese
         client.setMarkedText(conversion!.display)
@@ -516,6 +537,7 @@ public final class InputSession {
             // A final "n" was shown as ん; keep it ("henkan" → "henkan'") instead of
             // letting it wait for a vowel again.
             keys = conversion.keys
+            syllableStart = nil
             if keys.hasSuffix("n"), !keys.hasSuffix("nn") { keys += "'"; addedNMarker = true }
             forced = .japanese
             forcedByUser = conversion.userForced
@@ -592,7 +614,7 @@ public final class InputSession {
 
     /// The language the current word will be committed in.
     private func currentLanguage() -> Language {
-        forced ?? committedLanguage()
+        forced ?? pinned ?? committedLanguage()
     }
 
     /// What Space/Return commits without Esc: the full-word decision, except that a hesitant
@@ -621,9 +643,10 @@ public final class InputSession {
             previewLanguage = nil
             enginePreview = nil
             client.setMarkedText("")
-        } else if let forced {
+        } else if let forced = forced ?? pinned {
             previewLanguage = forced
-            client.setMarkedText(forced == .japanese ? japaneseDisplay() : engine.render(keys, as: forced))
+            client.setMarkedText(forced == .japanese ? japaneseDisplay()
+                                 : forced == .korean ? hangul() ?? keys : engine.render(keys, as: forced))
         } else {
             splitOffKoreanBeforeOther(client)
             splitOffJapaneseBeforeKorean(client)
@@ -664,6 +687,7 @@ public final class InputSession {
                   isOtherLanguageWord(back) else { continue }
             client.insertText(korean.text, replacing: nil)
             keys = back
+            syllableStart = nil
             previousLanguage = .korean
             previewLanguage = nil
             enginePreview = nil
@@ -710,6 +734,7 @@ public final class InputSession {
             keys = front
             client.insertText(committedJapanese(), replacing: nil)
             keys = back
+            syllableStart = nil
             previousLanguage = .japanese
             forced = .korean
             forcedByUser = false
@@ -726,7 +751,7 @@ public final class InputSession {
     private func preview(as language: Language) -> String? {
         switch language {
         case .english: return keys
-        case .korean: return HangulComposer.compose(keys: keys)?.text
+        case .korean: return hangul()
         case .mixed:
             let text = engine.render(keys, as: .mixed)
             return text == keys ? nil : text
@@ -737,22 +762,90 @@ public final class InputSession {
     /// Decides the current word, learns an Esc override, and resets the buffer.
     private func finishWord() -> (keys: String, text: String, language: Language, decided: Language) {
         let engineChoice = committedLanguage()
-        let language = forced ?? engineChoice
+        let language = forced ?? pinned ?? engineChoice
         if language != .japanese { dropNMarker() }
-        // "Back to kana" without the user's Esc isn't a correction: report it as the engine's.
-        let decided = forced != nil && !forcedByUser ? language : engineChoice
+        // "Back to kana" without the user's Esc, or a reading kept while deleting, isn't a
+        // correction: report it as the engine's.
+        let decided = (forced != nil && !forcedByUser) || (forced == nil && pinned != nil) ? language : engineChoice
         if forced != nil, forcedByUser { record(keys, as: language, engineChoice: decided) }
-        let text = language == .japanese ? committedJapanese() : engine.render(keys, as: language)
+        let text = language == .japanese ? committedJapanese()
+                 : language == .korean ? hangul() ?? engine.render(keys, as: language) : engine.render(keys, as: language)
         liveSuppressed = false
         let word = (keys, text, language, decided)
         previousLanguage = language.sentenceLanguage
         keys = ""
         forced = nil
         forcedByUser = false
+        pinned = nil
+        syllableStart = nil
         addedNMarker = false
         previewLanguage = nil
         enginePreview = nil
         return word
+    }
+
+    /// Takes the last kana off a Japanese phrase, as a Japanese IME does (かんこく → かんこ, not
+    /// かんこk): the keys become a spelling of the shorter reading, keeping as much of what was
+    /// typed as composes to it. A letter still waiting for its vowel goes alone (かんこk → かんこ),
+    /// and so does anything in a phrase with English in it.
+    private func deleteKana() {
+        let composed = RomajiComposer.compose(keys, partial: true)
+        guard composed.pending.isEmpty, composed.strayLetters == 0, !composed.text.isEmpty else {
+            keys.removeLast()
+            return
+        }
+        keys = Self.keys(spelling: String(composed.text.dropLast()), from: keys) ?? String(keys.dropLast())
+    }
+
+    /// The longest start of `keys` that composes to a start of `kana`, followed by a spelling of
+    /// the rest ("kya" for き is "ki"; "kitte" for きっ is "kiltu").
+    static func keys(spelling kana: String, from keys: String) -> String? {
+        let chars = Array(keys)
+        for cut in stride(from: chars.count - 1, through: 0, by: -1) {
+            let front = String(chars[..<cut])
+            let composed = RomajiComposer.compose(front, partial: true)
+            guard composed.pending.isEmpty, composed.strayLetters == 0, kana.hasPrefix(composed.text),
+                  let rest = RomajiComposer.romaji(String(kana.dropFirst(composed.text.count))) else { continue }
+            let respelled = RomajiComposer.compose(front + rest, partial: true)
+            if respelled.pending.isEmpty, respelled.text == kana { return front + rest }
+        }
+        return nil
+    }
+
+    /// Korean as the system's 2-set input deletes it: jamo by jamo in the syllable being typed
+    /// (한국 → 한구 → 한ㄱ → 한), then whole syllables, which it had already committed (한 → nothing).
+    private func deleteJamoOrSyllable() {
+        let chars = Array(keys)
+        if syllableStart == nil {
+            guard let units = HangulComposer.compose(keys: keys)?.units else { keys.removeLast(); return }
+            syllableStart = Self.cut(chars, before: Array(units.dropLast()))
+        }
+        if syllableStart! < chars.count {
+            keys.removeLast()
+            return
+        }
+        // Nothing left being typed: a whole committed syllable goes.
+        guard let units = HangulComposer.compose(keys: keys)?.units else { keys.removeLast(); return }
+        let cut = Self.cut(chars, before: Array(units.dropLast()))
+        keys = String(chars[..<cut])
+        syllableStart = cut
+    }
+
+    /// Where the keys of the last syllable start: the longest front that makes `earlier` alone.
+    private static func cut(_ chars: [Character], before earlier: [HangulComposer.Unit]) -> Int {
+        stride(from: chars.count - 1, through: 0, by: -1).first {
+            HangulComposer.compose(keys: String(chars[..<$0]))?.units == earlier
+        } ?? chars.count - 1
+    }
+
+    /// The word as Hangul, with the syllable being typed kept apart from those before it
+    /// after a Delete (`syllableStart`).
+    private func hangul() -> String? {
+        guard let start = syllableStart, start < keys.count else { return HangulComposer.compose(keys: keys)?.text }
+        let chars = Array(keys)
+        guard let front = HangulComposer.compose(keys: String(chars[..<start])),
+              let back = HangulComposer.compose(keys: String(chars[start...])) else { return nil }
+        return front.text + back.text
     }
 
     private func dropNMarker() {

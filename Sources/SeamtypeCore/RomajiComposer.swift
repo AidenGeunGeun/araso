@@ -84,6 +84,29 @@ public enum RomajiComposer {
         }))
     }
 
+    /// A spelling that composes back to `kana` (し → "si", ん → "n'", っ → "ltu"), or nil if
+    /// some character has none. For keys rewritten after Delete took off a whole kana.
+    public static func romaji(_ kana: String) -> String? {
+        var out = ""
+        for ch in kana {
+            guard let r = spelling[ch] else { return nil }
+            out += r
+        }
+        return out
+    }
+
+    /// The shortest table entry for each single kana (ties: alphabetical); ん as "n'" so a
+    /// vowel typed after it can't take it over (n'a is んあ, nna would be んな).
+    static let spelling: [Character: String] = {
+        var s: [Character: String] = ["ん": "n'"]
+        for (key, value) in table where value.count == 1 {
+            let ch = value.first!
+            if let old = s[ch], old.count < key.count || (old.count == key.count && old < key) { continue }
+            if ch != "ん" { s[ch] = key }
+        }
+        return s
+    }()
+
     static let vowels: Set<Character> = ["a", "i", "u", "e", "o"]
     static let consonants: Set<Character> = Set("bcdfghjklmpqrstvwxyz")
 
