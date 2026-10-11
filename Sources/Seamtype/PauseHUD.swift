@@ -2,13 +2,19 @@ import Cocoa
 
 /// Seamtype's icon shown for a moment under the caret when it pauses (struck through) or
 /// resumes in a text field. The menu bar icon can't show it (the bundle is signed, so the icon
-/// is fixed). Menu bar size, like the system's input source indicator; the struck-through icon
+/// is fixed). It looks like the system's own input source indicator (macOS 26 and later): a
+/// white icon on an accent-colored capsule, centered under the caret. The struck-through icon
 /// is drawn at build time (scripts/make-icon.swift --slash).
 @MainActor enum PauseHUD {
     private static var panel: NSPanel?
     private static var imageView: NSImageView?
     /// Bumped on every show, so an older fade-out leaves a newer icon alone.
     private static var shown = 0
+
+    /// The system indicator's capsule and its gap below the caret, measured on screen (the icon
+    /// in it is the menu bar icon at its own size).
+    private static let size = NSSize(width: 30, height: 23)
+    private static let gap: CGFloat = 4
 
     private static let icons: (on: NSImage, paused: NSImage)? = {
         func load(_ name: String) -> NSImage? {
@@ -20,15 +26,21 @@ import Cocoa
         return (on, paused)
     }()
 
+    /// The system indicator's blue: the accent color's sRGB components taken as Display P3,
+    /// more vivid than the accent color itself (measured against it on screen).
+    private static var fill: CGColor {
+        let accent = NSColor.controlAccentColor.usingColorSpace(.sRGB) ?? .systemBlue
+        return NSColor(displayP3Red: accent.redComponent, green: accent.greenComponent, blue: accent.blueComponent, alpha: 1).cgColor
+    }
+
     /// `caret` is the caret's line in screen coordinates, or `.zero` when the app doesn't say.
     static func show(paused: Bool, caret: NSRect) {
         guard let icons else { return } // not built into an app bundle (development)
         let (panel, imageView) = make()
-        let image = paused ? icons.paused : icons.on
-        imageView.image = image
+        imageView.image = paused ? icons.paused : icons.on
         imageView.setAccessibilityLabel(paused ? L("Seamtype paused") : L("Seamtype resumed"))
-        let size = NSSize(width: image.size.width + 14, height: image.size.height + 8)
-        panel.setFrame(NSRect(origin: origin(for: size, caret: caret), size: size), display: true)
+        panel.contentView?.layer?.backgroundColor = fill
+        panel.setFrame(NSRect(origin: origin(caret: caret), size: size), display: true)
         panel.alphaValue = 1
         panel.orderFrontRegardless()
 
@@ -42,10 +54,9 @@ import Cocoa
         }
     }
 
-    /// Just under the caret's line (above it near the bottom of the screen), kept on screen.
-    /// Without a caret, near the top of the screen the mouse is on.
-    private static func origin(for size: NSSize, caret: NSRect) -> NSPoint {
-        let gap: CGFloat = 4
+    /// Centered just under the caret's line (above it near the bottom of the screen), kept on
+    /// screen. Without a caret, near the top of the screen the mouse is on.
+    private static func origin(caret: NSRect) -> NSPoint {
         let anchor = caret == .zero ? NSEvent.mouseLocation : caret.origin
         let screen = NSScreen.screens.first { $0.frame.contains(anchor) } ?? NSScreen.main
         guard let visible = screen?.visibleFrame else { return anchor }
@@ -53,7 +64,7 @@ import Cocoa
         if caret == .zero {
             point = NSPoint(x: visible.midX - size.width / 2, y: visible.maxY - size.height - 40)
         } else {
-            point = NSPoint(x: caret.minX, y: caret.minY - size.height - gap)
+            point = NSPoint(x: caret.midX.rounded() - size.width / 2, y: caret.minY - gap - size.height)
             if point.y < visible.minY { point.y = caret.maxY + gap }
         }
         point.x = min(max(point.x, visible.minX), visible.maxX - size.width)
@@ -63,32 +74,30 @@ import Cocoa
 
     private static func make() -> (NSPanel, NSImageView) {
         if let panel, let imageView { return (panel, imageView) }
-        let panel = NSPanel(contentRect: .zero, styleMask: [.borderless, .nonactivatingPanel],
+        let panel = NSPanel(contentRect: NSRect(origin: .zero, size: size), styleMask: [.borderless, .nonactivatingPanel],
                             backing: .buffered, defer: true)
         panel.level = .popUpMenu
         panel.isOpaque = false
         panel.backgroundColor = .clear
-        panel.hasShadow = true
+        panel.hasShadow = false
         panel.ignoresMouseEvents = true
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .transient]
 
-        let background = NSVisualEffectView()
-        background.material = .hudWindow
-        background.state = .active
-        background.wantsLayer = true
-        background.layer?.cornerRadius = 6
-        background.layer?.masksToBounds = true
+        let capsule = NSView()
+        capsule.wantsLayer = true
+        capsule.layer?.cornerRadius = size.height / 2
+        capsule.layer?.cornerCurve = .continuous
 
         let imageView = NSImageView()
-        imageView.contentTintColor = .labelColor
+        imageView.contentTintColor = .white
         imageView.imageScaling = .scaleNone
         imageView.translatesAutoresizingMaskIntoConstraints = false
-        background.addSubview(imageView)
+        capsule.addSubview(imageView)
         NSLayoutConstraint.activate([
-            imageView.centerXAnchor.constraint(equalTo: background.centerXAnchor),
-            imageView.centerYAnchor.constraint(equalTo: background.centerYAnchor),
+            imageView.centerXAnchor.constraint(equalTo: capsule.centerXAnchor),
+            imageView.centerYAnchor.constraint(equalTo: capsule.centerYAnchor),
         ])
-        panel.contentView = background
+        panel.contentView = capsule
         self.panel = panel
         self.imageView = imageView
         return (panel, imageView)

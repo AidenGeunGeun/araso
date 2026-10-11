@@ -81,7 +81,8 @@ Esc. Use ⇧Esc to switch there.
 **Pause:** where every key is a command, like a terminal program that moves with `hjkl` (lazygit,
 htop), tap **right ⌘** on its own. The word in progress goes in, and in that text field keys go
 through as typed. Tap again, move to another app or text field, or change a setting, to resume. Each tap shows
-Seamtype's icon under the caret for a moment, struck through when paused; the menu bar icon doesn't change, so
+Seamtype's icon under the caret for a moment, in a blue capsule like the input source indicator,
+struck through when paused; the menu bar icon doesn't change, so
 later the input menu has it checked. Turn the key off under General in the settings.
 
 **vim:** for neovim put [`scripts/vim/seamtype.lua`](scripts/vim/seamtype.lua) in
