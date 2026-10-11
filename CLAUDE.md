@@ -23,7 +23,6 @@ printf 'keys\tprevious\n' | swift run seamtype-cli --decide --japanese   # previ
 printf 'きょうは\n' | swift run seamtype-cli --convert                    # AzooKey candidates
 tools/prepare.sh [--models]                  # held-out accuracy (downloads into tools/data, gitignored)
 scripts/typing-test/run.sh                   # real key events into TextEdit through the installed app
-scripts/record-demo/record.sh                # README demo GIF from real typing (also takes over the keyboard)
 /usr/bin/log show --last 10m --predicate 'subsystem == "com.aimdevlee.inputmethod.Seamtype"' --info --debug
 ```
 

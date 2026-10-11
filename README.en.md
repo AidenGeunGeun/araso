@@ -16,13 +16,13 @@ Seamtype is a macOS input method that decides **per word** whether you meant Eng
 Korean (2-set / 두벌식) or — if you turn it on — Japanese (romaji), and commits the right one.
 
 ```
-dkssudgktpdy, hello world!          →  안녕하세요, hello world!
-dlrjs githubdp commitgkf rjdi       →  이건 github에 commit할 거야
-kyouhagoogledekensaku ␣ ⏎           →  今日はgoogleで検索
+Stay hungry, stay foolishsms wkqtmdml akfdlek.   →  Stay hungry, stay foolish는 잡스의 말이다.
+wagahaihanekodearu␣sms thtpzldml thtjfdlek.      →  吾輩は猫である는 소세키의 소설이다.
+Hello, worldhasaishonopuroguramudesu␣.           →  Hello, worldは最初のプログラムです。
 ```
 
 <p align="center">
-  <img src="docs/media/demo.gif" width="720" alt="Typing on QWERTY into TextEdit: 안녕하세요, hello world! / 이건 github에 commit할 거야. / 今日はgoogleで検索">
+  <img src="docs/media/demo.gif" width="720" alt="Choosing Seamtype once from the input menu, then typing on QWERTY into Safari without switching the input source again: Stay hungry, stay foolish는 잡스의 말이다. / 吾輩は猫である는 소세키의 소설이다. / Hello, worldは最初のプログラムです。">
 </p>
 
 ## Why
@@ -263,7 +263,6 @@ Resources: ~50 MB of memory (plus the ~35 MB Japanese dictionary when Japanese i
 ```sh
 swift test                     # tests: composers, engines, sessions, settings, end to end
 scripts/typing-test/run.sh     # real key events into TextEdit through the installed Seamtype
-scripts/record-demo/record.sh  # records the README demo (docs/media/demo.gif) from real typing
 swift scripts/make-readme-logo.swift docs/media  # the README logo (animated SVG)
 scripts/release.sh             # universal (arm64 + x86_64) zip and pkg for a release; with a Developer ID also signed and notarized (app and pkg)
 tools/prepare.sh               # accuracy (downloads word lists, Tatoeba and SCOWL once)

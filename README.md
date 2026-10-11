@@ -16,13 +16,13 @@ Seamtype은 macOS 입력기로, **단어마다** 영어인지 한국어(두벌�
 판단해서 맞는 글자로 입력합니다.
 
 ```
-dkssudgktpdy, hello world!          →  안녕하세요, hello world!
-dlrjs githubdp commitgkf rjdi       →  이건 github에 commit할 거야
-kyouhagoogledekensaku ␣ ⏎           →  今日はgoogleで検索
+Stay hungry, stay foolishsms wkqtmdml akfdlek.   →  Stay hungry, stay foolish는 잡스의 말이다.
+wagahaihanekodearu␣sms thtpzldml thtjfdlek.      →  吾輩は猫である는 소세키의 소설이다.
+Hello, worldhasaishonopuroguramudesu␣.           →  Hello, worldは最初のプログラムです。
 ```
 
 <p align="center">
-  <img src="docs/media/demo.gif" width="720" alt="TextEdit에 QWERTY로 치는 모습: 안녕하세요, hello world! / 이건 github에 commit할 거야. / 今日はgoogleで検索">
+  <img src="docs/media/demo.gif" width="720" alt="입력 메뉴에서 Seamtype을 한 번 고른 뒤, 입력 소스를 다시 바꾸지 않고 Safari에 QWERTY로 치는 모습: Stay hungry, stay foolish는 잡스의 말이다. / 吾輩は猫である는 소세키의 소설이다. / Hello, worldは最初のプログラムです。">
 </p>
 
 ## 만든 이유
@@ -257,7 +257,6 @@ pkg로 설치했다면 앱은 `/Library/Input Methods/Seamtype.app`에 있습니
 ```sh
 swift test                     # 테스트: 조합기, 엔진, 세션, 설정, 처음부터 끝까지
 scripts/typing-test/run.sh     # 설치된 Seamtype으로 TextEdit에 실제 키 입력
-scripts/record-demo/record.sh  # README 움짤(docs/media/demo.gif)을 실제 입력으로 녹화
 swift scripts/make-readme-logo.swift docs/media  # README 로고(애니메이션 SVG)
 scripts/release.sh             # 릴리스용 범용(arm64 + x86_64) zip과 pkg; Developer ID가 있으면 서명·공증(앱과 pkg 모두)
 tools/prepare.sh               # 정확도 (단어 목록, Tatoeba, SCOWL을 처음 한 번 내려받음)
