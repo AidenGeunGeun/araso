@@ -150,6 +150,56 @@ import Testing
         #expect(field.text == "ありがとう。らーめn") // ん waits for the next key, like any Japanese IME
     }
 
+    /// After Japanese a symbol is full-width and underlined, as in a Japanese IME: Return only
+    /// confirms it, the next letter starts a word of its own.
+    @Test func symbolAfterJapaneseWaitsForReturn() {
+        type("henkan ")
+        session.handle(.enter, client: field)
+        type("!?")
+        #expect(field.text == "変換！？")
+        #expect(field.marked.location != NSNotFound)
+        #expect(session.handle(.enter, client: field))
+        #expect(field.text == "変換！？")
+        #expect(field.marked.location == NSNotFound)
+        type("_")
+        session.handle(.delete, client: field)
+        #expect(field.text == "変換！？")
+        type("/wo")
+        #expect(field.text == "変換！？・を")
+    }
+
+    @Test func symbolAfterJapaneseConvertsWithSpace() {
+        type("henkan ")
+        session.handle(.enter, client: field)
+        type("_ ")
+        #expect(session.conversion?.kana == "＿")
+    }
+
+    @Test func numbersAfterJapaneseStayHalfWidth() {
+        type("henkan ")
+        session.handle(.enter, client: field)
+        type("3.5:")
+        #expect(field.text == "変換3.5:")
+    }
+
+    @Test func bracketsCloseTheWayTheyOpened() {
+        type("henkan ")
+        session.handle(.enter, client: field)
+        type("(hello)")
+        session.handle(.enter, client: field)
+        #expect(field.text == "変換（hello）")
+    }
+
+    @Test func symbolsJoinOnlyAFinishedJapaneseWord() {
+        type("nihon.")
+        #expect(field.text == "にほん。")
+    }
+
+    @Test func symbolsInEnglishStayHalfWidth() {
+        type("foo_bar (baz) a/b ")
+        #expect(field.text == "foo_bar (baz) a/b ")
+    }
+
     @Test func typingOnAfterConversionCommitsIt() {
         type("henkan ")
         type("wo")

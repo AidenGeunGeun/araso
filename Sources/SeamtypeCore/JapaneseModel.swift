@@ -21,8 +21,9 @@ public final class JapaneseModel: @unchecked Sendable {
     private var total: Float = 0
     private let vocabulary: Float
 
-    /// Non-letters that belong inside a Japanese phrase: ー, ん (n'), and 、。？！.
-    public static let inPhraseSymbols: Set<Character> = ["-", "'", ",", ".", "?", "!"]
+    /// Non-letters that belong inside a Japanese phrase: ん (n'), ー, and the full-width symbols
+    /// (、。？！「」・…).
+    public static let inPhraseSymbols: Set<Character> = Set(RomajiComposer.symbols.keys).union(["'"])
 
     static let strayLetterLogP = -13.0
     static let pendingLogP = -3.5
@@ -75,7 +76,7 @@ public final class JapaneseModel: @unchecked Sendable {
         guard !keys.isEmpty, keys.allSatisfy({ $0.isASCII && ($0.isLetter || Self.inPhraseSymbols.contains($0)) }) else { return nil }
         let composition = RomajiComposer.compose(keys, partial: partial)
         let kana = String(composition.text.dropLast(composition.pending.count))
-            .filter { !$0.isASCII && !"、。？！".contains($0) }
+            .filter { !$0.isASCII && !RomajiComposer.punctuation.contains($0) }
         var total = logProbability(kana: kana, partial: partial)
         total += Double(composition.strayLetters) * Self.strayLetterLogP
         if !composition.pending.isEmpty { total += Self.pendingLogP }

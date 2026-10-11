@@ -107,13 +107,24 @@ public enum RomajiComposer {
         return s
     }()
 
+    /// Symbols as Japanese IMEs type them by default: full-width, with
+    /// [ ] / ~ - as 「」・〜ー. Not ' (it ends ん in kan'i), and digits and spaces stay half-width.
+    public static let symbols: [Character: String] = [
+        ",": "、", ".": "。", "?": "？", "!": "！", "-": "ー", "/": "・", "[": "「", "]": "」", "~": "〜",
+        "_": "＿", "(": "（", ")": "）", ":": "：", ";": "；", "\"": "”", "@": "＠", "#": "＃", "$": "＄",
+        "%": "％", "&": "＆", "*": "＊", "+": "＋", "=": "＝", "<": "＜", ">": "＞", "{": "｛", "}": "｝",
+        "|": "｜", "^": "＾", "`": "｀", "\\": "＼",
+    ]
+
+    /// What the symbols become, except ー, which is part of a word (らーめん) rather than punctuation.
+    public static let punctuation: Set<Character> = Set(symbols.values.compactMap(\.first)).subtracting(["ー"])
+
     static let vowels: Set<Character> = ["a", "i", "u", "e", "o"]
     static let consonants: Set<Character> = Set("bcdfghjklmpqrstvwxyz")
 
     static let table: [String: String] = {
         var t: [String: String] = [
-            "a": "あ", "i": "い", "u": "う", "e": "え", "o": "お", "-": "ー",
-            ",": "、", ".": "。", "?": "？", "!": "！",
+            "a": "あ", "i": "い", "u": "う", "e": "え", "o": "お",
             "ka": "か", "ki": "き", "ku": "く", "ke": "け", "ko": "こ",
             "ga": "が", "gi": "ぎ", "gu": "ぐ", "ge": "げ", "go": "ご",
             "sa": "さ", "si": "し", "su": "す", "se": "せ", "so": "そ",
@@ -147,6 +158,7 @@ public enum RomajiComposer {
             // As macOS and MS-IME accept them (not ca/ci/cu: they made English words read as romaji).
             "kwa": "くぁ", "gwa": "ぐぁ", "xn": "ん",
         ]
+        for (symbol, full) in symbols { t[String(symbol)] = full }
         // Contracted sounds: きゃ, ぎゅ, みょ…
         let rows: [(String, String)] = [("k", "き"), ("g", "ぎ"), ("s", "し"), ("z", "じ"), ("t", "ち"), ("d", "ぢ"),
                                         ("n", "に"), ("h", "ひ"), ("b", "び"), ("p", "ぴ"), ("m", "み"), ("r", "り"),

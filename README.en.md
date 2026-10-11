@@ -95,12 +95,14 @@ While a word is being typed it is underlined and shows the language Seamtype exp
 | **⇧Esc** | switch reading, in every app (where Esc is set to go to the app) | same |
 | Delete | English: the last letter. Korean: the syllable being typed jamo by jamo, earlier ones whole (한국 → 한구 → 한ㄱ → 한 → gone, as the system's 2-set does) | one kana at a time (かんこく → かんこ) |
 | **Space** | commit, then a space | **convert to kanji** (candidate window) |
-| `, . ? !` | commit, then the key | stay in the phrase as 、。？！ |
+| `, . ? !` and other symbols | commit, then the key | join the phrase, full-width: 、。？！ （）＿ 「」(`[ ]`) ・(`/`) 〜(`~`) |
 | `-` | commit, then `-` | ー |
 | Return | commit only (press again for a newline or to send; a setting) | commit as shown, kana or live-converted kanji (no newline) |
 | ⌃K / F7, ⌃J / F6 | (the app's shortcut) | katakana / hiragana (Space flips, Return commits) |
 | Tab, arrows, ⌘/⌃/⌥ | commit, the app gets the key | same |
 | **Right ⌘** (tapped on its own) | pause / resume Seamtype in this text field | same |
+
+A symbol typed on its own after Japanese is full-width and stays underlined, as in a Japanese IME (`！`, `＿`, `「`): Return confirms it (no newline), Space offers its other forms (`!`, `‼︎`, `『`…), and a letter confirms it and starts a new word. Inside numbers (`3.5`, `10:30`) it stays half-width, and a bracket opened full-width closes full-width even after an English word (`日本語（English）`).
 
 While converting (candidate window open):
 

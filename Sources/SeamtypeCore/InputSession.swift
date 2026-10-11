@@ -114,7 +114,9 @@ public final class InputSession {
     /// "henkan" came back from conversion as "henkan'" (the final n stays ん); dropped again
     /// if the word leaves Japanese, so English doesn't get an apostrophe nobody typed.
     private var addedNMarker = false
-    private var previousLanguage: Language?
+    private var previousLanguage: Language? {
+        didSet { if previousLanguage == nil { openBrackets.removeAll() } } // a new context
+    }
     private var lastCommit: Committed?
     /// The mode vim last reported (`vimChanged`), nil when no vim is reporting. In normal mode
     /// every key goes straight through; while vim reports at all, Esc is vim's.
@@ -213,6 +215,8 @@ public final class InputSession {
 
         switch key {
         case .letter(let ch):
+            // A symbol on its own is confirmed by the next word, which is judged by itself.
+            if !keys.isEmpty, keys.allSatisfy({ RomajiComposer.symbols[$0] != nil }) { commit(client: client) }
             if keys.isEmpty { lastRecorded = nil; liveSuppressed = false } // a new word
             addedNMarker = false
             pinned = nil
@@ -259,10 +263,11 @@ public final class InputSession {
         case .printable(let ch):
             if keys.isEmpty {
                 defer { afterDigit = ch.isNumber }
-                // After Japanese text, 、。？！ come out full-width like any Japanese IME
-                // (but not inside a number: 3.5 stays 3.5).
-                if previousLanguage == .japanese, !afterDigit, let full = Self.japanesePunctuation[ch] {
-                    client.insertText(full, replacing: nil)
+                // After Japanese text a symbol is Japanese too (、。？！「」・…), underlined until Return
+                // or the next word confirms it, as in a Japanese IME; Space shows its other forms.
+                // Not inside a number (3.5, 10:30), but a bracket closes the way it was opened.
+                if RomajiComposer.symbols[ch] != nil, (previousLanguage == .japanese && !afterDigit) || closesFullWidth(ch) {
+                    startSymbol(ch, client)
                     return true
                 }
                 return false
@@ -274,6 +279,11 @@ public final class InputSession {
             }
             if ch == " ", currentLanguage() == .japanese, converter != nil {
                 startConversion(client)
+                return true
+            }
+            if closesFullWidth(ch) { // 日本語（English）
+                commit(client: client)
+                startSymbol(ch, client)
                 return true
             }
             let marked = client.markedRange()
@@ -319,6 +329,7 @@ public final class InputSession {
         closeFlipWindow()
         if let conversion {
             client?.insertText(conversion.display, replacing: nil)
+            noteBrackets(in: conversion.display)
             converter?.learn(conversion.current, for: conversion.kana)
             self.conversion = nil
             keys = ""
@@ -346,7 +357,37 @@ public final class InputSession {
 
     // MARK: - Japanese conversion
 
-    static let japanesePunctuation: [Character: String] = [",": "、", ".": "。", "?": "？", "!": "！"]
+    /// A symbol typed as its own Japanese word, shown full-width (or as the 「」・ a Japanese IME types).
+    private func startSymbol(_ ch: Character, _ client: TextClient) {
+        lastRecorded = nil
+        liveSuppressed = false
+        keys = String(ch)
+        forced = .japanese
+        forcedByUser = false
+        updatePreview(client)
+    }
+
+    /// Full-width openers not closed yet in this sentence, so ) ] } close them full-width
+    /// after an English word too.
+    private var openBrackets: [Character] = []
+    private static let closing: [Character: Character] = [")": "（", "]": "「", "}": "｛"]
+    private static let pairs: [Character: Character] = ["）": "（", "」": "「", "｝": "｛", "』": "『", "】": "【"]
+
+    private func closesFullWidth(_ ch: Character) -> Bool {
+        guard let opener = Self.closing[ch] else { return false }
+        return openBrackets.last == opener
+    }
+
+    /// Keeps `openBrackets` up to date with text going in.
+    private func noteBrackets(in text: String) {
+        for ch in text {
+            if Self.pairs.values.contains(ch) {
+                openBrackets.append(ch)
+            } else if let opener = Self.pairs[ch], openBrackets.last == opener {
+                openBrackets.removeLast()
+            }
+        }
+    }
 
     /// Whether a symbol typed after the current word continues a Japanese phrase.
     /// Sentence punctuation (、。？！) never changes the word's language: it joins only a
@@ -355,7 +396,12 @@ public final class InputSession {
     /// ("ra" → "ra-" → らー), but never take a word away from Korean.
     private func belongsToJapanesePhrase(_ ch: Character) -> Bool {
         guard JapaneseModel.inPhraseSymbols.contains(ch) else { return false }
-        if forced == .japanese || previewLanguage == .japanese { return true }
+        if forced == .japanese { return true }
+        // A letter still waiting for its vowel says the word may not be Japanese after all
+        // (baz) is baz), not ばz）); a final n is ん (nihon. is にほん。).
+        if previewLanguage == .japanese {
+            return ch == "-" || ch == "'" || ["", "n"].contains(RomajiComposer.compose(keys, partial: true).pending)
+        }
         // An English word before the mark keeps it English (to-do, co-op); ra-men isn't one.
         guard forced == nil, ch == "-" || ch == "'", previewLanguage == .english,
               !EnglishModel.shared.isKnownWord(keys),
@@ -561,6 +607,7 @@ public final class InputSession {
         let candidate = conversion.current
         converter.learn(candidate, for: conversion.kana)
         client.insertText(candidate.text, replacing: nil)
+        noteBrackets(in: candidate.text)
         let rest = String(conversion.kana.dropFirst(candidate.kanaCount))
         self.conversion = nil
         guard !rest.isEmpty else { return }
@@ -771,6 +818,7 @@ public final class InputSession {
         let text = language == .japanese ? committedJapanese()
                  : language == .korean ? hangul() ?? engine.render(keys, as: language) : engine.render(keys, as: language)
         liveSuppressed = false
+        noteBrackets(in: text)
         let word = (keys, text, language, decided)
         previousLanguage = language.sentenceLanguage
         keys = ""
