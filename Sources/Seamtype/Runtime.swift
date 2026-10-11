@@ -57,7 +57,7 @@ final class Runtime {
 
     /// The user's text replacements, read again whenever a text field becomes active, so an edit
     /// in System Settings applies without a restart.
-    var textReplacements: [String: String] { TextReplacements.shared.entries }
+    var textReplacements: [String: [String]] { TextReplacements.shared.entries }
 
     /// Saves a settings change and applies it.
     func update(_ change: (inout Settings) -> Void) {

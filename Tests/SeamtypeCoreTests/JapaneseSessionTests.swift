@@ -229,7 +229,7 @@ import Testing
         let engine = LearningEngine(base: SplittingEngine(base: trilingual, english: trilingual.english, japanese: trilingual.segmenter), storeURL: lex)
         session = InputSession(engine: engine, policies: AppPolicies(overrides: [AppPolicies.defaultKey: .init(conversionThreshold: AppPolicy.strictThreshold)]),
                                converter: converter, japaneseEnabled: true)
-        session.replacements = ["ㅈㅅ": "죄송합니다", "주소": "서울시", "よろ": "よろしくお願いします", "go": "gone"]
+        session.replacements = ["ㅈㅅ": ["죄송합니다"], "주소": ["서울시"], "よろ": ["よろしくお願いします"], "go": ["gone"]]
     }
 
     func type(_ s: String) {
@@ -254,9 +254,17 @@ import Testing
 
     /// gu reads as 혀, but gu- is on its way to the shortcut ぐー.
     @Test func japaneseShortcutWithASymbol() {
-        session.replacements["ぐー"] = "グーグル"
+        session.replacements["ぐー"] = ["グーグル"]
         type("gu- ")
         #expect(session.conversion?.candidates.first?.text == "グーグル")
+    }
+
+    /// A shortcut entered more than once offers every phrase, in order, before the converter's own.
+    @Test func everyPhraseOfAShortcutIsACandidate() {
+        session.replacements["よろ"] = ["よろしくお願いします", "よろしく", "夜露死苦"]
+        type("yoro ")
+        #expect(session.conversion?.candidates.prefix(3).map(\.text) == ["よろしくお願いします", "よろしく", "夜露死苦"])
+        #expect(session.conversion?.candidates.filter { $0.text == "よろしく" }.count == 1)
     }
 
     @Test func englishShortcutsAreLeftToTheEngine() {

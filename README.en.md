@@ -129,7 +129,7 @@ it.
 A shortcut in System Settings → Keyboard → Text Replacements that reads as Korean or Japanese
 (`주소`, `ㅈㅅ`, `よろ`) shows in that language whatever the guess, so the app replaces it on Space as
 it does with the system's input. English shortcuts are decided as usual. A Japanese shortcut's
-phrase is the first candidate on Space. The app does the replacing, so apps without text
+phrase is the first candidate on Space, and a shortcut entered more than once offers every phrase in turn. The app does the replacing, so apps without text
 replacement (terminals, Chrome…) only get the Japanese candidate. Edits to the list apply the next
 time a text field becomes active. Enter a Japanese shortcut as its hiragana reading (`よろ`, `ぐー`).
 

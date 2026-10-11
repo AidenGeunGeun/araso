@@ -416,10 +416,11 @@ public final class InputSession {
         return engine.decide(keys + String(ch), context: context).language == .japanese
     }
 
-    /// The user's text replacements (shortcut → phrase, System Settings → Keyboard). A word whose
-    /// reading is a shortcut shows that way, so the app replaces it on Space as it would with the
-    /// system's input; a Japanese one also offers its phrase as the first candidate.
-    public var replacements: [String: String] = [:]
+    /// The user's text replacements (shortcut → phrases, System Settings → Keyboard; a shortcut
+    /// may be there more than once). A word whose reading is a shortcut shows that way, so the app
+    /// replaces it on Space as it would with the system's input; a Japanese one also offers every
+    /// phrase as the first candidates.
+    public var replacements: [String: [String]] = [:]
 
     /// The Korean or Japanese reading of the keys that is a text replacement shortcut (주소, ㅈㅅ,
     /// よろ), unless the user taught Seamtype otherwise for these keys. English shortcuts are left
@@ -499,11 +500,12 @@ public final class InputSession {
         }
         var candidates = converter.candidates(for: kana)
         let live = isLive ? liveCandidate(for: kana) : nil
-        if let phrase = replacements[kana] {
-            // A text replacement comes first, or right after the live candidate already on screen.
-            candidates.removeAll { $0.text == phrase }
+        if let phrases = replacements[kana], !phrases.isEmpty {
+            // Text replacements come first, or right after the live candidate already on screen.
             let at = live.flatMap { candidates.firstIndex(of: $0) }.map { $0 + 1 } ?? 0
-            candidates.insert(ConversionCandidate(text: phrase, kanaCount: kana.count), at: at)
+            let added = phrases.map { ConversionCandidate(text: $0, kanaCount: kana.count) }
+            candidates = Array(candidates[..<at]).filter { !phrases.contains($0.text) } + added
+                + candidates[at...].filter { !phrases.contains($0.text) }
         }
         guard !candidates.isEmpty else {
             commit(client: client)
