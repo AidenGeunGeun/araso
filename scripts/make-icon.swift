@@ -2,11 +2,14 @@
 // into rows, one per language: the top of A, the middle of 아, the bottom of あ. One icon
 // whatever is switched on: the bundle is signed, so it can't change at runtime.
 // Black on transparent, so macOS can tint it (TISIconIsTemplate), at 1x and 2x in one TIFF.
-// usage: swift scripts/make-icon.swift <out.tiff>
+// --hud draws it twice the size for the pause indicator under the caret, --slash struck through.
+// usage: swift scripts/make-icon.swift [--hud] [--slash] <out.tiff>
 import AppKit
 import CoreText
 
-let out = URL(fileURLWithPath: CommandLine.arguments[1])
+let out = URL(fileURLWithPath: CommandLine.arguments.last!)
+let zoom: CGFloat = CommandLine.arguments.contains("--hud") ? 2 : 1
+let slashed = CommandLine.arguments.contains("--slash")
 let W: CGFloat = 20, H: CGFloat = 16
 
 func roundedFont(_ size: CGFloat, _ weight: NSFont.Weight) -> CTFont {
@@ -49,14 +52,15 @@ let mark = Mark(letters: [("A", 18), ("아", 17), ("あ", 17)])
 let gap: CGFloat = 1
 
 func representation(_ mark: Mark, scale: CGFloat) -> NSBitmapImageRep {
-    let rep = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: Int(W * scale), pixelsHigh: Int(H * scale),
+    let rep = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: Int(W * zoom * scale), pixelsHigh: Int(H * zoom * scale),
                                bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
                                colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0)!
-    rep.size = NSSize(width: W, height: H)
+    rep.size = NSSize(width: W * zoom, height: H * zoom)
     NSGraphicsContext.saveGraphicsState()
     let context = NSGraphicsContext(bitmapImageRep: rep)!
     NSGraphicsContext.current = context
     let c = context.cgContext
+    c.scaleBy(x: zoom, y: zoom)
     c.setFillColor(NSColor.black.cgColor)
 
     let rows = CGFloat(mark.letters.count)
@@ -69,12 +73,24 @@ func representation(_ mark: Mark, scale: CGFloat) -> NSBitmapImageRep {
         c.addPath(glyphPath(text, size: size, cx: W / 2, cy: H / 2)); c.fillPath()
         c.restoreGState()
     }
+    if slashed {
+        // Top left to bottom right, with a clear gap cut around it so it stands apart from the letters.
+        let from = CGPoint(x: 2, y: H - 1), to = CGPoint(x: W - 2, y: 1)
+        c.setLineCap(.round)
+        c.setBlendMode(.clear)
+        c.setLineWidth(4)
+        c.move(to: from); c.addLine(to: to); c.strokePath()
+        c.setBlendMode(.normal)
+        c.setStrokeColor(NSColor.black.cgColor)
+        c.setLineWidth(1.6)
+        c.move(to: from); c.addLine(to: to); c.strokePath()
+    }
 
     NSGraphicsContext.restoreGraphicsState()
     return rep
 }
 
-let image = NSImage(size: NSSize(width: W, height: H))
+let image = NSImage(size: NSSize(width: W * zoom, height: H * zoom))
 image.addRepresentation(representation(mark, scale: 1))
 image.addRepresentation(representation(mark, scale: 2))
 try! image.tiffRepresentation!.write(to: out)

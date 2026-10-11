@@ -128,3 +128,7 @@
 "No matches" = "찾는 단어가 없습니다";
 "Press Esc on a word that came out wrong; correct it the same way twice and it's remembered here." = "잘못 바뀐 단어에서 Esc를 누르세요. 같은 쪽으로 두 번 고치면 여기에 기억됩니다.";
 "Type here on the English layout, e.g. dkssud hello" = "여기에 영문 자판으로 쳐 보세요. 예: dkssud hello";
+
+/* Pause, under the caret */
+"Seamtype paused" = "Seamtype 일시정지";
+"Seamtype resumed" = "Seamtype 다시 켜짐";

@@ -28,6 +28,9 @@ dictionary=.build/checkouts/AzooKeyKanaKanjiConverter/Sources/KanaKanjiConverter
 [[ -d "$dictionary" ]] || { echo "missing $dictionary (swift package resolve)"; exit 1; }
 cp -R "$dictionary" "$app/Contents/Resources/Dictionary"
 swift scripts/make-icon.swift "$app/Contents/Resources/Seamtype.tiff"
+# The pause indicator under the caret (PauseHUD): the same mark, larger, and struck through while paused.
+swift scripts/make-icon.swift --hud "$app/Contents/Resources/SeamtypeHUD.tiff"
+swift scripts/make-icon.swift --hud --slash "$app/Contents/Resources/SeamtypeHUDPaused.tiff"
 
 # Licenses of everything compiled or copied into the app (MIT and Apache-2.0 ask for them
 # to travel with the binary). A dependency without a license file stops the build.

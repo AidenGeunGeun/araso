@@ -76,8 +76,8 @@ kyouhagoogledekensaku ␣ ⏎           →  今日はgoogleで検索
 
 **일시정지:** 터미널에서 `hjkl`로 움직이는 프로그램(lazygit, htop 등)처럼 키 하나하나가 명령인 곳에서는
 **오른쪽 ⌘**를 단독으로 눌렀다 떼세요. 치던 단어를 확정하고, 그 입력창에서는 키를 친 그대로 넘깁니다. 한 번
-더 누르거나 다른 앱·입력창으로 가거나 설정을 바꾸면 다시 켜집니다. 메뉴 막대 아이콘으로는 보이지 않으니, 입력 메뉴의 체크
-표시로 확인하세요. 설정 창의 일반에서 이 키를 끌 수 있습니다.
+더 누르거나 다른 앱·입력창으로 가거나 설정을 바꾸면 다시 켜집니다. 누르면 커서 아래에 Seamtype 아이콘이 잠깐 뜨는데,
+일시정지하면 빗금이 쳐져 있고 다시 켜면 원래 모양입니다. 메뉴 막대 아이콘은 바뀌지 않으니, 나중에는 입력 메뉴의 체크 표시로 확인하세요. 설정 창의 일반에서 이 키를 끌 수 있습니다.
 
 **vim:** neovim은 [`scripts/vim/seamtype.lua`](scripts/vim/seamtype.lua)를 `~/.config/nvim/plugin/`에,
 Vim(8.2 이상, `+job`)은 [`scripts/vim/seamtype.vim`](scripts/vim/seamtype.vim)을 `~/.vim/plugin/`에 넣으세요.

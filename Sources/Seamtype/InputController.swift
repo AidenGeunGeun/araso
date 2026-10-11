@@ -133,8 +133,21 @@ final class InputController: IMKInputController {
         }
         guard let down = rightCommandDown, Date().timeIntervalSince(down) < 0.5 else { return }
         rightCommandDown = nil
-        session.togglePause(client: IMKClient(client))
+        togglePause(client: client)
+    }
+
+    /// Pauses or resumes this text field, and says so under the caret.
+    @MainActor private func togglePause(client: IMKTextInput?) {
+        session.togglePause(client: client.map(IMKClient.init))
+        PauseHUD.show(paused: session.paused, caret: client.map(caretRect) ?? .zero)
         log.info("paused=\(self.session.paused) app=\(self.session.app ?? "?", privacy: .public)")
+    }
+
+    /// The caret's line in screen coordinates, or `.zero` when the app doesn't say.
+    private func caretRect(_ client: IMKTextInput) -> NSRect {
+        var rect = NSRect.zero
+        _ = client.attributes(forCharacterIndex: 0, lineHeightRectangle: &rect)
+        return rect
     }
 
     private func key(for event: NSEvent) -> InputSession.Key {
@@ -309,7 +322,7 @@ final class InputController: IMKInputController {
     }
 
     @objc func togglePause(_ sender: Any?) {
-        MainActor.assumeIsolated { session.togglePause(client: client().map { IMKClient($0 as IMKTextInput) }) }
+        MainActor.assumeIsolated { togglePause(client: client() as IMKTextInput?) }
     }
 
     @objc func toggleDisabled(_ sender: Any?) {
