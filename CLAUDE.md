@@ -16,7 +16,7 @@ swift build                                  # debug build of everything
 swift test                                   # all tests (Swift Testing, ~7 s)
 swift test --filter MixedWordTests           # one suite; --filter 'MixedWordTests/splitsEnglishPlusParticle' for one test
 scripts/install.sh                           # release build + --selftest, install to ~/Library/Input Methods, enable, restart menu agent
-scripts/release.sh                           # universal build → build/release/Seamtype{,-<version>}.zip and Seamtype-<version>.pkg
+scripts/release.sh                           # universal build → build/release/Seamtype{,-<version>}.{zip,pkg}
                                              # (SEAMTYPE_APP_SIGN / SEAMTYPE_PKG_SIGN / SEAMTYPE_NOTARY_PROFILE: Developer ID, notarization)
 swift run seamtype-cli -v "dkssud hello"     # English/Korean decision with scores
 printf 'keys\tprevious\n' | swift run seamtype-cli --decide --japanese   # previous: english|korean|japanese|empty
@@ -114,12 +114,16 @@ runtime.
 - **Install refreshes:** after a reinstall, the input menu keeps its old list until
   `TextInputMenuAgent` restarts (`install.sh` does this). A fresh process can still take 10–30 s
   to see the source as enabled, hence `enable-input-source.swift --check` with retries.
-- **Releases** aren't Developer ID signed: users install with `scripts/get.sh` (curl, so no
-  quarantine) from the release asset `Seamtype.zip`, which must keep that name for
-  `releases/latest/download/Seamtype.zip`. `SEAMTYPE_ZIP=build/release/Seamtype.zip sh scripts/get.sh`
-  tries it locally. The pkg installs into `/Library/Input Methods` and is not relocatable; its
-  postinstall runs `Seamtype --register` as the logged-in user (users have no Swift toolchain, so
-  registration can't use the scripts). `release.sh` signs the app with the hardened runtime even ad hoc,
-  and `build-app.sh` runs the self-test under Rosetta too for a universal build.
+- **Releases** are signed with the Developer ID and notarized, the app and the pkg alike; run
+  `release.sh` with `SEAMTYPE_APP_SIGN="Developer ID Application: Dongbin Lee (2UZ65T3U82)"`,
+  `SEAMTYPE_PKG_SIGN="Developer ID Installer: Dongbin Lee (2UZ65T3U82)"` and
+  `SEAMTYPE_NOTARY_PROFILE=seamtype`, or the assets come out ad hoc and unsigned. Upload
+  `Seamtype.pkg` (the website's download button) and `Seamtype.zip` (`scripts/get.sh`) under those
+  names for `releases/latest/download/`, plus the versioned copies.
+  `SEAMTYPE_ZIP=build/release/Seamtype.zip sh scripts/get.sh` tries the zip locally. The pkg installs
+  into `/Library/Input Methods` and is not relocatable; its postinstall runs `Seamtype --register` as
+  the logged-in user (users have no Swift toolchain, so registration can't use the scripts).
+  `release.sh` signs the app with the hardened runtime even ad hoc, and `build-app.sh` runs the
+  self-test under Rosetta too for a universal build.
 - **Stale registrations:** extra copies of the app registered with LaunchServices (`build/`,
   the old `AutoIME.app`) can make macOS launch the wrong one. `build-app.sh` unregisters its copy.

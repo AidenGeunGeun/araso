@@ -215,21 +215,19 @@ Exact match counts kana/kanji style differences (ひとまとめ vs 一まとめ
 
 ## Install
 
-One line in Terminal installs the latest release into `~/Library/Input Methods` (Apple silicon
-and Intel, no administrator rights):
+Download the installer [`Seamtype.pkg`](https://github.com/aimdevlee/seamtype/releases/latest/download/Seamtype.pkg), open it and follow the steps (Apple silicon and
+Intel, notarized by Apple). It installs into `/Library/Input Methods` and registers the input source,
+so you only need to pick Seamtype in the input menu in the menu bar.
+
+If you use Terminal, one line installs into `~/Library/Input Methods` instead (no administrator
+rights):
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/aimdevlee/seamtype/main/scripts/get.sh | sh
 ```
 
-Releases aren't signed or notarized with an Apple Developer ID. A download made with `curl` isn't
-stopped by Gatekeeper, but if you download `Seamtype.zip` from
-[Releases](https://github.com/aimdevlee/seamtype/releases) in a browser and install it yourself,
-unzip it into `~/Library/Input Methods` and clear its quarantine flag, or the input method won't run:
-
-```sh
-xattr -dr com.apple.quarantine ~/Library/Input\ Methods/Seamtype.app
-```
+`Seamtype.zip` on [Releases](https://github.com/aimdevlee/seamtype/releases) is notarized too, so
+you can also download it in a browser, unzip it and move it into `~/Library/Input Methods`.
 
 Or build from source (Xcode or the Command Line Tools, Swift 6.1 or later):
 
@@ -237,10 +235,10 @@ Or build from source (Xcode or the Command Line Tools, Swift 6.1 or later):
 scripts/install.sh        # builds and self-tests Seamtype.app, installs it
 ```
 
-Then **System Settings → Keyboard → Input Sources → Edit… → + → Korean → Seamtype**.
-If Seamtype isn't listed, log out and back in once. All of these install to the same place; a
-pkg you build with `scripts/release.sh` installs into `/Library/Input Methods` instead, so use only
-one or you'd get two copies of the input method.
+If Seamtype isn't in the input menu, add it in **System Settings → Keyboard → Input Sources →
+Edit… → + → Korean → Seamtype**, and if it isn't listed there, log out and back in once. The pkg
+installs into `/Library/Input Methods` and the other ways into `~/Library/Input Methods`, so use
+only one or you'd get two copies of the input method.
 
 **Uninstall:** remove Seamtype from the input sources, then in Terminal:
 
@@ -263,7 +261,7 @@ swift test                     # tests: composers, engines, sessions, settings, 
 scripts/typing-test/run.sh     # real key events into TextEdit through the installed Seamtype
 scripts/record-demo/record.sh  # records the README demo (docs/media/demo.gif) from real typing
 swift scripts/make-readme-logo.swift docs/media  # the README logo (animated SVG)
-scripts/release.sh             # universal (arm64 + x86_64) zip and pkg for a release; with a Developer ID also signed (the pkg notarized)
+scripts/release.sh             # universal (arm64 + x86_64) zip and pkg for a release; with a Developer ID also signed and notarized (app and pkg)
 tools/prepare.sh               # accuracy (downloads word lists, Tatoeba and SCOWL once)
 tools/prepare.sh --models      # rebuild the data in Sources/SeamtypeCore/Data first (not korean_vocabulary.txt)
 SEAMTYPE_TIMING=1 swift run -c release seamtype-cli --decide --japanese < keys.tsv  # + time per decision

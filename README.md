@@ -213,21 +213,18 @@ SCOWL 목록, 한국어 단어 목록, 언어 전환을 고려한 기울기를 �
 
 ## 설치
 
-터미널에 한 줄이면 최신 릴리스를 `~/Library/Input Methods`에 설치합니다(Apple Silicon과 Intel 모두,
-관리자 권한 필요 없음):
+설치 파일 [`Seamtype.pkg`](https://github.com/aimdevlee/seamtype/releases/latest/download/Seamtype.pkg)를 받아 열고 안내대로 설치하세요(Apple Silicon과 Intel 모두,
+Apple 공증 완료). `/Library/Input Methods`에 설치하고 입력 소스로 등록하므로, 메뉴 막대의 입력 메뉴에서
+Seamtype을 고르면 됩니다.
+
+터미널을 쓴다면 한 줄로 `~/Library/Input Methods`에 설치할 수도 있습니다(관리자 권한 필요 없음):
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/aimdevlee/seamtype/main/scripts/get.sh | sh
 ```
 
-릴리스는 Apple Developer ID로 서명·공증하지 않았습니다. `curl`로 받은 파일은 Gatekeeper에 막히지
-않지만, [Releases](https://github.com/aimdevlee/seamtype/releases)에서 브라우저로 `Seamtype.zip`을 받아
-직접 설치한다면 압축을 풀어 `~/Library/Input Methods`에 넣은 뒤 "인터넷에서 받음" 표시를 지워야
-입력기가 실행됩니다:
-
-```sh
-xattr -dr com.apple.quarantine ~/Library/Input\ Methods/Seamtype.app
-```
+[Releases](https://github.com/aimdevlee/seamtype/releases)의 `Seamtype.zip`도 공증되어 있어서, 브라우저로
+받아 압축을 풀고 `~/Library/Input Methods`에 넣어도 됩니다.
 
 소스에서 직접 빌드할 수도 있습니다(Xcode 또는 Command Line Tools, Swift 6.1 이상):
 
@@ -235,10 +232,9 @@ xattr -dr com.apple.quarantine ~/Library/Input\ Methods/Seamtype.app
 scripts/install.sh        # Seamtype.app을 빌드하고 자체 점검한 뒤 설치
 ```
 
-그다음 **시스템 설정 → 키보드 → 입력 소스 → 편집… → + → 한국어 → Seamtype**을 추가하세요.
-Seamtype이 목록에 없으면 로그아웃했다가 한 번 다시 로그인하세요. 위 방법들은 모두 같은 자리에
-설치합니다. `scripts/release.sh`로 직접 만든 pkg는 `/Library/Input Methods`에 설치하므로, 함께 쓰면 같은
-입력기가 두 개 생깁니다. 하나만 쓰세요.
+입력 메뉴에 Seamtype이 없으면 **시스템 설정 → 키보드 → 입력 소스 → 편집… → + → 한국어 → Seamtype**을
+추가하세요. 그래도 없으면 로그아웃했다가 한 번 다시 로그인하세요. pkg는 `/Library/Input Methods`에, 나머지
+방법은 `~/Library/Input Methods`에 설치하므로, 함께 쓰면 같은 입력기가 두 개 생깁니다. 하나만 쓰세요.
 
 **제거:** 입력 소스 목록에서 Seamtype을 뺀 뒤 터미널에서:
 
@@ -260,7 +256,7 @@ swift test                     # 테스트: 조합기, 엔진, 세션, 설정, �
 scripts/typing-test/run.sh     # 설치된 Seamtype으로 TextEdit에 실제 키 입력
 scripts/record-demo/record.sh  # README 움짤(docs/media/demo.gif)을 실제 입력으로 녹화
 swift scripts/make-readme-logo.swift docs/media  # README 로고(애니메이션 SVG)
-scripts/release.sh             # 릴리스용 범용(arm64 + x86_64) zip과 pkg; Developer ID가 있으면 서명(pkg는 공증까지)
+scripts/release.sh             # 릴리스용 범용(arm64 + x86_64) zip과 pkg; Developer ID가 있으면 서명·공증(앱과 pkg 모두)
 tools/prepare.sh               # 정확도 (단어 목록, Tatoeba, SCOWL을 처음 한 번 내려받음)
 tools/prepare.sh --models      # 먼저 Sources/SeamtypeCore/Data의 데이터를 다시 만듦(korean_vocabulary.txt 빼고)
 SEAMTYPE_TIMING=1 swift run -c release seamtype-cli --decide --japanese < keys.tsv  # + 판단당 시간
