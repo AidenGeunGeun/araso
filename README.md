@@ -236,7 +236,9 @@ scripts/install.sh        # Seamtype.app을 빌드하고 자체 점검한 뒤 �
 추가하세요. 그래도 없으면 로그아웃했다가 한 번 다시 로그인하세요. pkg는 `/Library/Input Methods`에, 나머지
 방법은 `~/Library/Input Methods`에 설치하므로, 함께 쓰면 같은 입력기가 두 개 생깁니다. 하나만 쓰세요.
 
-**제거:** 입력 소스 목록에서 Seamtype을 뺀 뒤 터미널에서:
+**제거:** 설정 창의 **정보 → Seamtype 제거 → 제거…**를 누르세요. 두 Input Methods 폴더의 Seamtype을 모두
+지우고(pkg로 설치했다면 macOS가 암호를 묻습니다), 다른 입력 소스로 바꿉니다. 설정과 학습한 단어는 확인 창에서
+체크했을 때만 지웁니다. 터미널에서 지우려면 입력 소스 목록에서 Seamtype을 뺀 뒤:
 
 ```sh
 pkill -x Seamtype
@@ -244,7 +246,8 @@ rm -rf ~/Library/Input\ Methods/Seamtype.app
 rm -rf ~/Library/Application\ Support/Seamtype   # 설정과 학습한 단어까지 지울 때만
 ```
 
-pkg로 설치했다면 앱은 `/Library/Input Methods/Seamtype.app`에 있습니다(`sudo rm -rf`로 지우세요).
+pkg로 설치했다면 앱은 `/Library/Input Methods/Seamtype.app`에 있습니다(`sudo rm -rf`로 지우고,
+`sudo pkgutil --forget com.aimdevlee.inputmethod.Seamtype.pkg`로 설치 기록도 지우세요).
 
 메모리는 ~50 MB(일본어를 켜면 일본어 사전 ~35 MB 추가)를 쓰고, 앱 크기는 ~47 MB입니다. 따로 실행되는
 프로그램은 없습니다. 입력한 키는 입력기 밖으로 나가지 않습니다.

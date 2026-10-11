@@ -241,7 +241,10 @@ Edit… → + → Korean → Seamtype**, and if it isn't listed there, log out a
 installs into `/Library/Input Methods` and the other ways into `~/Library/Input Methods`, so use
 only one or you'd get two copies of the input method.
 
-**Uninstall:** remove Seamtype from the input sources, then in Terminal:
+**Uninstall:** in the settings window, click **About → Uninstall Seamtype → Uninstall…**. It removes
+Seamtype from both Input Methods folders (macOS asks for your password if you used the pkg) and
+switches to another input source; settings and learned words go only if you tick that in the
+confirmation. To do it in Terminal instead, remove Seamtype from the input sources, then:
 
 ```sh
 pkill -x Seamtype
@@ -250,7 +253,7 @@ rm -rf ~/Library/Application\ Support/Seamtype   # only to drop settings and lea
 ```
 
 If you installed the pkg, the app is in `/Library/Input Methods/Seamtype.app` (remove it with
-`sudo rm -rf`).
+`sudo rm -rf`, and its receipt with `sudo pkgutil --forget com.aimdevlee.inputmethod.Seamtype.pkg`).
 
 Resources: ~50 MB of memory (plus the ~35 MB Japanese dictionary when Japanese is on), a
 ~47 MB app, nothing else running. Keystrokes never leave the input method.

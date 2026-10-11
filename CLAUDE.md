@@ -85,7 +85,9 @@ changes, so a settings change applies without a restart.
 **Settings window.** It is a separate process, `Seamtype --settings <tab>`, because the IME is
 `LSBackgroundOnly`. It edits the JSON files in `~/Library/Application Support/Seamtype/` and posts
 the distributed notification `com.aimdevlee.inputmethod.Seamtype.settingsChanged`; the IME reloads
-on it.
+on it. About's Uninstall… (`Uninstaller.swift`, shown only in a copy under an Input Methods folder)
+deletes both installed copies and the pkg receipt, so testing it uninstalls the real input method:
+run `scripts/install.sh` again afterwards.
 
 **Per-app policy** (`AppPolicy.swift`): in `apps.json`, `"*"` is the user's default and an app
 entry names only the keys that differ; a key ending in `.` matches as a prefix. There is no
