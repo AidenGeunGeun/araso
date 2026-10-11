@@ -252,6 +252,13 @@ import Testing
         #expect(field.text == "よろしくお願いします")
     }
 
+    /// gu reads as 혀, but gu- is on its way to the shortcut ぐー.
+    @Test func japaneseShortcutWithASymbol() {
+        session.replacements["ぐー"] = "グーグル"
+        type("gu- ")
+        #expect(session.conversion?.candidates.first?.text == "グーグル")
+    }
+
     @Test func englishShortcutsAreLeftToTheEngine() {
         type("kyouha go")
         #expect(session.lastTrace?.decision.explanation != "text replacement shortcut")

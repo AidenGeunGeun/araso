@@ -397,6 +397,12 @@ public final class InputSession {
     private func belongsToJapanesePhrase(_ ch: Character) -> Bool {
         guard JapaneseModel.inPhraseSymbols.contains(ch) else { return false }
         if forced == .japanese { return true }
+        // On the way to a Japanese text replacement shortcut with a symbol in it: gu- is ぐー,
+        // even though gu alone read as 혀.
+        if japaneseEnabled, forced == nil, case let kana = RomajiComposer.compose(keys + String(ch), partial: true),
+           kana.isClean, replacements.keys.contains(where: { $0.hasPrefix(kana.text) }) {
+            return true
+        }
         // A letter still waiting for its vowel says the word may not be Japanese after all
         // (baz) is baz), not ばz）); a final n is ん (nihon. is にほん。).
         if previewLanguage == .japanese {
