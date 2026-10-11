@@ -218,3 +218,42 @@ import Testing
         #expect(InputSession.keys("konnichiha", after: 2) == "nichiha")
     }
 }
+
+@MainActor @Suite struct TextReplacementTests {
+    let field = FakeTextField()
+    let converter = FakeConverter()
+    let session: InputSession
+
+    init() {
+        let lex = FileManager.default.temporaryDirectory.appendingPathComponent("seamtype-tr-\(UUID().uuidString).json")
+        let engine = LearningEngine(base: SplittingEngine(base: trilingual, english: trilingual.english, japanese: trilingual.segmenter), storeURL: lex)
+        session = InputSession(engine: engine, policies: AppPolicies(overrides: [AppPolicies.defaultKey: .init(conversionThreshold: AppPolicy.strictThreshold)]),
+                               converter: converter, japaneseEnabled: true)
+        session.replacements = ["ㅈㅅ": "죄송합니다", "주소": "서울시", "よろ": "よろしくお願いします", "go": "gone"]
+    }
+
+    func type(_ s: String) {
+        for ch in s {
+            let handled = ch.isLetter ? session.handle(.letter(ch), client: field) : session.handle(.printable(ch), client: field)
+            if !handled { field.insertText(String(ch), replacing: nil) }
+        }
+    }
+
+    /// The shortcut goes in as typed, even in a Strict app, so the app can replace it on Space.
+    @Test func koreanShortcutWinsTheDecision() {
+        type("wt wnth ")
+        #expect(field.text == "ㅈㅅ 주소 ")
+    }
+
+    @Test func japaneseShortcutIsTheFirstCandidate() {
+        type("yoro ")
+        #expect(session.conversion?.candidates.first?.text == "よろしくお願いします")
+        session.handle(.enter, client: field)
+        #expect(field.text == "よろしくお願いします")
+    }
+
+    @Test func englishShortcutsAreLeftToTheEngine() {
+        type("kyouha go")
+        #expect(session.lastTrace?.decision.explanation != "text replacement shortcut")
+    }
+}

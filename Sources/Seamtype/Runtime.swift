@@ -47,11 +47,17 @@ final class Runtime {
     }
 
     func makeSession() -> InputSession {
-        InputSession(engine: engine, policies: AppPolicies.load(),
-                     converter: settings.japanese ? converter : nil,
-                     japaneseEnabled: settings.japanese, liveConversion: settings.liveConversion,
-                     returnConfirmsOnly: settings.returnConfirmsOnly)
+        let session = InputSession(engine: engine, policies: AppPolicies.load(),
+                                   converter: settings.japanese ? converter : nil,
+                                   japaneseEnabled: settings.japanese, liveConversion: settings.liveConversion,
+                                   returnConfirmsOnly: settings.returnConfirmsOnly)
+        session.replacements = textReplacements
+        return session
     }
+
+    /// The user's text replacements (System Settings → Keyboard → Text Replacements), read again
+    /// whenever a text field becomes active, so an edit there applies without a restart.
+    var textReplacements: [String: String] { NSSpellChecker.shared.userReplacementsDictionary }
 
     /// Saves a settings change and applies it.
     func update(_ change: (inout Settings) -> Void) {

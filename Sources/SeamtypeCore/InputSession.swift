@@ -410,6 +410,24 @@ public final class InputSession {
         return engine.decide(keys + String(ch), context: context).language == .japanese
     }
 
+    /// The user's text replacements (shortcut → phrase, System Settings → Keyboard). A word whose
+    /// reading is a shortcut shows that way, so the app replaces it on Space as it would with the
+    /// system's input; a Japanese one also offers its phrase as the first candidate.
+    public var replacements: [String: String] = [:]
+
+    /// The Korean or Japanese reading of the keys that is a text replacement shortcut (주소, ㅈㅅ,
+    /// よろ), unless the user taught Seamtype otherwise for these keys. English shortcuts are left
+    /// to the engine: "go" may be one, and still be ご in a Japanese sentence.
+    private func shortcutReading(partial: Bool) -> (language: Language, text: String)? {
+        guard !replacements.isEmpty, !keys.isEmpty, engine.learned[keys] == nil else { return nil }
+        if let hangul = hangul(), replacements[hangul] != nil { return (.korean, hangul) }
+        if japaneseEnabled {
+            let kana = RomajiComposer.compose(keys, partial: partial)
+            if kana.isClean, replacements[kana.text] != nil { return (.japanese, kana.text) }
+        }
+        return nil
+    }
+
     /// Splits English words out of a Japanese phrase (google in kyouhagoogledekensaku).
     public var segmenter: JapaneseSegmenter?
 
@@ -473,14 +491,21 @@ public final class InputSession {
         if userForced {
             record(keys, as: .japanese, engineChoice: committedLanguage())
         }
-        let candidates = converter.candidates(for: kana)
+        var candidates = converter.candidates(for: kana)
+        let live = isLive ? liveCandidate(for: kana) : nil
+        if let phrase = replacements[kana] {
+            // A text replacement comes first, or right after the live candidate already on screen.
+            candidates.removeAll { $0.text == phrase }
+            let at = live.flatMap { candidates.firstIndex(of: $0) }.map { $0 + 1 } ?? 0
+            candidates.insert(ConversionCandidate(text: phrase, kanaCount: kana.count), at: at)
+        }
         guard !candidates.isEmpty else {
             commit(client: client)
             return
         }
         // With live conversion the top candidate is already on screen: Space shows the next one.
         var selected = 0
-        if isLive, let live = liveCandidate(for: kana), let i = candidates.firstIndex(of: live), candidates.count > 1 {
+        if let live, let i = candidates.firstIndex(of: live), candidates.count > 1 {
             selected = (i + 1) % candidates.count
         }
         liveSuppressed = false
@@ -637,6 +662,14 @@ public final class InputSession {
     // MARK: - Private
 
     private func decide(partial: Bool) -> Decision {
+        if let shortcut = shortcutReading(partial: partial) {
+            // As sure as a split word, so a Strict app shows it too.
+            keptEnglishByStrict = false
+            let decision = Decision(language: shortcut.language, confidence: SplittingEngine.confidence,
+                                    output: shortcut.text, explanation: "text replacement shortcut")
+            lastTrace = Trace(keys: keys, previous: previousLanguage, decision: decision, partial: partial)
+            return decision
+        }
         let d = engine.decide(keys, context: DecisionContext(previousLanguage: previousLanguage, partial: partial))
         let kept = d.language != .english && d.confidence < policy.conversionThreshold
         keptEnglishByStrict = kept && policy.conversionThreshold >= AppPolicy.strictThreshold && keys.count <= 3

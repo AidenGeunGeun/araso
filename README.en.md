@@ -129,6 +129,15 @@ A correction changes only that word, so a stray Esc doesn't stick. Correct the s
 way a second time and Seamtype remembers it; switching a word back to Seamtype's own guess forgets
 it.
 
+### Text replacements
+
+A shortcut in System Settings → Keyboard → Text Replacements that reads as Korean or Japanese
+(`주소`, `ㅈㅅ`, `よろ`) shows in that language whatever the guess, so the app replaces it on Space as
+it does with the system's input. English shortcuts are decided as usual. A Japanese shortcut's
+phrase is the first candidate on Space. The app does the replacing, so apps without text
+replacement (terminals, Chrome…) only get the Japanese candidate. Edits to the list apply the next
+time a text field becomes active. Enter a Japanese shortcut as its hiragana reading (`よろ`, `ぐー`).
+
 ### Esc that belongs to the app
 
 If Esc has to reach the app, as when closing a popup in an editor, set that app's Esc key (or the

@@ -52,6 +52,7 @@ final class InputController: IMKInputController {
         MainActor.assumeIsolated {
             Runtime.shared.active = self
             session.activate(app: app)
+            session.replacements = Runtime.shared.textReplacements
             if let last = Runtime.shared.lastVim { vimChanged(to: last.signal, from: last.app) }
             let policy = session.policy
             log.info("activate \(app ?? "?", privacy: .public) enabled=\(policy.enabled) threshold=\(policy.conversionThreshold) escapeToApp=\(policy.escapeToApp)")
