@@ -852,6 +852,16 @@ private struct AboutPane: View {
                 Text(L("What you type never leaves this Mac: deciding words and converting kanji both happen here."))
                     .font(.caption).foregroundStyle(.secondary)
             }
+            if Uninstaller.isAvailable {
+                Section {
+                    LabeledContent(L("Uninstall Seamtype")) {
+                        Button(L("Uninstall…"), role: .destructive) { Uninstaller.confirmAndRun() }
+                    }
+                } footer: {
+                    Text(L("Removes Seamtype from this Mac and switches to another input source. If it was installed with the installer, macOS asks for your password."))
+                        .font(.caption).foregroundStyle(.secondary)
+                }
+            }
         }
         .formStyle(.grouped)
     }
