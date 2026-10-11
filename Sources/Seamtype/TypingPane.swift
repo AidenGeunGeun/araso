@@ -27,6 +27,8 @@ struct TypingPane: View {
     @ObservedObject var model: SettingsModel
     @State private var text = ""
     @State private var current: TypingTrace?
+    /// The field shows a word still being composed: it isn't in `text` until it's committed.
+    @State private var composing = false
     @State private var seamtypeOn = SeamtypeSource.isCurrent
     @FocusState private var focused: Bool
 
@@ -51,7 +53,7 @@ struct TypingPane: View {
                     .focused($focused)
                     .scrollContentBackground(.hidden)
                     .overlay(alignment: .topLeading) {
-                        if text.isEmpty {
+                        if text.isEmpty && !composing {
                             Text(L("Type here on the English layout, e.g. dkssud hello"))
                                 .font(.system(size: 15)).foregroundStyle(.tertiary)
                                 .padding(.leading, 5).allowsHitTesting(false)
@@ -63,6 +65,7 @@ struct TypingPane: View {
                     Spacer()
                     Button(L("Clear")) {
                         text = ""
+                        composing = false
                         current = nil
                         focused = true
                     }
@@ -81,6 +84,11 @@ struct TypingPane: View {
         }
         .formStyle(.grouped)
         .onAppear { focused = true; seamtypeOn = SeamtypeSource.isCurrent }
+        // Marked text moves the selection; a search field's editor is a field editor, not this.
+        .onReceive(NotificationCenter.default.publisher(for: NSTextView.didChangeSelectionNotification)) { note in
+            guard let textView = note.object as? NSTextView, !textView.isFieldEditor else { return }
+            composing = textView.markedRange().length > 0
+        }
         .onReceive(DistributedNotificationCenter.default().publisher(for: TypingTrace.name)) { note in
             guard let trace = TypingTrace(note.userInfo) else { return }
             current = trace
