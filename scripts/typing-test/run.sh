@@ -1,9 +1,8 @@
 #!/bin/zsh
-# Types test cases into a new TextEdit document with real key events, through the installed
-# Seamtype, and compares the text. Seamtype has to be the selected input source already (pick it
-# in the input menu once); the script doesn't switch sources, since a freshly started input method
-# can take half a minute to take keys. Needs Accessibility permission for the terminal. TextEdit
-# takes the focus for about a minute.
+# Types test cases with real key events into the typing pane of Seamtype's settings window,
+# through the installed Seamtype, and compares the text. The pane switches to Seamtype itself when
+# another input source is in use. Needs Accessibility permission for the terminal. The settings
+# window takes the focus for about a minute.
 #
 # Each suite runs with its own settings.json: cases.tsv with Japanese on, live.tsv with live
 # conversion too. The user's settings and learning files (the cases' Esc corrections would
@@ -15,6 +14,11 @@ set -euo pipefail
 here="${0:A:h}"
 support="$HOME/Library/Application Support/Seamtype"
 files=(settings.json lexicon.json apple-learning.json)
+app=""
+for candidate in "$HOME/Library/Input Methods/Seamtype.app" "/Library/Input Methods/Seamtype.app"; do
+  [[ -d "$candidate" ]] && { app=$candidate; break; }
+done
+[[ -n "$app" ]] || { echo "Seamtype isn't installed"; exit 1; }
 dirs=(azooKey)  # AzooKey's kanji learning
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
@@ -51,7 +55,7 @@ suite() {
   sleep 1
   # A failing suite must not end the script here: zsh skips the EXIT trap (the restore) when
   # errexit fires inside a function.
-  "$work/typer" "$here/$1" || failed=1
+  "$work/typer" "$here/$1" "$app" || failed=1
 }
 failed=0
 suite cases.tsv '{ "japanese": true }'
