@@ -90,20 +90,23 @@ func typingThroughSeamtype() -> Bool {
     defer { clear() }
     return fieldText() == "안녕 "
 }
-if !typingThroughSeamtype() {
-    // The pane's own "Switch to Seamtype" button, shown while another input source is in use.
+// Right after an install macOS can take half a minute to hand keys to the new copy: keep trying,
+// with the pane's own "Switch to Seamtype" button (shown while another input source is in use).
+var ready = typingThroughSeamtype()
+for _ in 0..<8 where !ready {
     if let button = descendants(window).first(where: {
         attribute($0, kAXRoleAttribute) as? String == kAXButtonRole
             && (attribute($0, kAXTitleAttribute) as? String ?? attribute($0, kAXDescriptionAttribute) as? String ?? "").contains("Seamtype")
     }) {
         AXUIElementPerformAction(button, kAXPressAction as CFString)
-        sleep(1)
-        front()
     }
-    guard typingThroughSeamtype() else {
-        print("Keys don't go through Seamtype in its settings window (dkssud didn't become 안녕): pick Seamtype in the input menu, then run again")
-        exit(2)
-    }
+    sleep(5)
+    front()
+    ready = typingThroughSeamtype()
+}
+guard ready else {
+    print("Keys don't go through Seamtype in its settings window (dkssud didn't become 안녕): pick Seamtype in the input menu, then run again")
+    exit(2)
 }
 var passed = 0
 for c in cases where c.count == 2 {

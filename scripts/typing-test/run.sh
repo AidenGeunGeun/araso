@@ -5,9 +5,10 @@
 # window takes the focus for about a minute.
 #
 # Each suite runs with its own settings.json: cases.tsv with Japanese on, live.tsv with live
-# conversion too. The user's settings and learning files (the cases' Esc corrections would
-# be learned like any other; so would its kanji choices) are backed up first and restored
-# afterwards. Seamtype keeps running: it reads changed files when told, as from the settings window.
+# conversion too, fullwidth.tsv with full-width numbers and spaces. The user's settings and
+# learning files (the cases' Esc corrections would be learned like any other; so would its kanji
+# choices) are backed up first and restored afterwards. Seamtype keeps running: it reads changed
+# files when told, as from the settings window.
 #
 #   scripts/typing-test/run.sh
 set -euo pipefail
@@ -60,4 +61,5 @@ suite() {
 failed=0
 suite cases.tsv '{ "japanese": true }'
 suite live.tsv '{ "japanese": true, "liveConversion": true }'
+suite fullwidth.tsv '{ "japanese": true, "fullWidthDigits": true, "fullWidthSpace": true }'
 exit $failed
