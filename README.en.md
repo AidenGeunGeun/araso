@@ -320,7 +320,7 @@ Exact match counts kana/kanji style differences (ひとまとめ vs 一まとめ
 ```sh
 swift test                     # tests: composers, engines, sessions, settings, end to end
 scripts/install.sh             # build, self-test and install into ~/Library/Input Methods (development; stops if the pkg's copy is there)
-scripts/typing-test/run.sh     # real key events into TextEdit through the installed Seamtype (selected first)
+scripts/typing-test/run.sh     # real key events into the settings window's typing pane through the installed Seamtype
 swift scripts/make-readme-logo.swift docs/media  # the README logo (animated SVG)
 scripts/release.sh             # universal (arm64 + x86_64) zip and pkg for a release; with a Developer ID also signed and notarized (app and pkg)
 tools/prepare.sh               # accuracy (downloads word lists, Tatoeba and SCOWL once)

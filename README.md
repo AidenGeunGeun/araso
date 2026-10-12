@@ -307,7 +307,7 @@ SCOWL 목록, 한국어 단어 목록, 언어 전환을 고려한 기울기를 �
 ```sh
 swift test                     # 테스트: 조합기, 엔진, 세션, 설정, 처음부터 끝까지
 scripts/install.sh             # 빌드하고 자체 점검한 뒤 ~/Library/Input Methods에 설치(개발용; pkg 사본이 있으면 멈춤)
-scripts/typing-test/run.sh     # 설치된 Seamtype으로 TextEdit에 실제 키 입력 (먼저 Seamtype을 고른 상태로)
+scripts/typing-test/run.sh     # 설치된 Seamtype으로 설정 창의 입력해 보기 칸에 실제 키 입력
 swift scripts/make-readme-logo.swift docs/media  # README 로고(애니메이션 SVG)
 scripts/release.sh             # 릴리스용 범용(arm64 + x86_64) zip과 pkg; Developer ID가 있으면 서명·공증(앱과 pkg 모두)
 tools/prepare.sh               # 정확도 (단어 목록, Tatoeba, SCOWL을 처음 한 번 내려받음)
