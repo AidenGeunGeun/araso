@@ -77,13 +77,6 @@ if [ "$action" = uninstall ] || [ "$action" = clean ]; then
   [ "$action" = uninstall ] && exit 0
 fi
 
-# Two copies make two input methods, and macOS may launch the wrong one: a reinstall the user
-# chose takes the pkg's copy out (with its receipt).
-if [ "$action" = reinstall ] && [ -d "$system" ] && (exec </dev/tty) 2>/dev/null; then
-  echo "Removing $system (the installer package's copy) needs your password."
-  sudo rm -rf "$system" </dev/tty && sudo pkgutil --forget com.aimdevlee.inputmethod.Seamtype.pkg >/dev/null 2>&1 || true
-fi
-
 mkdir -p "$dest"
 # Swapped by renaming within the folder, so there is never a moment without a Seamtype.app there
 # for macOS to launch (the old one keeps running meanwhile).
@@ -101,6 +94,13 @@ pkill -9 -x Seamtype 2>/dev/null || true
 i=0; while pgrep -x Seamtype >/dev/null && [ $i -lt 30 ]; do sleep 0.1; i=$((i+1)); done
 "$app/Contents/MacOS/Seamtype" --register
 rm -rf "$dest/.Seamtype.app.old"
+# Two copies make two input methods, and macOS may launch the wrong one: a reinstall the user
+# chose takes the pkg's copy out (with its receipt). Only after this copy is registered: removed
+# first, it takes the input source (and the user's choice to use it) along.
+if [ "$action" = reinstall ] && [ -d "$system" ] && (exec </dev/tty) 2>/dev/null; then
+  echo "Removing $system (the installer package's copy) needs your password."
+  sudo rm -rf "$system" </dev/tty && sudo pkgutil --forget com.aimdevlee.inputmethod.Seamtype.pkg >/dev/null 2>&1 || true
+fi
 killall TextInputMenuAgent 2>/dev/null || true
 # The switch indicator by the caret keeps the icon it read first (they ignore SIGTERM).
 killall -KILL CursorUIViewService TextInputSwitcher 2>/dev/null || true

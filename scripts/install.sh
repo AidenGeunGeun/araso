@@ -59,13 +59,6 @@ if [[ $action == (uninstall|clean) ]]; then
   [[ $action == uninstall ]] && exit 0
 fi
 
-# Two copies make two input methods, and macOS may launch the wrong one: a reinstall the user
-# chose in the terminal takes the pkg's copy out (with its receipt).
-if [[ $action == reinstall && -d $system ]] && $tty; then
-  echo "Removing $system (the installer package's copy) needs your password."
-  sudo rm -rf $system </dev/tty && sudo pkgutil --forget com.aimdevlee.inputmethod.Seamtype.pkg >/dev/null 2>&1 || true
-fi
-
 mkdir -p "$dest"
 # Swapped by renaming within the folder, so there is never a moment without a Seamtype.app there
 # for macOS to launch (the old one keeps running meanwhile).
@@ -82,14 +75,21 @@ i=0; while pgrep -x Seamtype >/dev/null && [ $i -lt 30 ]; do sleep 0.1; i=$((i+1
 pkill -9 -x Seamtype 2>/dev/null || true
 i=0; while pgrep -x Seamtype >/dev/null && [ $i -lt 30 ]; do sleep 0.1; i=$((i+1)); done
 echo "installed $dest/Seamtype.app"
-[[ -d $system ]] &&
-  echo "warning: a release copy is also in /Library/Input Methods; remove one of them"
 
 id=com.aimdevlee.inputmethod.Seamtype
 enabled=false
 # Registering also forgets other copies LaunchServices knows.
 "$dest/Seamtype.app/Contents/MacOS/Seamtype" --register
 rm -rf "$dest/.Seamtype.app.old"
+# Two copies make two input methods, and macOS may launch the wrong one: a reinstall the user
+# chose in the terminal takes the pkg's copy out (with its receipt). Only after this copy is
+# registered: removed first, it takes the input source (and the user's choice to use it) along.
+if [[ $action == reinstall && -d $system ]] && $tty; then
+  echo "Removing $system (the installer package's copy) needs your password."
+  sudo rm -rf $system </dev/tty && sudo pkgutil --forget com.aimdevlee.inputmethod.Seamtype.pkg >/dev/null 2>&1 || true
+fi
+[[ -d $system ]] &&
+  echo "warning: a release copy is also in /Library/Input Methods; remove one of them"
 if swift scripts/enable-input-source.swift --check $id; then enabled=true; else
   for _ in {1..10}; do  # an input source the user already added comes back within ~30 s
     sleep 3
