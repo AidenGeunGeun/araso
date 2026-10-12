@@ -92,6 +92,8 @@ enum Uninstaller {
         }
         // The input menu and the switch indicator by the caret keep what they read first
         // (the indicator ignores SIGTERM), as scripts/pkg/postinstall does after installing.
+        // imklaunchagent keeps where it found Seamtype; a later install would not start until it restarts.
+        launch("/usr/bin/killall", ["imklaunchagent"])
         launch("/usr/bin/killall", ["TextInputMenuAgent"])
         launch("/usr/bin/killall", ["-KILL", "CursorUIViewService", "TextInputSwitcher"])
     }

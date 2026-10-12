@@ -91,6 +91,9 @@ mv "$work/Seamtype.app" "$app"
 # again, and it would run (old code over new files) until a restart.
 pkill -x Seamtype 2>/dev/null || true
 "$app/Contents/MacOS/Seamtype" --register
+# imklaunchagent, which launches input methods, keeps where it found Seamtype until it restarts:
+# after a reinstall it fails (LaunchInputMethod() Error -50) and nothing types until a restart.
+killall imklaunchagent 2>/dev/null || true
 killall TextInputMenuAgent 2>/dev/null || true
 # The switch indicator by the caret keeps the icon it read first (they ignore SIGTERM).
 killall -KILL CursorUIViewService TextInputSwitcher 2>/dev/null || true
