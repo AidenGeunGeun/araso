@@ -21,7 +21,14 @@ final class Updater: ObservableObject {
     /// A release newer than this copy, from the last check by either process.
     @Published private(set) var available: Release?
 
-    private static let latest = URL(string: "https://api.github.com/repos/aimdevlee/seamtype/releases/latest")!
+    private static let gitHub = URL(string: "https://api.github.com/repos/aimdevlee/seamtype/releases/latest")!
+    /// GitHub's latest release, or, for trying an update before it is published (drafts aren't
+    /// visible without a login), a file in the same format whose `browser_download_url` may be a
+    /// file URL: `defaults write com.aimdevlee.inputmethod.Seamtype updateFeed file:///…/latest.json`.
+    /// The installer still has to pass the signature check.
+    private static var latest: URL {
+        UserDefaults.standard.string(forKey: "updateFeed").flatMap(URL.init(string:)) ?? gitHub
+    }
     private static let teamID = "2UZ65T3U82"
     private static let interval: TimeInterval = 24 * 60 * 60
     private enum Key {
@@ -71,7 +78,8 @@ final class Updater: ObservableObject {
         request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
         request.setValue("Seamtype/\(Self.currentVersion)", forHTTPHeaderField: "User-Agent")
         URLSession.shared.dataTask(with: request) { data, response, error in
-            let status = (response as? HTTPURLResponse)?.statusCode ?? 0
+            // A file (the updateFeed override) has no HTTP status.
+            let status = (response as? HTTPURLResponse)?.statusCode ?? 200
             let release = data.flatMap(Release.init(gitHubJSON:))
             DispatchQueue.main.async {
                 MainActor.assumeIsolated {
@@ -100,7 +108,7 @@ final class Updater: ObservableObject {
         guard let release = available, state != .downloading else { return }
         state = .downloading
         URLSession.shared.downloadTask(with: release.package) { file, response, error in
-            let status = (response as? HTTPURLResponse)?.statusCode ?? 0
+            let status = (response as? HTTPURLResponse)?.statusCode ?? 200
             var saved: URL?
             if let file, error == nil, status == 200 {
                 let downloads = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first

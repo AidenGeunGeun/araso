@@ -146,6 +146,9 @@ runtime.
   user defaults. Install downloads `Seamtype.pkg`, requires `pkgutil --check-signature` to show
   the Developer ID Installer of team 2UZ65T3U82 and notarization, then opens it in Installer. So
   a release must keep the `Seamtype.pkg` asset name and a `v<version>` tag.
+  To try an update before publishing (drafts aren't visible to it), point the check at a file in
+  GitHub's format: `defaults write com.aimdevlee.inputmethod.Seamtype updateFeed file:///…/latest.json`
+  (its `browser_download_url` may be a file URL to a signed pkg); `defaults delete … updateFeed` after.
 - **One install method while developing:** `scripts/install.sh` (ad hoc, `~/Library`) or a signed
   pkg (`/Library`), not both. After trying a pkg, run its copy's `--uninstall` before going back to
   `install.sh`; without a terminal `install.sh` refuses to install while the pkg's copy is there
