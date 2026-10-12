@@ -131,10 +131,6 @@ runtime.
   the logged-in user (users have no Swift toolchain, so registration can't use the scripts).
   `release.sh` signs the app with the hardened runtime even ad hoc, and `build-app.sh` runs the
   self-test under Rosetta too for a universal build.
-- **imklaunchagent** (the system agent that launches input methods) caches where it found the
-  bundle: after a reinstall it fails with `LaunchInputMethod() Error, status=-50` and the source
-  is selectable but nothing types until a restart. Every install path and the uninstaller
-  restart it (`killall imklaunchagent`; launchd brings it back).
 - **Reinstalling:** every install path stops Seamtype *after* the new copy is in place (a
   keystroke mid-install relaunches the old one, which then runs old code over new files until a
   restart), then runs the new copy's `--register` (`Registration.swift`): it unregisters other
