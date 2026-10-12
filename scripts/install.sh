@@ -2,7 +2,8 @@
 # Builds, self-tests and installs the input method.
 #   scripts/install.sh [--reinstall | --clean | --uninstall [--delete-data]]
 # If Seamtype is already installed it asks what to do (as get.sh does); without a terminal to ask
-# in, or with --reinstall, it replaces the copy in ~/Library/Input Methods.
+# in, or with --reinstall, it replaces the copy in ~/Library/Input Methods; it stops instead when the
+# installer package's copy is in /Library and there is no terminal to ask for the password.
 set -euo pipefail
 cd "${0:A:h}/.."
 
@@ -47,6 +48,20 @@ EOF
   fi
 fi
 
+# The pkg's copy in /Library has to go before this one goes into ~/Library: two copies are the
+# same input method twice, and macOS may launch either. Removing it needs an administrator, asked
+# for now (sudo keeps it for the rest of the install); without a terminal, or without the password,
+# nothing is installed.
+if [[ $action == reinstall && -d $system ]]; then
+  if ! $tty; then
+    echo "Seamtype from the installer package is in /Library/Input Methods; nothing was installed." >&2
+    echo "Run scripts/install.sh in a terminal to replace it, or update with the package." >&2
+    exit 1
+  fi
+  echo "Replacing $system (the installer package's copy) needs your password."
+  sudo -v </dev/tty || { echo "Nothing was installed." >&2; exit 1; }
+fi
+
 scripts/build-app.sh
 
 # Uninstalling goes through the new build (what About → Uninstall… does): both copies, the pkg's
@@ -85,7 +100,6 @@ rm -rf "$dest/.Seamtype.app.old"
 # chose in the terminal takes the pkg's copy out (with its receipt). Only after this copy is
 # registered: removed first, it takes the input source (and the user's choice to use it) along.
 if [[ $action == reinstall && -d $system ]] && $tty; then
-  echo "Removing $system (the installer package's copy) needs your password."
   sudo rm -rf $system </dev/tty && sudo pkgutil --forget com.aimdevlee.inputmethod.Seamtype.pkg >/dev/null 2>&1 || true
 fi
 [[ -d $system ]] &&

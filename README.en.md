@@ -45,28 +45,9 @@ Input** in the input menu.
 If Seamtype isn't in the input menu, add it in **System Settings → Keyboard → Input Sources →
 Edit… → + → Korean → Seamtype**. If it isn't listed there either, log out and back in once.
 
-There are other ways too. They all install into `~/Library/Input Methods` and need no
-administrator rights.
-
-- One line in Terminal:
-  ```sh
-  curl -fsSL https://raw.githubusercontent.com/aimdevlee/seamtype/main/scripts/get.sh | sh
-  ```
-- Download `Seamtype.zip` (notarized) from [Releases](https://github.com/aimdevlee/seamtype/releases),
-  unzip it and move it into `~/Library/Input Methods`.
-- Build from source (Xcode or the Command Line Tools, Swift 6.1 or later): `scripts/install.sh`
-  builds, self-tests and installs it.
-
-Using the pkg together with another way gives you two copies of the input method; use only one.
-The pkg removes a copy in `~/Library/Input Methods` as it installs (settings and learned words
-stay). Installing the pkg over an existing copy replaces the app and keeps the settings; for a
-clean reinstall, tick **Reset settings and learned words** under **Customize** in the installer.
-
-When Seamtype is already installed,
-`get.sh` and `scripts/install.sh` ask whether to reinstall (settings and learned words stay; a
-copy the pkg put in `/Library` is removed), reinstall clean (settings and learned words go too),
-or uninstall. To choose without the question, pass `--reinstall`, `--clean` or `--uninstall`
-(with `--delete-data` to drop settings and learned words), e.g. `curl … | sh -s -- --uninstall`.
+To update, download the new `Seamtype.pkg` and install it the same way. It replaces the app and
+keeps your settings and learned words, with no logout or restart. For a clean reinstall, tick
+**Reset settings and learned words** under **Customize** in the installer.
 
 Seamtype takes ~50 MB of memory (plus the ~35 MB Japanese dictionary when Japanese is on) and
 ~47 MB on disk, with nothing else running. Keystrokes never leave the input method.
@@ -77,20 +58,18 @@ In the settings window, click **About → Uninstall Seamtype → Uninstall…**.
 from both Input Methods folders (macOS asks for your password if you used the pkg) and switches to
 another input source. Settings and learned words go only if you tick that in the confirmation.
 
+If Seamtype still shows in the input source list in System Settings after uninstalling, log
+out and back in once. If you reinstall and it isn't in the input menu, remove it from that list
+with − and add it again with +.
+
 <details>
 <summary>Uninstall in Terminal</summary>
 
-`curl -fsSL https://raw.githubusercontent.com/aimdevlee/seamtype/main/scripts/get.sh | sh -s -- --uninstall`
-does what the settings window does. By hand, remove Seamtype from the input sources, then:
+Does what the settings window does (`--delete-data` only to drop settings and learned words too):
 
 ```sh
-pkill -x Seamtype
-rm -rf ~/Library/Input\ Methods/Seamtype.app
-rm -rf ~/Library/Application\ Support/Seamtype   # only to drop settings and learned words
+"/Library/Input Methods/Seamtype.app/Contents/MacOS/Seamtype" --uninstall --delete-data
 ```
-
-If you installed the pkg, the app is in `/Library/Input Methods/Seamtype.app`. Remove it with
-`sudo rm -rf`, and its receipt with `sudo pkgutil --forget com.aimdevlee.inputmethod.Seamtype.pkg`.
 
 </details>
 
@@ -326,7 +305,7 @@ Exact match counts kana/kanji style differences (ひとまとめ vs 一まとめ
 
 ```sh
 swift test                     # tests: composers, engines, sessions, settings, end to end
-scripts/install.sh             # build, self-test and install into ~/Library/Input Methods
+scripts/install.sh             # build, self-test and install into ~/Library/Input Methods (development; stops if the pkg's copy is there)
 scripts/typing-test/run.sh     # real key events into TextEdit through the installed Seamtype
 swift scripts/make-readme-logo.swift docs/media  # the README logo (animated SVG)
 scripts/release.sh             # universal (arm64 + x86_64) zip and pkg for a release; with a Developer ID also signed and notarized (app and pkg)

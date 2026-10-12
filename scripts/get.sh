@@ -7,7 +7,8 @@
 #   … | sh -s -- --reinstall              replace it, keep settings and learned words
 #   … | sh -s -- --clean                  remove it with settings and learned words, then install
 #   … | sh -s -- --uninstall [--delete-data]
-# Without a terminal to ask in, it reinstalls.
+# Without a terminal to ask in, it reinstalls, unless the installer package's copy is in /Library:
+# then it stops, since that copy can only be removed with a password.
 #
 # Releases aren't signed with a Developer ID. A download made with curl isn't quarantined, so
 # Gatekeeper doesn't stop it; the quarantine flag is cleared anyway in case it's there.
@@ -56,6 +57,19 @@ MSG
   fi
 fi
 
+# The pkg's copy in /Library has to go before this one goes into ~/Library: two copies are the
+# same input method twice, and macOS may launch either. Removing it needs an administrator, asked
+# for now; without a terminal, or without the password, nothing is installed.
+if [ "$action" = reinstall ] && [ -d "$system" ]; then
+  if ! (exec </dev/tty) 2>/dev/null; then
+    echo "Seamtype from the installer package is in /Library/Input Methods; nothing was installed." >&2
+    echo "Update it with the package, or run this in a terminal to replace it." >&2
+    exit 1
+  fi
+  echo "Replacing $system (the installer package's copy) needs your password."
+  sudo -v </dev/tty || { echo "Nothing was installed." >&2; exit 1; }
+fi
+
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
 if [ -n "${SEAMTYPE_ZIP:-}" ]; then
@@ -98,7 +112,6 @@ rm -rf "$dest/.Seamtype.app.old"
 # chose takes the pkg's copy out (with its receipt). Only after this copy is registered: removed
 # first, it takes the input source (and the user's choice to use it) along.
 if [ "$action" = reinstall ] && [ -d "$system" ] && (exec </dev/tty) 2>/dev/null; then
-  echo "Removing $system (the installer package's copy) needs your password."
   sudo rm -rf "$system" </dev/tty && sudo pkgutil --forget com.aimdevlee.inputmethod.Seamtype.pkg >/dev/null 2>&1 || true
 fi
 killall TextInputMenuAgent 2>/dev/null || true

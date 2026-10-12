@@ -43,25 +43,9 @@ Hello, worldhasaishonopuroguramudesu␣.           →  Hello, worldは最初の
 입력 메뉴에 Seamtype이 없으면 **시스템 설정 → 키보드 → 입력 소스 → 편집… → + → 한국어 → Seamtype**을
 추가하세요. 그래도 없으면 한 번 로그아웃했다가 다시 로그인하세요.
 
-다른 방법도 있습니다. 모두 `~/Library/Input Methods`에 설치하고, 관리자 권한이 필요 없습니다.
-
-- 터미널에서 한 줄로:
-  ```sh
-  curl -fsSL https://raw.githubusercontent.com/aimdevlee/seamtype/main/scripts/get.sh | sh
-  ```
-- [Releases](https://github.com/aimdevlee/seamtype/releases)의 `Seamtype.zip`(공증됨)을 받아 압축을 풀고
-  `~/Library/Input Methods`에 넣기
-- 소스에서 빌드(Xcode 또는 Command Line Tools, Swift 6.1 이상): `scripts/install.sh`가 빌드하고 자체
-  점검한 뒤 설치합니다.
-
-pkg와 다른 방법을 함께 쓰면 같은 입력기가 두 개 생깁니다. 하나만 쓰세요. pkg는 `~/Library/Input Methods`에
-있는 앱을 지우고 설치합니다(설정과 학습한 단어는 남음). 이미 설치된 위에 pkg를 다시 설치하면 앱을 바꾸고 설정은
-그대로 둡니다. 깨끗이 다시 설치하려면 설치 프로그램의 **사용자화**에서 **설정과 학습한 단어 초기화**를 체크하세요.
-
-이미 설치되어 있으면 `get.sh`와 `scripts/install.sh`가 무엇을 할지 묻습니다:
-다시 설치(설정과 학습한 단어는 남고, pkg가 `/Library`에 둔 앱은 지움), 깨끗이 다시 설치(설정과 학습한
-단어까지 지움), 제거. 묻지 않게 하려면 `--reinstall`, `--clean`, `--uninstall`(설정과 학습한 단어까지
-지우려면 `--delete-data`를 함께)을 넘기세요. 예: `curl … | sh -s -- --uninstall`.
+업데이트할 때도 새 `Seamtype.pkg`를 받아 그대로 설치하면 됩니다. 앱만 바꾸고 설정과 학습한 단어는
+남기며, 로그아웃이나 재시동은 필요 없습니다. 깨끗이 다시 설치하려면 설치 프로그램의 **사용자화**에서
+**설정과 학습한 단어 초기화**를 체크하세요.
 
 메모리는 ~50 MB(일본어를 켜면 일본어 사전 ~35 MB 추가), 앱 크기는 ~47 MB이고, 따로 실행되는 프로그램은
 없습니다. 입력한 키는 입력기 밖으로 나가지 않습니다.
@@ -72,20 +56,18 @@ pkg와 다른 방법을 함께 쓰면 같은 입력기가 두 개 생깁니다. 
 (pkg로 설치했다면 macOS가 암호를 묻습니다), 다른 입력 소스로 바꿉니다. 설정과 학습한 단어는 확인 창에서
 체크했을 때만 지웁니다.
 
+제거한 뒤 시스템 설정의 입력 소스 목록에 Seamtype이 남아 보이면, 한 번 로그아웃했다가 다시 로그인하면
+사라집니다. 제거한 뒤 다시 설치했는데 입력 메뉴에 없으면 그 목록에서 Seamtype을 −로 뺐다가 +로 다시
+추가하세요.
+
 <details>
 <summary>터미널에서 지우기</summary>
 
-`curl -fsSL https://raw.githubusercontent.com/aimdevlee/seamtype/main/scripts/get.sh | sh -s -- --uninstall`이
-설정 창과 같은 일을 합니다. 직접 지우려면 입력 소스 목록에서 Seamtype을 뺀 뒤:
+설정 창과 같은 일을 합니다(`--delete-data`는 설정과 학습한 단어까지 지울 때만):
 
 ```sh
-pkill -x Seamtype
-rm -rf ~/Library/Input\ Methods/Seamtype.app
-rm -rf ~/Library/Application\ Support/Seamtype   # 설정과 학습한 단어까지 지울 때만
+"/Library/Input Methods/Seamtype.app/Contents/MacOS/Seamtype" --uninstall --delete-data
 ```
-
-pkg로 설치했다면 앱은 `/Library/Input Methods/Seamtype.app`에 있습니다. `sudo rm -rf`로 지우고,
-`sudo pkgutil --forget com.aimdevlee.inputmethod.Seamtype.pkg`로 설치 기록도 지우세요.
 
 </details>
 
@@ -310,7 +292,7 @@ SCOWL 목록, 한국어 단어 목록, 언어 전환을 고려한 기울기를 �
 
 ```sh
 swift test                     # 테스트: 조합기, 엔진, 세션, 설정, 처음부터 끝까지
-scripts/install.sh             # 빌드하고 자체 점검한 뒤 ~/Library/Input Methods에 설치
+scripts/install.sh             # 빌드하고 자체 점검한 뒤 ~/Library/Input Methods에 설치(개발용; pkg 사본이 있으면 멈춤)
 scripts/typing-test/run.sh     # 설치된 Seamtype으로 TextEdit에 실제 키 입력
 swift scripts/make-readme-logo.swift docs/media  # README 로고(애니메이션 SVG)
 scripts/release.sh             # 릴리스용 범용(arm64 + x86_64) zip과 pkg; Developer ID가 있으면 서명·공증(앱과 pkg 모두)

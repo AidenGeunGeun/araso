@@ -74,5 +74,7 @@ if [[ -n ${SEAMTYPE_NOTARY_PROFILE:-} ]]; then
   xcrun stapler staple $pkg
 fi
 cp $pkg $out/Seamtype.pkg
+[[ -z ${SEAMTYPE_APP_SIGN:-} ]] &&
+  echo "warning: ad-hoc app: Gatekeeper rejects it once installed from the pkg (it is selected but never starts); try installs with scripts/install.sh"
 echo "built $out/Seamtype-$version.zip, $out/Seamtype.zip, $pkg, $out/Seamtype.pkg"
 echo "  (${SEAMTYPE_APP_SIGN:-ad-hoc app}, ${SEAMTYPE_PKG_SIGN:-unsigned pkg}${SEAMTYPE_NOTARY_PROFILE:+, notarized})"

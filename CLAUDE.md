@@ -141,5 +141,12 @@ runtime.
   `--uninstall [--delete-data]` runs `Uninstaller` for the scripts. The pkg's postinstall also
   removes the console user's `~/Library/Input Methods` copy; its Customize pane offers a clean
   reinstall (`scripts/Distribution.xml`, the payload-free `scripts/pkg-reset` package).
+- **One install method while developing:** `scripts/install.sh` (ad hoc, `~/Library`) or a signed
+  pkg (`/Library`), not both. After trying a pkg, run its copy's `--uninstall` before going back to
+  `install.sh`; without a terminal `install.sh` refuses to install while the pkg's copy is there
+  (two copies are one input method twice). Never install an ad-hoc pkg (`release.sh` without
+  `SEAMTYPE_APP_SIGN`): Gatekeeper rejects a copy the installer put down, so it is selectable but
+  never starts. A move between the two folders, or an uninstall, drops the input source; re-add it
+  in System Settings (− then +) or log out.
 - **Stale registrations:** extra copies of the app registered with LaunchServices (`build/`,
   the old `AutoIME.app`) can make macOS launch the wrong one. `build-app.sh` unregisters its copy.
