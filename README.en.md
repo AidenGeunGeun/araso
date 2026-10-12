@@ -202,10 +202,11 @@ You can edit it by hand; missing keys keep the default.
 | `liveConversion` | off | While you type a Japanese phrase, show its top kanji candidate (`今日はいい天気でs`); Return commits it as shown. Like macOS Live Conversion. |
 | `returnConfirmsOnly` | on | Return on an underlined word only confirms it. Off, the app gets that Return too (a Japanese phrase is still only confirmed). |
 | `rightCommandPause` | on | A right ⌘ tap pauses Seamtype in the text field (see [Pause](#pause)). |
+| `japaneseEngine` | `"apple"` | Kanji conversion: `"apple"` uses the engine of macOS's Japanese input, `"azooKey"` the AzooKey converter in the app. |
 
 With live conversion, Space opens the candidate window at the next candidate, and Esc shows the
 kana (Esc again switches language). Short readings only change into kanji (`と` stays `と`, `私`
-converts). The top candidate is right for about 4 in 5 short phrases and 2 in 3 whole sentences
+converts). The top candidate is right for about 4 in 5 short phrases and 3 in 4 whole sentences
 ([held-out results](#held-out-results)), so glance before Return. Conversion takes 8–21 ms a
 keystroke.
 
@@ -262,9 +263,13 @@ Locally, in this order. A keystroke's preview takes at most ~3 ms and a word's f
      which is someone switching language.
    - A known English word needs a clear Japanese win before it turns into kana.
 
-Kanji come from [AzooKey](https://github.com/azooKey/AzooKeyKanaKanjiConverter)'s dictionary
-converter, reranked by a character trigram model of written Japanese. AzooKey also learns from
-what you pick.
+Kanji come from the conversion engine of macOS's Japanese input (libmecabra), with the top
+candidate re-picked by a character trigram model of written Japanese. So variant kanji like `髙`
+(`たか`, `たかはし` → `髙橋`), English spellings of names (`とぅいっち` → `Twitch`) and completions
+of a partial reading (`ゆーちゅ` → `YouTube`, after the top candidate) come up as in the system's
+input. Seamtype remembers what you pick for each reading and puts it first next time. The engine is
+private to macOS, so where it can't be loaded the app's own
+[AzooKey](https://github.com/azooKey/AzooKeyKanaKanjiConverter) dictionary converter stands in.
 
 ### Held-out results
 
@@ -291,10 +296,10 @@ held-out score. Many remaining misses are genuinely ambiguous keys: `so`/내, `g
 
 Kanji conversion, top candidate exactly matching the original text (held-out Tatoeba):
 
-| | AzooKey alone | + reranking | correct one in the list |
-| --- | --- | --- | --- |
-| 2–3 word phrases | 69.5% | **81.0%** | 96.2% |
-| whole sentences | 56.0% | **66.0%** | 82.2% |
+| | macOS engine | + reranking | correct one in the list | AzooKey + reranking |
+| --- | --- | --- | --- | --- |
+| 2–3 word phrases | 74.5% | **81.0%** | 96.2% | 81.0% |
+| whole sentences | 71.2% | **74.0%** | 91.5% | 67.2% |
 
 Exact match counts kana/kanji style differences (ひとまとめ vs 一まとめ) as misses.
 
@@ -336,7 +341,8 @@ Seamtype is MIT licensed ([LICENSE](LICENSE)). The app carries the licenses of e
 or copied into it in `Contents/Resources/ThirdPartyNotices.txt`, collected by
 `scripts/build-app.sh`.
 
-- AzooKey Kana-Kanji Converter: MIT; its dictionary: Apache-2.0.
+- Kanji conversion: the Japanese engine that ships with macOS, loaded at runtime (not bundled).
+- AzooKey Kana-Kanji Converter (the stand-in): MIT; its dictionary: Apache-2.0.
 - Tatoeba sentences (kana and written-Japanese models, Korean syllable and word counts;
   evaluation): CC-BY 2.0 FR, https://tatoeba.org.
 - English words and how common they are: [SCOWL](http://wordlist.aspell.net) (permissive,

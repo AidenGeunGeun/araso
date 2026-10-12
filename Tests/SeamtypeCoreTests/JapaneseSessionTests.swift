@@ -267,8 +267,25 @@ import Testing
         #expect(session.conversion?.candidates.filter { $0.text == "よろしく" }.count == 1)
     }
 
+    /// Live conversion shows conversions only, never a completion of what was typed.
+    @Test func liveConversionSkipsCompletions() {
+        let live = InputSession(engine: session.engine, converter: PredictingConverter(), japaneseEnabled: true, liveConversion: true)
+        let field = FakeTextField()
+        for ch in "arigatou" where !live.handle(.letter(ch), client: field) { field.insertText(String(ch), replacing: nil) }
+        #expect(field.text == "ありがとう")
+    }
+
     @Test func englishShortcutsAreLeftToTheEngine() {
         type("kyouha go")
         #expect(session.lastTrace?.decision.explanation != "text replacement shortcut")
     }
+}
+
+/// A converter whose first candidate for ゆーちゅ is a completion.
+@MainActor final class PredictingConverter: JapaneseConverter {
+    func candidates(for kana: String) -> [ConversionCandidate] {
+        [.init(text: "YouTube", kanaCount: kana.count, isPrediction: true), .init(text: kana, kanaCount: kana.count)]
+    }
+    func learn(_ candidate: ConversionCandidate, for kana: String) {}
+    func save() {}
 }

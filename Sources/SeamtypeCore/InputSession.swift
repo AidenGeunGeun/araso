@@ -460,7 +460,7 @@ public final class InputSession {
     /// The top candidate covering all of `kana` (cached: the preview asks on every key).
     private func liveCandidate(for kana: String) -> ConversionCandidate? {
         if let cached = liveCache, cached.kana == kana { return cached.candidate }
-        var candidate = converter?.candidates(for: kana).first { $0.kanaCount == kana.count }
+        var candidate = converter?.candidates(for: kana).first { $0.kanaCount == kana.count && !$0.isPrediction }
         // A short reading only turns into kanji (私, 今日), not into katakana mid-word
         // (と → ト, こんに → コンに): those flicker while the phrase is still being typed.
         if kana.count <= 3, let c = candidate, !c.text.unicodeScalars.contains(where: { (0x4E00...0x9FFF).contains($0.value) }) {

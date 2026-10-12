@@ -3,7 +3,7 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 Seamtype is a macOS InputMethodKit input method: the user types on QWERTY and Seamtype decides per
-word whether it is English, Korean (2-set) or Japanese romaji (kanji through AzooKey). README.md
+word whether it is English, Korean (2-set) or Japanese romaji (kanji through macOS's own engine, AzooKey where it can't be loaded). README.md
 (Korean, the main one) and README.en.md (English) cover the keys, settings files, accuracy numbers
 and data licenses; read one before changing behavior users see, and keep both in step. The website,
 https://nyttastudio.com/seamtype/ (Korean only), lives in `seamtype/` of the nyttastudio/nyttastudio.com
@@ -22,7 +22,7 @@ scripts/release.sh                           # universal build → build/release
                                              # (SEAMTYPE_APP_SIGN / SEAMTYPE_PKG_SIGN / SEAMTYPE_NOTARY_PROFILE: Developer ID, notarization)
 swift run seamtype-cli -v "dkssud hello"     # English/Korean decision with scores
 printf 'keys\tprevious\n' | swift run seamtype-cli --decide --japanese   # previous: english|korean|japanese|empty
-printf 'きょうは\n' | swift run seamtype-cli --convert                    # AzooKey candidates
+printf 'きょうは\n' | swift run seamtype-cli --convert                    # AzooKey candidates (SEAMTYPE_ENGINE=apple: macOS's)
 tools/prepare.sh [--models]                  # held-out accuracy (downloads into tools/data, gitignored)
 scripts/typing-test/run.sh                   # real key events into TextEdit through the installed app
 /usr/bin/log show --last 10m --predicate 'subsystem == "com.aimdevlee.inputmethod.Seamtype"' --info --debug

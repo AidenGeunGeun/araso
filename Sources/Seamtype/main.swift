@@ -80,6 +80,9 @@ if CommandLine.arguments.contains("--selftest") {
             ok = false
         }
         try? FileManager.default.removeItem(at: memory)
+        // macOS's engine is private API: report it, but AzooKey stands in when it's missing.
+        let apple = AppleJapaneseConverter(learning: nil)?.candidates(for: "たか").contains { $0.text == "髙" } ?? false
+        print("macOS japanese engine: \(apple ? "ok" : "unavailable (AzooKey is used)")")
         exit(ok ? 0 : 1)
     }
 }

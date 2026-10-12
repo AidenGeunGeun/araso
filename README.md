@@ -193,10 +193,11 @@ Vim(8.2 이상, `+job`)은 [`scripts/vim/seamtype.vim`](scripts/vim/seamtype.vim
 | `liveConversion` | 꺼짐 | 일본어 구절을 치는 동안 가장 앞선 한자 후보를 보여 주고(`今日はいい天気でs`), Return을 누르면 보이는 대로 확정합니다. macOS의 실시간 변환과 같습니다. |
 | `returnConfirmsOnly` | 켜짐 | 밑줄 친 단어에서 누른 Return은 확정만 합니다. 끄면 앱도 그 Return을 받습니다(일본어 구절은 그대로 확정만). |
 | `rightCommandPause` | 켜짐 | 오른쪽 ⌘를 단독으로 눌러 일시정지합니다([일시정지](#일시정지) 참고). |
+| `japaneseEngine` | `"apple"` | 한자 변환 엔진. `"apple"`은 macOS 일본어 입력기의 엔진을, `"azooKey"`는 앱에 든 AzooKey를 씁니다. |
 
 라이브 변환에서 Space는 다음 후보부터 후보 창을 열고, Esc는 가나를 보여 줍니다(한 번 더 누르면 언어를
 바꿉니다). 짧은 읽기는 한자로만 바뀝니다(`と`는 그대로, `私`는 변환). 맨 앞 후보는 짧은 구절 5개 중 4개,
-문장 전체 3개 중 2개꼴로 맞으니([평가 결과](#평가-결과-학습에-쓰지-않은-데이터)) Return 전에 한번
+문장 전체 4개 중 3개꼴로 맞으니([평가 결과](#평가-결과-학습에-쓰지-않은-데이터)) Return 전에 한번
 확인하세요. 변환은 키마다 8–21 ms 걸립니다.
 
 앱별 동작은 같은 폴더의 `apps.json`에 있습니다. `"*"`는 모든 앱의 기본값이고, 앱(번들 ID, `.`으로 끝나는
@@ -250,8 +251,12 @@ Vim(8.2 이상, `+job`)은 [`scripts/vim/seamtype.vim`](scripts/vim/seamtype.vim
      기울이는 정도를 줄입니다.
    - 아는 영어 단어는 일본어가 분명히 이길 때만 가나로 바뀝니다.
 
-한자는 [AzooKey](https://github.com/azooKey/AzooKeyKanaKanjiConverter)의 사전 변환기에서 나오고,
-일본어 문어 글자 3-그램 모델로 순서를 다시 매깁니다. AzooKey는 사용자가 고른 후보도 학습합니다.
+한자는 macOS 일본어 입력기가 쓰는 변환 엔진(libmecabra)에서 나오고, 일본어 문어 글자 3-그램 모델로
+맨 앞 후보를 다시 고릅니다. 그래서 `髙` 같은 이체자(`たか`, `たかはし` → `髙橋`), 고유명사의 영어
+표기(`とぅいっち` → `Twitch`), 읽기 앞부분으로 고르는 예측 후보(`ゆーちゅ` → `YouTube`, 맨 앞 후보
+다음)가 기본 입력기처럼 나옵니다. 고른 후보는 Seamtype이 읽기별로 기억해 다음에 맨 앞에 둡니다. 이
+엔진은 공개되지 않은 macOS 내부 기능이라, 불러오지 못하는 macOS에서는 앱에 든
+[AzooKey](https://github.com/azooKey/AzooKeyKanaKanjiConverter) 사전 변환기를 대신 씁니다.
 
 ### 평가 결과 (학습에 쓰지 않은 데이터)
 
@@ -278,10 +283,10 @@ SCOWL 목록, 한국어 단어 목록, 언어 전환을 고려한 기울기를 �
 
 한자 변환에서 맨 앞 후보가 원문과 정확히 같은 비율입니다(학습에 쓰지 않은 Tatoeba 문장).
 
-| | AzooKey만 | + 순서 재조정 | 후보 목록 안에 정답 |
-| --- | --- | --- | --- |
-| 2–3단어 구절 | 69.5% | **81.0%** | 96.2% |
-| 문장 전체 | 56.0% | **66.0%** | 82.2% |
+| | macOS 엔진 | + 순서 재조정 | 후보 목록 안에 정답 | AzooKey + 순서 재조정 |
+| --- | --- | --- | --- | --- |
+| 2–3단어 구절 | 74.5% | **81.0%** | 96.2% | 81.0% |
+| 문장 전체 | 71.2% | **74.0%** | 91.5% | 67.2% |
 
 정확히 같아야 맞은 것으로 세므로, 가나·한자 표기 차이(ひとまとめ와 一まとめ)도 틀린 것으로 칩니다.
 
@@ -322,7 +327,8 @@ printf 'きょうはいいてんきですね\n' | swift run seamtype-cli --conve
 Seamtype은 MIT 라이선스입니다([LICENSE](LICENSE)). 앱에 컴파일되거나 복사된 모든 것의 라이선스는
 `Contents/Resources/ThirdPartyNotices.txt`에 들어 있고, `scripts/build-app.sh`가 모읍니다.
 
-- AzooKey Kana-Kanji Converter: MIT, 사전: Apache-2.0.
+- 한자 변환: macOS에 들어 있는 일본어 변환 엔진을 실행할 때 불러 씁니다(앱에 포함하지 않음).
+- AzooKey Kana-Kanji Converter(대신 쓰는 변환기): MIT, 사전: Apache-2.0.
 - Tatoeba 문장(가나·일본어 문어 모델, 한국어 음절·단어 빈도, 평가): CC-BY 2.0 FR, https://tatoeba.org.
 - 영어 단어와 빈도: [SCOWL](http://wordlist.aspell.net) (자유 라이선스, 고지는 앱에 포함).
   macOS의 `/usr/share/dict/words`로 실행할 때 글자 3-그램을 학습합니다.

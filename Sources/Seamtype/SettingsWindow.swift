@@ -198,6 +198,7 @@ final class SettingsModel: ObservableObject {
                 try? FileManager.default.removeItem(at: item)
             }
         }
+        if let learning = AppleJapaneseConverter.learningURL { try? FileManager.default.removeItem(at: learning) }
         changed(kanjiReset: true)
     }
 

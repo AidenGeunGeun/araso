@@ -19,14 +19,18 @@ public struct Settings: Codable, Equatable, Sendable {
     /// Once a day, ask GitHub for the latest release's version (nothing else is sent), and offer
     /// it in the input menu and About when it is newer.
     public var checkForUpdates: Bool = true
+    /// Kanji conversion: "apple", macOS's own Japanese engine (AzooKey where it can't be loaded),
+    /// or "azooKey".
+    public var japaneseEngine: String = "apple"
 
     public init(japanese: Bool = false, liveConversion: Bool = false, rightCommandPause: Bool = true,
-                returnConfirmsOnly: Bool = true, checkForUpdates: Bool = true) {
+                returnConfirmsOnly: Bool = true, checkForUpdates: Bool = true, japaneseEngine: String = "apple") {
         self.japanese = japanese
         self.liveConversion = liveConversion
         self.rightCommandPause = rightCommandPause
         self.returnConfirmsOnly = returnConfirmsOnly
         self.checkForUpdates = checkForUpdates
+        self.japaneseEngine = japaneseEngine
     }
 
     public init(from decoder: Decoder) throws {
@@ -36,6 +40,7 @@ public struct Settings: Codable, Equatable, Sendable {
         rightCommandPause = try c.decodeIfPresent(Bool.self, forKey: .rightCommandPause) ?? true
         returnConfirmsOnly = try c.decodeIfPresent(Bool.self, forKey: .returnConfirmsOnly) ?? true
         checkForUpdates = try c.decodeIfPresent(Bool.self, forKey: .checkForUpdates) ?? true
+        japaneseEngine = try c.decodeIfPresent(String.self, forKey: .japaneseEngine) ?? "apple"
     }
 
     public static var storeURL: URL? {
