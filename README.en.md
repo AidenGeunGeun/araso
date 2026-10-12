@@ -59,8 +59,7 @@ administrator rights.
 
 Using the pkg together with another way gives you two copies of the input method; use only one.
 
-Installing over an existing copy needs no restart: the pkg replaces the old copy outright, and
-apps that were typing through it switch to the new one. When Seamtype is already installed,
+When Seamtype is already installed,
 `get.sh` and `scripts/install.sh` ask whether to reinstall (settings and learned words stay; a
 copy the pkg put in `/Library` is removed), reinstall clean (settings and learned words go too),
 or uninstall. To choose without the question, pass `--reinstall`, `--clean` or `--uninstall`

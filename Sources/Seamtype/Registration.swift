@@ -13,7 +13,6 @@ enum Registration {
         if status == noErr, let source = (TISCreateInputSourceList(filter, true)?.takeRetainedValue() as? [TISInputSource])?.first {
             TISEnableInputSource(source)
         }
-        reconnect()
         return status
     }
 
@@ -27,14 +26,5 @@ enum Registration {
             Uninstaller.launch(lsregister, ["-u", url.path])
         }
         Uninstaller.launch(lsregister, ["-f", ours.path])
-    }
-
-    /// Apps that were typing through the process the install stopped keep a dead connection until
-    /// the input source changes; switching away and back makes macOS launch the new copy for them.
-    private static func reconnect() {
-        guard SeamtypeSource.isCurrent, let other = Uninstaller.fallbackSource() else { return }
-        TISSelectInputSource(other)
-        RunLoop.current.run(until: Date(timeIntervalSinceNow: 0.3))
-        SeamtypeSource.select()
     }
 }

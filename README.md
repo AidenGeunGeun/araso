@@ -56,8 +56,7 @@ Hello, worldhasaishonopuroguramudesu␣.           →  Hello, worldは最初の
 
 pkg와 다른 방법을 함께 쓰면 같은 입력기가 두 개 생깁니다. 하나만 쓰세요.
 
-이미 설치된 위에 다시 설치해도 재시동할 필요가 없습니다. pkg는 이전 앱을 통째로 바꾸고, 그 앱으로 입력하던
-앱들은 새 앱으로 넘어갑니다. 이미 설치되어 있으면 `get.sh`와 `scripts/install.sh`가 무엇을 할지 묻습니다:
+이미 설치되어 있으면 `get.sh`와 `scripts/install.sh`가 무엇을 할지 묻습니다:
 다시 설치(설정과 학습한 단어는 남고, pkg가 `/Library`에 둔 앱은 지움), 깨끗이 다시 설치(설정과 학습한
 단어까지 지움), 제거. 묻지 않게 하려면 `--reinstall`, `--clean`, `--uninstall`(설정과 학습한 단어까지
 지우려면 `--delete-data`를 함께)을 넘기세요. 예: `curl … | sh -s -- --uninstall`.

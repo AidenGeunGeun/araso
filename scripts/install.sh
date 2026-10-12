@@ -78,8 +78,7 @@ echo "installed $dest/Seamtype.app"
 
 id=com.aimdevlee.inputmethod.Seamtype
 enabled=false
-# Registering also forgets other copies LaunchServices knows and moves an app that was typing
-# through the stopped process over to the new one.
+# Registering also forgets other copies LaunchServices knows.
 "$dest/Seamtype.app/Contents/MacOS/Seamtype" --register
 if swift scripts/enable-input-source.swift --check $id; then enabled=true; else
   for _ in {1..10}; do  # an input source the user already added comes back within ~30 s

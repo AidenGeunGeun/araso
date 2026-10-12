@@ -134,7 +134,7 @@ runtime.
 - **Reinstalling:** every install path stops Seamtype *after* the new copy is in place (a
   keystroke mid-install relaunches the old one, which then runs old code over new files until a
   restart), then runs the new copy's `--register` (`Registration.swift`): it unregisters other
-  copies from LaunchServices and, if Seamtype is the current source, switches away and back so
-  apps reconnect. `--uninstall [--delete-data]` runs `Uninstaller` for the scripts.
+  copies from LaunchServices. Don't switch the input source away and back there: right after a
+  reinstall the source isn't listed yet, so it can't be selected again and the user is left on ABC. `--uninstall [--delete-data]` runs `Uninstaller` for the scripts.
 - **Stale registrations:** extra copies of the app registered with LaunchServices (`build/`,
   the old `AutoIME.app`) can make macOS launch the wrong one. `build-app.sh` unregisters its copy.
