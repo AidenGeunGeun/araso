@@ -85,6 +85,8 @@ func runSettingsApp(tab: SettingsTab) -> Never {
     app.delegate = delegate
     app.mainMenu = SettingsAppDelegate.mainMenu()
     window.makeKeyAndOrderFront(nil)
+    // Each time the window opens, while update checks are on.
+    if model.settings.checkForUpdates { Updater.shared.check() }
     // Front even if macOS doesn't let this (background-only) bundle activate.
     window.orderFrontRegardless()
     app.activate(ignoringOtherApps: true)
@@ -428,7 +430,7 @@ struct SettingsView: View {
                 case .typing: TypingPane(model: model)
                 case .apps: AppsPane(model: model)
                 case .learning: LearningPane(model: model)
-                case .about: AboutPane()
+                case .about: AboutPane(model: model)
                 }
             }
             .navigationTitle(model.tab.title)
@@ -602,6 +604,7 @@ private struct AppsPane: View {
         }
         .formStyle(.grouped)
     }
+
 }
 
 private struct AppRowView: View {
@@ -821,6 +824,9 @@ private struct WordRow: View {
 // MARK: - About
 
 private struct AboutPane: View {
+    @ObservedObject var model: SettingsModel
+    @ObservedObject private var updater = Updater.shared
+
     var body: some View {
         Form {
             Section {
@@ -852,6 +858,24 @@ private struct AboutPane: View {
                 Text(L("What you type never leaves this Mac: deciding words and converting kanji both happen here."))
                     .font(.caption).foregroundStyle(.secondary)
             }
+            Section(L("Updates")) {
+                LabeledContent {
+                    if let release = updater.available {
+                        Button(L("Install %@…", release.version)) { updater.install() }
+                            .disabled(updater.state == .downloading)
+                    } else {
+                        Button(L("Check Now")) { updater.check() }
+                            .disabled(updater.state == .checking)
+                    }
+                } label: {
+                    Text(updateTitle)
+                    if let detail = updateDetail { Text(detail) }
+                }
+                Toggle(isOn: Binding(get: { model.settings.checkForUpdates }, set: { model.set(\.checkForUpdates, $0) })) {
+                    Text(L("Check for updates automatically"))
+                    Text(L("Once a day, and each time this window opens. Only the latest version number is asked of GitHub; nothing you type is sent."))
+                }
+            }
             if Uninstaller.isAvailable {
                 Section {
                     LabeledContent(L("Uninstall Seamtype")) {
@@ -864,5 +888,22 @@ private struct AboutPane: View {
             }
         }
         .formStyle(.grouped)
+    }
+    private var updateTitle: String {
+        if let release = updater.available { return L("Seamtype %@ is available", release.version) }
+        switch updater.state {
+        case .checking: return L("Checking for updates…")
+        case .upToDate: return L("Seamtype is up to date")
+        default: return L("Version %@", Updater.currentVersion)
+        }
+    }
+
+    private var updateDetail: String? {
+        switch updater.state {
+        case .downloading: return L("Downloading… Installer opens when it's done; macOS asks for your password.")
+        case .failed(let message): return message
+        default:
+            return updater.available == nil ? nil : L("Installer opens and macOS asks for your password. Settings and learned words stay.")
+        }
     }
 }

@@ -16,13 +16,17 @@ public struct Settings: Codable, Equatable, Sendable {
     /// Return on an underlined word only confirms it, like a Japanese IME; off, the app gets the
     /// Return too (a Japanese phrase is still only confirmed).
     public var returnConfirmsOnly: Bool = true
+    /// Once a day, ask GitHub for the latest release's version (nothing else is sent), and offer
+    /// it in the input menu and About when it is newer.
+    public var checkForUpdates: Bool = true
 
     public init(japanese: Bool = false, liveConversion: Bool = false, rightCommandPause: Bool = true,
-                returnConfirmsOnly: Bool = true) {
+                returnConfirmsOnly: Bool = true, checkForUpdates: Bool = true) {
         self.japanese = japanese
         self.liveConversion = liveConversion
         self.rightCommandPause = rightCommandPause
         self.returnConfirmsOnly = returnConfirmsOnly
+        self.checkForUpdates = checkForUpdates
     }
 
     public init(from decoder: Decoder) throws {
@@ -31,6 +35,7 @@ public struct Settings: Codable, Equatable, Sendable {
         liveConversion = try c.decodeIfPresent(Bool.self, forKey: .liveConversion) ?? false
         rightCommandPause = try c.decodeIfPresent(Bool.self, forKey: .rightCommandPause) ?? true
         returnConfirmsOnly = try c.decodeIfPresent(Bool.self, forKey: .returnConfirmsOnly) ?? true
+        checkForUpdates = try c.decodeIfPresent(Bool.self, forKey: .checkForUpdates) ?? true
     }
 
     public static var storeURL: URL? {

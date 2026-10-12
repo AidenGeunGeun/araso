@@ -141,6 +141,11 @@ runtime.
   `--uninstall [--delete-data]` runs `Uninstaller` for the scripts. The pkg's postinstall also
   removes the console user's `~/Library/Input Methods` copy; its Customize pane offers a clean
   reinstall (`scripts/Distribution.xml`, the payload-free `scripts/pkg-reset` package).
+- **Updates** (`Updater.swift`, `Release.swift`): the IME checks GitHub's latest release once a day
+  (and the settings window on open and on Check Now); the result is shared through the bundle's
+  user defaults. Install downloads `Seamtype.pkg`, requires `pkgutil --check-signature` to show
+  the Developer ID Installer of team 2UZ65T3U82 and notarization, then opens it in Installer. So
+  a release must keep the `Seamtype.pkg` asset name and a `v<version>` tag.
 - **One install method while developing:** `scripts/install.sh` (ad hoc, `~/Library`) or a signed
   pkg (`/Library`), not both. After trying a pkg, run its copy's `--uninstall` before going back to
   `install.sh`; without a terminal `install.sh` refuses to install while the pkg's copy is there

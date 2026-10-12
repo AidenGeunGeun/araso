@@ -280,6 +280,10 @@ final class InputController: IMKInputController {
             if let keys = runtime.engine.lastLearned {
                 add(L("Undo Last Learned (%@)", keys), #selector(undoLastLearned(_:)))
             }
+            Updater.shared.refresh()
+            if let release = Updater.shared.available {
+                add(L("Update to Seamtype %@…", release.version), #selector(openUpdate(_:)))
+            }
             add(L("Try Typing…"), #selector(openTyping(_:)))
             add(L("Remembered Words…"), #selector(openLearned(_:)))
             add(L("Seamtype Settings…"), #selector(openSettings(_:)))
@@ -343,6 +347,7 @@ final class InputController: IMKInputController {
     @objc func openLearned(_ sender: Any?) { SettingsLauncher.open(tab: .learning) }
     @objc func openTyping(_ sender: Any?) { SettingsLauncher.open(tab: .typing) }
     @objc func openSettings(_ sender: Any?) { SettingsLauncher.open(tab: .general) }
+    @objc func openUpdate(_ sender: Any?) { SettingsLauncher.open(tab: .about) }
 }
 
 /// `TextClient` over the IMK client proxy.

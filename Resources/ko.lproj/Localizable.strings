@@ -145,3 +145,20 @@
 "Couldn't uninstall Seamtype" = "Seamtype을 제거하지 못했습니다";
 "Seamtype was uninstalled." = "Seamtype을 제거했습니다.";
 "Seamtype wants to remove itself from /Library/Input Methods." = "Seamtype을 /Library/Input Methods에서 제거하려고 합니다.";
+
+/* Updates */
+"Update to Seamtype %@…" = "Seamtype %@로 업데이트…";
+"Updates" = "업데이트";
+"Install %@…" = "%@ 설치…";
+"Check Now" = "지금 확인";
+"Check for updates automatically" = "업데이트 자동 확인";
+"Once a day, and each time this window opens. Only the latest version number is asked of GitHub; nothing you type is sent." = "하루 한 번, 그리고 이 창을 열 때마다 확인합니다. GitHub에 최신 버전 번호만 물어보며, 입력한 내용은 보내지 않습니다.";
+"Seamtype %@ is available" = "Seamtype %@이 나왔습니다";
+"Checking for updates…" = "업데이트 확인 중…";
+"Seamtype is up to date" = "최신 버전입니다";
+"Version %@" = "버전 %@";
+"Downloading… Installer opens when it's done; macOS asks for your password." = "내려받는 중… 다 받으면 설치 프로그램이 열리고, macOS가 암호를 묻습니다.";
+"Installer opens and macOS asks for your password. Settings and learned words stay." = "설치 프로그램이 열리고 macOS가 암호를 묻습니다. 설정과 학습한 단어는 그대로 남습니다.";
+"Couldn't reach GitHub. Try again later." = "GitHub에 연결하지 못했습니다. 잠시 뒤 다시 시도하세요.";
+"Couldn't download the update. Try again later." = "업데이트를 내려받지 못했습니다. 잠시 뒤 다시 시도하세요.";
+"The downloaded installer isn't signed by Seamtype's developer, so it was deleted." = "내려받은 설치 파일이 Seamtype 개발자의 서명이 아니어서 지웠습니다.";

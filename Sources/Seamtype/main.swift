@@ -95,6 +95,7 @@ guard let server = IMKServer(name: connectionName, bundleIdentifier: Bundle.main
 MainActor.assumeIsolated {
     _ = Runtime.shared.engine.decide("warmup", context: DecisionContext())
     _ = Runtime.shared.converter?.candidates(for: "あ")
+    Updater.shared.startDailyChecks()
 }
 
 withExtendedLifetime(server) {

@@ -45,7 +45,13 @@ Input** in the input menu.
 If Seamtype isn't in the input menu, add it in **System Settings → Keyboard → Input Sources →
 Edit… → + → Korean → Seamtype**. If it isn't listed there either, log out and back in once.
 
-To update, download the new `Seamtype.pkg` and install it the same way. It replaces the app and
+When a new version is out, the input menu shows **Update to Seamtype …** and **About** in the
+settings window installs it (**Check Now** checks by hand). It downloads the installer, checks its
+signature and opens it, so you only enter your password. Checks happen once a day and when the
+settings window opens; they ask GitHub only for the latest version number, and nothing you type
+is sent. Turn them off with **Check for updates automatically** in About.
+
+To update by hand, download the new `Seamtype.pkg` and install it the same way. It replaces the app and
 keeps your settings and learned words, with no logout or restart. For a clean reinstall, tick
 **Reset settings and learned words** under **Customize** in the installer.
 
