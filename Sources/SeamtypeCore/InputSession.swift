@@ -24,6 +24,10 @@ public protocol TextClient: AnyObject {
 ///                  syllable being typed, then whole syllables (as the system's 2-set does);
 ///                  else the last keystroke. The word keeps its language until the next letter.
 ///   Space          English/Korean: commit, then a space. Japanese: convert to kanji
+///                  (with `fullWidthSpace`, a space after Japanese text is full-width; ⇧Space
+///                  types the other width)
+///   0–9            with `fullWidthDigits`, after Japanese text or inside a phrase they are part
+///                  of it, full-width (１２３, ０３－１２３４); Space offers the half-width form
 ///   , . ? ! - '    inside a Japanese phrase they are part of it (、。？！ー); otherwise
 ///                  they commit the word, then type the key
 ///   Return         commit the word as shown, and nothing else (the next Return is the app's);
@@ -49,6 +53,8 @@ public final class InputSession {
         case cycle
         /// Space, digit or punctuation typed by the input method.
         case printable(Character)
+        /// ⇧Space: a space of the other width (full-width where Space types a half-width one).
+        case shiftSpace
         case enter
         case up
         case down
@@ -140,6 +146,12 @@ public final class InputSession {
     /// 2-set input has committed everything before it, so those syllables delete whole and new
     /// jamo don't join them (세요 → 세ㅇ, not 셍). Nil until then: the word composes as one.
     private var syllableStart: Int?
+    /// Digits after Japanese text, and inside a Japanese phrase, are part of it and full-width
+    /// (`Settings.fullWidthDigits`), as addresses in Japan often need.
+    public var fullWidthDigits = false
+    /// A space after Japanese text is full-width (`Settings.fullWidthSpace`).
+    public var fullWidthSpace = false
+    private var digitsFullWidth: Bool { japaneseEnabled && fullWidthDigits && policy.fullWidth }
     /// Esc showed the current phrase's kana instead (the next Esc switches language as usual).
     private var liveSuppressed = false
     private var liveCache: (kana: String, candidate: ConversionCandidate?)?
@@ -197,6 +209,16 @@ public final class InputSession {
             if key == .cycle { vimMode = nil; return true }
             previousLanguage = nil
             return false
+        }
+        if key == .shiftSpace {
+            // With nothing being typed, the other width: full-width unless Space already types that.
+            guard keys.isEmpty, conversion == nil, japaneseEnabled, policy.fullWidth else {
+                return handle(.printable(" "), client: client)
+            }
+            closeFlipWindow()
+            if fullWidthSpace && previousLanguage == .japanese { return false } // the app types " "
+            client.insertText("　", replacing: nil)
+            return true
         }
         if conversion != nil { return handleConverting(key, client: client) }
 
@@ -263,6 +285,17 @@ public final class InputSession {
         case .printable(let ch):
             if keys.isEmpty {
                 defer { afterDigit = ch.isNumber }
+                if previousLanguage == .japanese {
+                    if ch == " ", fullWidthSpace, japaneseEnabled, policy.fullWidth {
+                        client.insertText("　", replacing: nil)
+                        return true
+                    }
+                    // A number after Japanese text starts a Japanese word: １２３, ３がつ → ３月.
+                    if ch.isASCII, ch.isNumber, digitsFullWidth {
+                        startSymbol(ch, client)
+                        return true
+                    }
+                }
                 // After Japanese text a symbol is Japanese too (、。？！「」・…), underlined until Return
                 // or the next word confirms it, as in a Japanese IME; Space shows its other forms.
                 // Not inside a number (3.5, 10:30), but a bracket closes the way it was opened.
@@ -274,6 +307,8 @@ public final class InputSession {
             }
             if japaneseEnabled, belongsToJapanesePhrase(ch) {
                 keys.append(ch)
+                // Digits don't read as anything: the phrase stays Japanese, as it was shown.
+                if ch.isNumber, forced == nil { forced = .japanese; forcedByUser = false }
                 updatePreview(client)
                 return true
             }
@@ -320,6 +355,9 @@ public final class InputSession {
         case .up, .down, .left, .right, .other:
             commit(client: client)
             previousLanguage = nil
+            return false
+
+        case .shiftSpace: // handled above
             return false
         }
     }
@@ -395,6 +433,11 @@ public final class InputSession {
     /// The in-word marks ー and ' may also turn an English-looking start into Japanese
     /// ("ra" → "ra-" → らー), but never take a word away from Korean.
     private func belongsToJapanesePhrase(_ ch: Character) -> Bool {
+        if ch.isASCII, ch.isNumber {
+            guard digitsFullWidth else { return false }
+            return forced == .japanese || (forced == nil && previewLanguage == .japanese
+                                           && ["", "n"].contains(RomajiComposer.compose(keys, partial: true).pending))
+        }
         guard JapaneseModel.inPhraseSymbols.contains(ch) else { return false }
         if forced == .japanese { return true }
         // On the way to a Japanese text replacement shortcut with a symbol in it: gu- is ぐー,
@@ -460,7 +503,7 @@ public final class InputSession {
     /// The top candidate covering all of `kana` (cached: the preview asks on every key).
     private func liveCandidate(for kana: String) -> ConversionCandidate? {
         if let cached = liveCache, cached.kana == kana { return cached.candidate }
-        var candidate = converter?.candidates(for: kana).first { $0.kanaCount == kana.count && !$0.isPrediction }
+        var candidate = conversionCandidates(for: kana).first { $0.kanaCount == kana.count && !$0.isPrediction }
         // A short reading only turns into kanji (私, 今日), not into katakana mid-word
         // (と → ト, こんに → コンに): those flicker while the phrase is still being typed.
         if kana.count <= 3, let c = candidate, !c.text.unicodeScalars.contains(where: { (0x4E00...0x9FFF).contains($0.value) }) {
@@ -498,7 +541,7 @@ public final class InputSession {
         if userForced {
             record(keys, as: .japanese, engineChoice: committedLanguage())
         }
-        var candidates = converter.candidates(for: kana)
+        var candidates = conversionCandidates(for: kana)
         let live = isLive ? liveCandidate(for: kana) : nil
         if let phrases = replacements[kana], !phrases.isEmpty {
             // Text replacements come first, or right after the live candidate already on screen.
@@ -558,7 +601,7 @@ public final class InputSession {
         }
         guard (1...reading.count).contains(length), length != conversion.current.kanaCount else { return nil }
         let clause = String(reading[..<length])
-        let candidates = converter.candidates(for: clause).filter { $0.kanaCount == clause.count }
+        let candidates = conversionCandidates(for: clause).filter { $0.kanaCount == clause.count }
         guard !candidates.isEmpty else { return nil }
         return Conversion(kana: conversion.kana, keys: conversion.keys, candidates: candidates, selected: 0,
                           userForced: conversion.userForced)
@@ -567,7 +610,7 @@ public final class InputSession {
     private func handleConverting(_ key: Key, client: TextClient) -> Bool {
         guard var conversion else { return false }
         switch key {
-        case .printable(" "), .down:
+        case .printable(" "), .down, .shiftSpace:
             conversion.selected = (conversion.selected + 1) % conversion.candidates.count
             self.conversion = conversion
             client.setMarkedText(conversion.display)
@@ -645,7 +688,7 @@ public final class InputSession {
         self.conversion = nil
         guard !rest.isEmpty else { return }
         let restKeys = Self.keys(conversion.keys, after: candidate.kanaCount)
-        let candidates = converter.candidates(for: rest)
+        let candidates = conversionCandidates(for: rest)
         if candidates.isEmpty {
             client.insertText(rest, replacing: nil)
         } else {
@@ -653,6 +696,38 @@ public final class InputSession {
             self.conversion = Conversion(kana: rest, keys: restKeys, candidates: candidates, selected: 0)
             client.setMarkedText(self.conversion!.display)
         }
+    }
+
+    /// The converter's candidates, with a number kept as typed: a reading that is only a number
+    /// offers itself (１２３) and its half-width form (123) first; otherwise the candidates that keep
+    /// the digits come before those that spell them out (３月, 3月, then 三月; 東京都１, not 東京都一).
+    private func conversionCandidates(for kana: String) -> [ConversionCandidate] {
+        let candidates = converter?.candidates(for: kana) ?? []
+        let digits = Self.digits(of: kana)
+        guard !digits.isEmpty else { return candidates }
+        let whole = candidates.filter { $0.kanaCount == kana.count }
+        var ordered = whole.filter { Self.digits(of: $0.text) == digits } + whole.filter { Self.digits(of: $0.text) != digits }
+        if kana.allSatisfy({ Self.numberCharacters.contains($0) }) {
+            ordered = [ConversionCandidate(text: kana, kanaCount: kana.count),
+                       ConversionCandidate(text: Self.halfWidth(kana), kanaCount: kana.count)] + ordered
+        }
+        var shown = Set<String>()
+        return (ordered + candidates.filter { $0.kanaCount != kana.count }).filter { shown.insert($0.text).inserted }
+    }
+
+    /// What a number reading is made of: digits and the punctuation inside numbers, either width.
+    static let numberCharacters = Set("0123456789０１２３４５６７８９－．，／：-.,/:")
+
+    /// The digits of `text` in order, as ASCII ("東京都１－２" → "12").
+    static func digits(of text: String) -> String {
+        String(halfWidth(text).filter { $0.isASCII && $0.isNumber })
+    }
+
+    /// Full-width ASCII (！ to ～) as ASCII.
+    static func halfWidth(_ text: String) -> String {
+        String(String.UnicodeScalarView(text.unicodeScalars.map {
+            (0xFF01...0xFF5E).contains($0.value) ? Unicode.Scalar($0.value - 0xFEE0)! : $0
+        }))
     }
 
     /// The romaji left after the part that produced the first `kanaCount` kana: the

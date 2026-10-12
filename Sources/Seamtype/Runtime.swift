@@ -58,6 +58,8 @@ final class Runtime {
                                    japaneseEnabled: settings.japanese, liveConversion: settings.liveConversion,
                                    returnConfirmsOnly: settings.returnConfirmsOnly)
         session.replacements = textReplacements
+        session.fullWidthDigits = settings.fullWidthDigits
+        session.fullWidthSpace = settings.fullWidthSpace
         return session
     }
 

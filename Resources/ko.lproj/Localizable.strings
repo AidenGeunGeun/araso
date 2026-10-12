@@ -25,6 +25,10 @@
 "Romaji becomes kana; Space converts to kanji." = "로마자로 치면 가나로, Space로 한자 변환.";
 "Live conversion" = "라이브 변환";
 "Shows the top kanji candidate as you type." = "입력하면서 가장 앞선 한자 후보를 바로 보여 줍니다.";
+"Full-width numbers" = "전각 숫자";
+"After Japanese, numbers come out full-width (１２３); Space offers 123." = "일본어 뒤의 숫자를 전각(１２３)으로 씁니다. Space로 123을 고를 수 있습니다.";
+"Full-width space" = "전각 공백";
+"After Japanese, Space types a full-width space. ⇧Space types the other width." = "일본어 뒤의 Space를 전각 공백으로 씁니다. ⇧Space는 반대 폭의 공백입니다.";
 "Kanji candidate order" = "한자 후보 순서";
 "Kanji you pick in the candidate window come first next time." = "후보 창에서 고른 한자가 다음부터 앞에 나옵니다.";
 "Reset…" = "처음으로…";

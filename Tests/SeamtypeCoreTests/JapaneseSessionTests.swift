@@ -15,6 +15,10 @@ import Testing
             return [.init(text: "いい天気ですね", kanaCount: 8), .init(text: kana, kanaCount: 8)]
         case "へんかん":
             return [.init(text: "変換", kanaCount: 4), .init(text: "返還", kanaCount: 4), .init(text: "編纂", kanaCount: 4)]
+        case "３がつ":
+            return [.init(text: "三月", kanaCount: 3), .init(text: "３月", kanaCount: 3), .init(text: "3月", kanaCount: 3)]
+        case "１２３":
+            return [.init(text: "一二三", kanaCount: 3), .init(text: "123", kanaCount: 3), .init(text: kana, kanaCount: 3)]
         default:
             return [.init(text: kana, kanaCount: kana.count)]
         }
@@ -198,6 +202,89 @@ import Testing
     @Test func symbolsInEnglishStayHalfWidth() {
         type("foo_bar (baz) a/b ")
         #expect(field.text == "foo_bar (baz) a/b ")
+    }
+
+    /// Off by default: digits after Japanese stay half-width and go to the app.
+    @Test func digitsStayHalfWidthByDefault() {
+        type("henkan ")
+        session.handle(.enter, client: field)
+        type("123")
+        #expect(field.text == "変換123")
+    }
+
+    @Test func fullWidthDigitsAfterJapanese() {
+        session.fullWidthDigits = true
+        type("henkan ")
+        session.handle(.enter, client: field)
+        type("123")
+        #expect(field.text == "変換１２３")
+        #expect(field.marked.location != NSNotFound)
+        type(" ")
+        #expect(session.conversion?.candidates.prefix(3).map(\.text) == ["１２３", "123", "一二三"])
+        type(" ")
+        session.handle(.enter, client: field)
+        #expect(field.text == "変換123")
+    }
+
+    /// Addresses and phone numbers: the punctuation inside a number is full-width too, and Delete
+    /// takes it off one character at a time.
+    @Test func fullWidthNumberPunctuation() {
+        session.fullWidthDigits = true
+        type("henkan ")
+        session.handle(.enter, client: field)
+        type("03-1234")
+        #expect(field.text == "変換０３－１２３４")
+        session.handle(.delete, client: field)
+        session.handle(.delete, client: field)
+        #expect(field.text == "変換０３－１２")
+    }
+
+    /// Inside a phrase a number joins it, and candidates that keep the digits come first.
+    @Test func numberInsideAPhrase() {
+        session.fullWidthDigits = true
+        type("henkan ")
+        session.handle(.enter, client: field)
+        type("3gatsu ")
+        #expect(session.conversion?.candidates.prefix(3).map(\.text) == ["３月", "3月", "三月"])
+    }
+
+    @Test func digitsAfterEnglishStayHalfWidth() {
+        session.fullWidthDigits = true
+        type("hello 123 ")
+        #expect(field.text == "hello 123 ")
+    }
+
+    @Test func fullWidthSpaceAfterJapanese() {
+        type("henkan ")
+        session.handle(.enter, client: field)
+        #expect(session.handle(.shiftSpace, client: field)) // ⇧Space: the other width
+        #expect(field.text == "変換　")
+        session.fullWidthSpace = true
+        type(" ")
+        #expect(field.text == "変換　　")
+        #expect(!session.handle(.shiftSpace, client: field)) // the app types the half-width one
+    }
+
+    @Test func noFullWidthWhereTheAppSaysNo() {
+        let policies = AppPolicies(overrides: ["test.terminal": .init(fullWidth: false)])
+        let terminal = InputSession(engine: session.engine, policies: policies, converter: converter, japaneseEnabled: true)
+        terminal.activate(app: "test.terminal")
+        terminal.fullWidthDigits = true
+        terminal.fullWidthSpace = true
+        let field = FakeTextField()
+        for ch in "henkan " where !(ch.isLetter ? terminal.handle(.letter(ch), client: field) : terminal.handle(.printable(ch), client: field)) {
+            field.insertText(String(ch), replacing: nil)
+        }
+        terminal.handle(.enter, client: field)
+        for ch in "12 " where !terminal.handle(.printable(ch), client: field) { field.insertText(String(ch), replacing: nil) }
+        #expect(field.text == "変換12 ")
+    }
+
+    @Test func numberHelpers() {
+        #expect(InputSession.digits(of: "東京都１－２") == "12")
+        #expect(InputSession.halfWidth("０３－１２３４") == "03-1234")
+        #expect(RomajiComposer.compose("03-1234").text == "０３－１２３４")
+        #expect(RomajiComposer.compose("ra-men").text == "らーめん")
     }
 
     @Test func typingOnAfterConversionCommitsIt() {

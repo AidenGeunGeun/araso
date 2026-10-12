@@ -22,9 +22,16 @@ public struct Settings: Codable, Equatable, Sendable {
     /// Kanji conversion: "apple", macOS's own Japanese engine (AzooKey where it can't be loaded),
     /// or "azooKey".
     public var japaneseEngine: String = "apple"
+    /// With Japanese on: digits after Japanese text are part of it, full-width (１２３); Space offers 123.
+    public var fullWidthDigits: Bool = false
+    /// With Japanese on: a space after Japanese text is full-width (⇧Space types the other width).
+    public var fullWidthSpace: Bool = false
 
     public init(japanese: Bool = false, liveConversion: Bool = false, rightCommandPause: Bool = true,
-                returnConfirmsOnly: Bool = true, checkForUpdates: Bool = true, japaneseEngine: String = "apple") {
+                returnConfirmsOnly: Bool = true, checkForUpdates: Bool = true, japaneseEngine: String = "apple",
+                fullWidthDigits: Bool = false, fullWidthSpace: Bool = false) {
+        self.fullWidthDigits = fullWidthDigits
+        self.fullWidthSpace = fullWidthSpace
         self.japanese = japanese
         self.liveConversion = liveConversion
         self.rightCommandPause = rightCommandPause
@@ -41,6 +48,8 @@ public struct Settings: Codable, Equatable, Sendable {
         returnConfirmsOnly = try c.decodeIfPresent(Bool.self, forKey: .returnConfirmsOnly) ?? true
         checkForUpdates = try c.decodeIfPresent(Bool.self, forKey: .checkForUpdates) ?? true
         japaneseEngine = try c.decodeIfPresent(String.self, forKey: .japaneseEngine) ?? "apple"
+        fullWidthDigits = try c.decodeIfPresent(Bool.self, forKey: .fullWidthDigits) ?? false
+        fullWidthSpace = try c.decodeIfPresent(Bool.self, forKey: .fullWidthSpace) ?? false
     }
 
     public static var storeURL: URL? {

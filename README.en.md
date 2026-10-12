@@ -202,6 +202,8 @@ You can edit it by hand; missing keys keep the default.
 | `liveConversion` | off | While you type a Japanese phrase, show its top kanji candidate (`今日はいい天気でs`); Return commits it as shown. Like macOS Live Conversion. |
 | `returnConfirmsOnly` | on | Return on an underlined word only confirms it. Off, the app gets that Return too (a Japanese phrase is still only confirmed). |
 | `rightCommandPause` | on | A right ⌘ tap pauses Seamtype in the text field (see [Pause](#pause)). |
+| `fullWidthDigits` | off | Numbers after Japanese come out full-width (`１２３`, `０３－１２３４` in addresses and phone numbers), underlined, with Space offering `123` (half-width) or conversions like `三月`. |
+| `fullWidthSpace` | off | Space after Japanese types a full-width space (`　`). ⇧Space types the other width (full-width while this is off). |
 | `japaneseEngine` | `"apple"` | Kanji conversion: `"apple"` uses the engine of macOS's Japanese input, `"azooKey"` the AzooKey converter in the app. |
 
 With live conversion, Space opens the candidate window at the next candidate, and Esc shows the
@@ -225,6 +227,7 @@ from it. No app is listed unless you list it.
 | `enabled` | `true` | `false` passes every key through (plain English). |
 | `conversionThreshold` | `0.5` | Convert away from the typed letters only when at least this sure. `0.97` (Strict) keeps short shell commands from turning into Hangul in a terminal; `0.5` converts more Korean when you write prose. |
 | `escapeToApp` | `false` | Esc goes to the app, and ⇧Esc switches readings (for editors). |
+| `fullWidth` | `true` | `false` keeps numbers and spaces half-width in this app whatever the full-width settings say (terminals, code editors). |
 
 After editing these files by hand, restart the input method: `pkill -x Seamtype`.
 

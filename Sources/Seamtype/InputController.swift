@@ -177,6 +177,7 @@ final class InputController: IMKInputController {
         guard let chars = event.characters, chars.unicodeScalars.count == 1,
               let ch = chars.first, let value = chars.unicodeScalars.first?.value else { return .other }
         if ch.isASCII && ch.isLetter { return .letter(ch) }
+        if ch == " ", event.modifierFlags.contains(.shift) { return .shiftSpace }
         if (0x20..<0x7F).contains(value) { return .printable(ch) }
         return .other
     }

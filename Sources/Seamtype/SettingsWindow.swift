@@ -475,6 +475,14 @@ private struct GeneralPane: View {
                         Text(L("Live conversion"))
                         Text(L("Shows the top kanji candidate as you type."))
                     }
+                    Toggle(isOn: binding(\.fullWidthDigits)) {
+                        Text(L("Full-width numbers"))
+                        Text(L("After Japanese, numbers come out full-width (１２３); Space offers 123."))
+                    }
+                    Toggle(isOn: binding(\.fullWidthSpace)) {
+                        Text(L("Full-width space"))
+                        Text(L("After Japanese, Space types a full-width space. ⇧Space types the other width."))
+                    }
                     LabeledContent {
                         Button(L("Reset…")) { confirmKanji = true }
                     } label: {

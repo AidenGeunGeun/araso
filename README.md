@@ -193,6 +193,8 @@ Vim(8.2 이상, `+job`)은 [`scripts/vim/seamtype.vim`](scripts/vim/seamtype.vim
 | `liveConversion` | 꺼짐 | 일본어 구절을 치는 동안 가장 앞선 한자 후보를 보여 주고(`今日はいい天気でs`), Return을 누르면 보이는 대로 확정합니다. macOS의 실시간 변환과 같습니다. |
 | `returnConfirmsOnly` | 켜짐 | 밑줄 친 단어에서 누른 Return은 확정만 합니다. 끄면 앱도 그 Return을 받습니다(일본어 구절은 그대로 확정만). |
 | `rightCommandPause` | 켜짐 | 오른쪽 ⌘를 단독으로 눌러 일시정지합니다([일시정지](#일시정지) 참고). |
+| `fullWidthDigits` | 꺼짐 | 일본어 뒤의 숫자를 전각으로 씁니다(`１２３`, 주소·전화번호의 `０３－１２３４`). 밑줄 친 채 남고 Space로 `123`(반각)이나 `三月` 같은 변환을 고릅니다. |
+| `fullWidthSpace` | 꺼짐 | 일본어 뒤의 Space를 전각 공백(`　`)으로 씁니다. ⇧Space는 설정과 반대 폭의 공백을 넣습니다(꺼져 있으면 전각). |
 | `japaneseEngine` | `"apple"` | 한자 변환 엔진. `"apple"`은 macOS 일본어 입력기의 엔진을, `"azooKey"`는 앱에 든 AzooKey를 씁니다. |
 
 라이브 변환에서 Space는 다음 후보부터 후보 창을 열고, Esc는 가나를 보여 줍니다(한 번 더 누르면 언어를
@@ -215,6 +217,7 @@ Vim(8.2 이상, `+job`)은 [`scripts/vim/seamtype.vim`](scripts/vim/seamtype.vim
 | `enabled` | `true` | `false`면 모든 키를 그대로 넘깁니다(영어만 입력). |
 | `conversionThreshold` | `0.5` | 이만큼 확신할 때만 친 영문을 다른 글자로 바꿉니다. `0.97`(엄격하게)은 터미널에서 짧은 셸 명령이 한글로 바뀌지 않게 하고, `0.5`는 글을 쓸 때 한국어를 더 많이 바꿉니다. |
 | `escapeToApp` | `false` | Esc는 앱으로 가고, ⇧Esc로 읽기를 바꿉니다(편집기용). |
+| `fullWidth` | `true` | `false`면 이 앱에서는 전각 숫자·공백 설정을 따르지 않고 반각으로 씁니다(터미널, 코드 편집기용). |
 
 파일을 직접 고친 뒤에는 입력기를 다시 시작하세요: `pkill -x Seamtype`.
 
