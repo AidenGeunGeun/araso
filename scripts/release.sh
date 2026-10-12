@@ -55,11 +55,15 @@ pkg=$out/Seamtype-$version.pkg
 # An array: zsh would pass ${…:+--sign "$name"} as one word, which productbuild rejects.
 pkgsign=()
 [[ -n ${SEAMTYPE_PKG_SIGN:-} ]] && pkgsign=(--sign "$SEAMTYPE_PKG_SIGN" --timestamp)
-productbuild --package $out/Seamtype-component.pkg $pkgsign $pkg | grep -v '^productbuild: ' || true
+# The optional clean reinstall (Customize → Reset settings and learned words): scripts only.
+pkgbuild --nopayload --scripts scripts/pkg-reset --identifier com.aimdevlee.inputmethod.Seamtype.reset \
+  --version "$version" $out/Seamtype-reset.pkg | grep -v '^pkgbuild: ' || true
+sed "s/@VERSION@/$version/g" scripts/Distribution.xml > $out/Distribution.xml
+productbuild --distribution $out/Distribution.xml --package-path $out $pkgsign $pkg | grep -v '^productbuild: ' || true
 # pkgbuild registered the staged copy with LaunchServices; like build-app.sh, unregister it so
 # macOS never picks it when it launches the input method.
 /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -u "$out/root/Seamtype.app" 2>/dev/null || true
-rm -rf $out/root $out/component.plist $out/Seamtype-component.pkg
+rm -rf $out/root $out/component.plist $out/Seamtype-component.pkg $out/Seamtype-reset.pkg $out/Distribution.xml
 
 # The zip keeps the signature and its sealed resources intact (ditto, not zip).
 ditto -c -k --keepParent "$app" $out/Seamtype-$version.zip

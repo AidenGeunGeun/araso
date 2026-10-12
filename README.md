@@ -54,7 +54,9 @@ Hello, worldhasaishonopuroguramudesu␣.           →  Hello, worldは最初の
 - 소스에서 빌드(Xcode 또는 Command Line Tools, Swift 6.1 이상): `scripts/install.sh`가 빌드하고 자체
   점검한 뒤 설치합니다.
 
-pkg와 다른 방법을 함께 쓰면 같은 입력기가 두 개 생깁니다. 하나만 쓰세요.
+pkg와 다른 방법을 함께 쓰면 같은 입력기가 두 개 생깁니다. 하나만 쓰세요. pkg는 `~/Library/Input Methods`에
+있는 앱을 지우고 설치합니다(설정과 학습한 단어는 남음). 이미 설치된 위에 pkg를 다시 설치하면 앱을 바꾸고 설정은
+그대로 둡니다. 깨끗이 다시 설치하려면 설치 프로그램의 **사용자화**에서 **설정과 학습한 단어 초기화**를 체크하세요.
 
 이미 설치되어 있으면 `get.sh`와 `scripts/install.sh`가 무엇을 할지 묻습니다:
 다시 설치(설정과 학습한 단어는 남고, pkg가 `/Library`에 둔 앱은 지움), 깨끗이 다시 설치(설정과 학습한

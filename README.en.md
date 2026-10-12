@@ -58,6 +58,9 @@ administrator rights.
   builds, self-tests and installs it.
 
 Using the pkg together with another way gives you two copies of the input method; use only one.
+The pkg removes a copy in `~/Library/Input Methods` as it installs (settings and learned words
+stay). Installing the pkg over an existing copy replaces the app and keeps the settings; for a
+clean reinstall, tick **Reset settings and learned words** under **Customize** in the installer.
 
 When Seamtype is already installed,
 `get.sh` and `scripts/install.sh` ask whether to reinstall (settings and learned words stay; a

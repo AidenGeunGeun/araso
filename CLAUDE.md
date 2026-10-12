@@ -138,6 +138,8 @@ runtime.
   Don't kill `imklaunchagent` (every app that was typing loses all input methods until it
   restarts), and don't start Seamtype yourself (`open`): apps that held the old process report its
   endpoint invalid and the new one's endpoint is dropped with it, so keys go nowhere.
-  `--uninstall [--delete-data]` runs `Uninstaller` for the scripts.
+  `--uninstall [--delete-data]` runs `Uninstaller` for the scripts. The pkg's postinstall also
+  removes the console user's `~/Library/Input Methods` copy; its Customize pane offers a clean
+  reinstall (`scripts/Distribution.xml`, the payload-free `scripts/pkg-reset` package).
 - **Stale registrations:** extra copies of the app registered with LaunchServices (`build/`,
   the old `AutoIME.app`) can make macOS launch the wrong one. `build-app.sh` unregisters its copy.
