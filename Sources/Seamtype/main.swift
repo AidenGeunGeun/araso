@@ -29,13 +29,23 @@ if let flag = CommandLine.arguments.firstIndex(of: "--settings") {
 // for the user running it (the installer package runs it as the logged-in user). Recent macOS
 // may still want the user to add it in System Settings → Keyboard → Input Sources.
 if CommandLine.arguments.contains("--register") {
-    let status = TISRegisterInputSource(Bundle.main.bundleURL as CFURL)
-    let filter = [kTISPropertyInputSourceID as String: Bundle.main.bundleIdentifier ?? ""] as CFDictionary
-    if status == noErr, let source = (TISCreateInputSourceList(filter, true)?.takeRetainedValue() as? [TISInputSource])?.first {
-        TISEnableInputSource(source)
-    }
+    let status = MainActor.assumeIsolated { Registration.run() }
     print(status == noErr ? "registered \(Bundle.main.bundlePath)" : "could not register (\(status))")
     exit(status == noErr ? 0 : 1)
+}
+
+// `Seamtype --uninstall [--delete-data]`: what About's Uninstall… does, for the install scripts.
+if CommandLine.arguments.contains("--uninstall") {
+    MainActor.assumeIsolated {
+        do {
+            try Uninstaller.run(deleteData: CommandLine.arguments.contains("--delete-data"))
+            print("uninstalled Seamtype")
+            exit(0)
+        } catch {
+            print("could not uninstall Seamtype: \(error.localizedDescription)")
+            exit(1)
+        }
+    }
 }
 
 // `Seamtype --selftest`: load every model from the bundle and exit (used by build-app.sh).

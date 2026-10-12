@@ -56,6 +56,12 @@ Hello, worldhasaishonopuroguramudesu␣.           →  Hello, worldは最初の
 
 pkg와 다른 방법을 함께 쓰면 같은 입력기가 두 개 생깁니다. 하나만 쓰세요.
 
+이미 설치된 위에 다시 설치해도 재시동할 필요가 없습니다. pkg는 이전 앱을 통째로 바꾸고, 그 앱으로 입력하던
+앱들은 새 앱으로 넘어갑니다. 이미 설치되어 있으면 `get.sh`와 `scripts/install.sh`가 무엇을 할지 묻습니다:
+다시 설치(설정과 학습한 단어는 남고, pkg가 `/Library`에 둔 앱은 지움), 깨끗이 다시 설치(설정과 학습한
+단어까지 지움), 제거. 묻지 않게 하려면 `--reinstall`, `--clean`, `--uninstall`(설정과 학습한 단어까지
+지우려면 `--delete-data`를 함께)을 넘기세요. 예: `curl … | sh -s -- --uninstall`.
+
 메모리는 ~50 MB(일본어를 켜면 일본어 사전 ~35 MB 추가), 앱 크기는 ~47 MB이고, 따로 실행되는 프로그램은
 없습니다. 입력한 키는 입력기 밖으로 나가지 않습니다.
 
@@ -68,7 +74,8 @@ pkg와 다른 방법을 함께 쓰면 같은 입력기가 두 개 생깁니다. 
 <details>
 <summary>터미널에서 지우기</summary>
 
-입력 소스 목록에서 Seamtype을 뺀 뒤:
+`curl -fsSL https://raw.githubusercontent.com/aimdevlee/seamtype/main/scripts/get.sh | sh -s -- --uninstall`이
+설정 창과 같은 일을 합니다. 직접 지우려면 입력 소스 목록에서 Seamtype을 뺀 뒤:
 
 ```sh
 pkill -x Seamtype

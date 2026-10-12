@@ -3,6 +3,12 @@
 #
 #   curl -fsSL https://raw.githubusercontent.com/aimdevlee/seamtype/main/scripts/get.sh | sh
 #
+# If Seamtype is already installed it asks what to do; to choose without the question:
+#   … | sh -s -- --reinstall              replace it, keep settings and learned words
+#   … | sh -s -- --clean                  remove it with settings and learned words, then install
+#   … | sh -s -- --uninstall [--delete-data]
+# Without a terminal to ask in, it reinstalls.
+#
 # Releases aren't signed with a Developer ID. A download made with curl isn't quarantined, so
 # Gatekeeper doesn't stop it; the quarantine flag is cleared anyway in case it's there.
 # SEAMTYPE_ZIP=/path/to/Seamtype.zip installs a local zip instead (for trying a build).
@@ -11,9 +17,47 @@ set -eu
 url="https://github.com/aimdevlee/seamtype/releases/latest/download/Seamtype.zip"
 dest="$HOME/Library/Input Methods"
 app="$dest/Seamtype.app"
+system="/Library/Input Methods/Seamtype.app"
+lsregister=/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister
+
+action="" deletedata=""
+for arg in "$@"; do
+  case $arg in
+    --reinstall) action=reinstall ;;
+    --clean) action=clean ;;
+    --uninstall) action=uninstall ;;
+    --delete-data) deletedata=--delete-data ;;
+    *) echo "usage: get.sh [--reinstall | --clean | --uninstall [--delete-data]]" >&2; exit 2 ;;
+  esac
+done
+
+if [ -z "$action" ] && { [ -d "$app" ] || [ -d "$system" ]; }; then
+  action=reinstall
+  if (exec </dev/tty) 2>/dev/null; then
+    echo "Seamtype is already installed:"
+    [ -d "$app" ] && echo "  $app"
+    [ -d "$system" ] && echo "  $system (the installer package)"
+    cat <<'MSG'
+  1) Reinstall: replace it, keep settings and learned words
+  2) Clean reinstall: remove it with its settings and learned words, then install
+  3) Uninstall (keep settings and learned words)
+  4) Uninstall and delete settings and learned words
+  5) Cancel
+MSG
+    printf 'Choose [1]: '
+    read -r answer </dev/tty || answer=""
+    case ${answer:-1} in
+      1) ;;
+      2) action=clean ;;
+      3) action=uninstall ;;
+      4) action=uninstall deletedata=--delete-data ;;
+      *) echo "Nothing changed."; exit 0 ;;
+    esac
+  fi
+fi
+
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
-
 if [ -n "${SEAMTYPE_ZIP:-}" ]; then
   cp "$SEAMTYPE_ZIP" "$work/Seamtype.zip"
 else
@@ -22,18 +66,36 @@ else
 fi
 ditto -x -k "$work/Seamtype.zip" "$work"
 [ -d "$work/Seamtype.app" ] || { echo "The download has no Seamtype.app." >&2; exit 1; }
+xattr -dr com.apple.quarantine "$work/Seamtype.app" 2>/dev/null || true
+
+# Uninstalling goes through the app (what About → Uninstall… does): both copies, the pkg's
+# receipt (macOS asks for the password), the input source and the processes.
+if [ "$action" = uninstall ] || [ "$action" = clean ]; then
+  [ "$action" = clean ] && deletedata=--delete-data
+  "$work/Seamtype.app/Contents/MacOS/Seamtype" --uninstall $deletedata
+  "$lsregister" -u "$work/Seamtype.app" 2>/dev/null || true
+  [ "$action" = uninstall ] && exit 0
+fi
+
+# Two copies make two input methods, and macOS may launch the wrong one: a reinstall the user
+# chose takes the pkg's copy out (with its receipt).
+if [ "$action" = reinstall ] && [ -d "$system" ] && (exec </dev/tty) 2>/dev/null; then
+  echo "Removing $system (the installer package's copy) needs your password."
+  sudo rm -rf "$system" </dev/tty && sudo pkgutil --forget com.aimdevlee.inputmethod.Seamtype.pkg >/dev/null 2>&1 || true
+fi
 
 mkdir -p "$dest"
-pkill -x Seamtype 2>/dev/null || true
 rm -rf "$app"
 mv "$work/Seamtype.app" "$app"
-xattr -dr com.apple.quarantine "$app" 2>/dev/null || true
+# Stopped after the new copy is in place: a keystroke during the install launches the old one
+# again, and it would run (old code over new files) until a restart.
+pkill -x Seamtype 2>/dev/null || true
 "$app/Contents/MacOS/Seamtype" --register
 killall TextInputMenuAgent 2>/dev/null || true
 # The switch indicator by the caret keeps the icon it read first (they ignore SIGTERM).
 killall -KILL CursorUIViewService TextInputSwitcher 2>/dev/null || true
 
-[ -d "/Library/Input Methods/Seamtype.app" ] &&
+[ -d "$system" ] &&
   echo "Note: another copy is in /Library/Input Methods; remove one of them."
 cat <<'MSG'
 

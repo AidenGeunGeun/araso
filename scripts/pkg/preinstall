@@ -1,4 +1,7 @@
 #!/bin/sh
-# Stop a running Seamtype so the new one is launched on the next keystroke.
+# A clean reinstall: stop a running Seamtype and remove the old copy, so no file of the previous
+# version is left beside the new ones. postinstall stops it again: a keystroke while the files
+# are copied launches the old one again.
 pkill -x Seamtype 2>/dev/null || true
+rm -rf "/Library/Input Methods/Seamtype.app"
 exit 0

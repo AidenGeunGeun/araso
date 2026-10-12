@@ -59,6 +59,13 @@ administrator rights.
 
 Using the pkg together with another way gives you two copies of the input method; use only one.
 
+Installing over an existing copy needs no restart: the pkg replaces the old copy outright, and
+apps that were typing through it switch to the new one. When Seamtype is already installed,
+`get.sh` and `scripts/install.sh` ask whether to reinstall (settings and learned words stay; a
+copy the pkg put in `/Library` is removed), reinstall clean (settings and learned words go too),
+or uninstall. To choose without the question, pass `--reinstall`, `--clean` or `--uninstall`
+(with `--delete-data` to drop settings and learned words), e.g. `curl … | sh -s -- --uninstall`.
+
 Seamtype takes ~50 MB of memory (plus the ~35 MB Japanese dictionary when Japanese is on) and
 ~47 MB on disk, with nothing else running. Keystrokes never leave the input method.
 
@@ -71,7 +78,8 @@ another input source. Settings and learned words go only if you tick that in the
 <details>
 <summary>Uninstall in Terminal</summary>
 
-Remove Seamtype from the input sources, then:
+`curl -fsSL https://raw.githubusercontent.com/aimdevlee/seamtype/main/scripts/get.sh | sh -s -- --uninstall`
+does what the settings window does. By hand, remove Seamtype from the input sources, then:
 
 ```sh
 pkill -x Seamtype

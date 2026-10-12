@@ -1,8 +1,11 @@
 #!/bin/sh
-# Register the input method for the logged-in user (the installer runs this as root) and
-# refresh the input menu. Adding it in System Settings → Keyboard → Input Sources may still
-# be needed; never fail the install over it.
+# Stop whatever Seamtype runs now (one launched while the files were copied runs the old code,
+# or the old code over new files, until a restart), then register the new copy for the
+# logged-in user (the installer runs this as root) and refresh the input menu. Registering also
+# switches an app that was typing through Seamtype over to the new copy. Adding it in System
+# Settings → Keyboard → Input Sources may still be needed; never fail the install over it.
 app="/Library/Input Methods/Seamtype.app"
+pkill -x Seamtype 2>/dev/null || true
 user=$(stat -f %Su /dev/console)
 if [ -n "$user" ] && [ "$user" != root ]; then
   uid=$(id -u "$user")

@@ -16,6 +16,8 @@ swift build                                  # debug build of everything
 swift test                                   # all tests (Swift Testing, ~7 s)
 swift test --filter MixedWordTests           # one suite; --filter 'MixedWordTests/splitsEnglishPlusParticle' for one test
 scripts/install.sh                           # release build + --selftest, install to ~/Library/Input Methods, enable, restart menu agent
+                                             # (asks reinstall/clean/uninstall when already installed and a tty exists;
+                                             #  --reinstall | --clean | --uninstall [--delete-data] to choose)
 scripts/release.sh                           # universal build → build/release/Seamtype{,-<version>}.{zip,pkg}
                                              # (SEAMTYPE_APP_SIGN / SEAMTYPE_PKG_SIGN / SEAMTYPE_NOTARY_PROFILE: Developer ID, notarization)
 swift run seamtype-cli -v "dkssud hello"     # English/Korean decision with scores
@@ -129,5 +131,10 @@ runtime.
   the logged-in user (users have no Swift toolchain, so registration can't use the scripts).
   `release.sh` signs the app with the hardened runtime even ad hoc, and `build-app.sh` runs the
   self-test under Rosetta too for a universal build.
+- **Reinstalling:** every install path stops Seamtype *after* the new copy is in place (a
+  keystroke mid-install relaunches the old one, which then runs old code over new files until a
+  restart), then runs the new copy's `--register` (`Registration.swift`): it unregisters other
+  copies from LaunchServices and, if Seamtype is the current source, switches away and back so
+  apps reconnect. `--uninstall [--delete-data]` runs `Uninstaller` for the scripts.
 - **Stale registrations:** extra copies of the app registered with LaunchServices (`build/`,
   the old `AutoIME.app`) can make macOS launch the wrong one. `build-app.sh` unregisters its copy.
