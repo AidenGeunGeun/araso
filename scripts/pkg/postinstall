@@ -13,14 +13,16 @@ i=0; while pgrep -x Seamtype >/dev/null && [ $i -lt 30 ]; do sleep 0.1; i=$((i+1
 user=$(stat -f %Su /dev/console)
 if [ -n "$user" ] && [ "$user" != root ]; then
   uid=$(id -u "$user")
+  launchctl asuser "$uid" sudo -u "$user" "$app/Contents/MacOS/Seamtype" --register || true
   # A copy get.sh or install.sh put in ~/Library/Input Methods is the same input method twice, and
   # macOS may launch that one: the package's copy replaces it (settings live elsewhere and stay).
+  # Only after registering this copy: removed first, it takes the input source (and the user's
+  # choice to use it) with it, and Seamtype is gone from the input menu until it is added again.
   home=$(dscl . -read "/Users/$user" NFSHomeDirectory 2>/dev/null | awk '{print $2}')
   if [ -n "$home" ] && [ -d "$home/Library/Input Methods/Seamtype.app" ]; then
     launchctl asuser "$uid" sudo -u "$user" /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -u "$home/Library/Input Methods/Seamtype.app" 2>/dev/null || true
     rm -rf "$home/Library/Input Methods/Seamtype.app"
   fi
-  launchctl asuser "$uid" sudo -u "$user" "$app/Contents/MacOS/Seamtype" --register || true
   launchctl asuser "$uid" sudo -u "$user" killall TextInputMenuAgent 2>/dev/null || true
   # The switch indicator by the caret keeps the icon it read first (they ignore SIGTERM).
   launchctl asuser "$uid" sudo -u "$user" killall -KILL CursorUIViewService TextInputSwitcher 2>/dev/null || true

@@ -12,10 +12,11 @@ enum Registration {
         func listed() -> TISInputSource? {
             (TISCreateInputSourceList(filter, true)?.takeRetainedValue() as? [TISInputSource])?.first
         }
-        // Registering one macOS already lists (a reinstall at the same path) is left out, as
-        // Squirrel and vChewing do; so is enabling one the user has already added.
-        var status = noErr
-        if listed() == nil { status = TISRegisterInputSource(Bundle.main.bundleURL as CFURL) }
+        // Always registered, even when macOS lists the source already: it may still point at a
+        // copy that is about to go (the pkg replacing one in ~/Library), and then macOS drops the
+        // source, and the user's choice to use it, when that copy disappears.
+        let status = TISRegisterInputSource(Bundle.main.bundleURL as CFURL)
+        // Enabling one the user has already added is left out, as Squirrel and vChewing do.
         if status == noErr, let source = listed(),
            TISGetInputSourceProperty(source, kTISPropertyInputSourceIsEnabled)
                .map({ CFBooleanGetValue(Unmanaged<CFBoolean>.fromOpaque($0).takeUnretainedValue()) }) != true {
