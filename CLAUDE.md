@@ -24,7 +24,7 @@ swift run seamtype-cli -v "dkssud hello"     # English/Korean decision with scor
 printf 'keys\tprevious\n' | swift run seamtype-cli --decide --japanese   # previous: english|korean|japanese|empty
 printf 'きょうは\n' | swift run seamtype-cli --convert                    # AzooKey candidates (SEAMTYPE_ENGINE=apple: macOS's)
 tools/prepare.sh [--models]                  # held-out accuracy (downloads into tools/data, gitignored)
-scripts/typing-test/run.sh                   # real key events into TextEdit through the installed app
+scripts/typing-test/run.sh                   # real key events into TextEdit through the installed app (Seamtype selected first)
 /usr/bin/log show --last 10m --predicate 'subsystem == "com.aimdevlee.inputmethod.Seamtype"' --info --debug
 ```
 

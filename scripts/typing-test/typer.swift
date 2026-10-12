@@ -51,23 +51,12 @@ func appleScript(_ source: String) -> String? {
 let cases = try! String(contentsOfFile: CommandLine.arguments[1], encoding: .utf8)
     .split(separator: "\n").map { $0.split(separator: "\t", omittingEmptySubsequences: false).map(String.init) }
 
-// Type through Seamtype for the run, then give back whatever input source was selected.
-func sourceID(_ s: TISInputSource) -> String {
-    guard let p = TISGetInputSourceProperty(s, kTISPropertyInputSourceID) else { return "" }
-    return Unmanaged<CFString>.fromOpaque(p).takeUnretainedValue() as String
-}
-let previousSource = TISCopyCurrentKeyboardInputSource().takeRetainedValue()
-let sources = TISCreateInputSourceList(nil, false).takeRetainedValue() as! [TISInputSource]
-guard let seamtype = sources.first(where: { sourceID($0) == "com.aimdevlee.inputmethod.Seamtype" }) else {
-    fatalError("Seamtype is not an enabled input source (System Settings → Keyboard → Input Sources)")
-}
-
 appleScript("tell application \"TextEdit\" to make new document")
 appleScript("tell application \"TextEdit\" to activate")
 sleep(1)
 
-/// Whether keys really go through Seamtype: TISSelectInputSource can report success while the
-/// menu bar (and the keys) stay on the previous source, so type a word and look.
+/// Whether keys really go through Seamtype: type a word and look. The input source isn't switched
+/// here: the user picks Seamtype once, and a check that fails says so instead of clicking menus.
 func typingThroughSeamtype() -> Bool {
     appleScript("tell application \"TextEdit\" to set text of front document to \"\"")
     usleep(300_000)
@@ -78,23 +67,10 @@ func typingThroughSeamtype() -> Bool {
     return text == "안녕 "
 }
 
-TISSelectInputSource(seamtype)
-usleep(500_000)
-if !typingThroughSeamtype() {
-    // Picking it in the input menu, as a person would, does take.
-    appleScript("""
-        tell application "System Events" to tell process "TextInputMenuAgent"
-            click menu bar item 1 of menu bar 2
-            delay 0.5
-            click menu item "Seamtype" of menu 1 of menu bar item 1 of menu bar 2
-        end tell
-        """)
-    sleep(1)
-    guard typingThroughSeamtype() else {
-        appleScript("tell application \"TextEdit\" to close front document saving no")
-        TISSelectInputSource(previousSource)
-        fatalError("couldn't switch TextEdit to Seamtype (dkssud didn't become 안녕)")
-    }
+guard typingThroughSeamtype() else {
+    appleScript("tell application \"TextEdit\" to close front document saving no")
+    print("Keys don't go through Seamtype (dkssud didn't become 안녕): pick Seamtype in the input menu with TextEdit in front, then run again")
+    exit(2)
 }
 var passed = 0
 for c in cases where c.count == 2 {
@@ -111,7 +87,6 @@ for c in cases where c.count == 2 {
     press("⏎")
 }
 appleScript("tell application \"TextEdit\" to close front document saving no")
-TISSelectInputSource(previousSource)
 let total = cases.filter { $0.count == 2 }.count
 print("\(passed)/\(total) passed")
 exit(passed == total ? 0 : 1)
