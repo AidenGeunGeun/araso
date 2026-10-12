@@ -41,6 +41,9 @@ if CommandLine.arguments.contains("--uninstall") {
             try Uninstaller.run(deleteData: CommandLine.arguments.contains("--delete-data"))
             print("uninstalled Seamtype")
             exit(0)
+        } catch Uninstaller.Failure.cancelled {
+            print("uninstall cancelled")
+            exit(1)
         } catch {
             print("could not uninstall Seamtype: \(error.localizedDescription)")
             exit(1)
