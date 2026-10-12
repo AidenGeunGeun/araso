@@ -94,9 +94,22 @@ public final class AppleJapaneseConverter: JapaneseConverter {
         for plain in [kana, RomajiComposer.katakana(kana)] where !out.contains(where: { $0.text == plain && $0.kanaCount == kana.count }) {
             out.append(ConversionCandidate(text: plain, kanaCount: kana.count))
         }
+        // English typed inside the phrase stays as typed (google, not Google).
+        out = out.map { ConversionCandidate(text: Self.keepingEnglish(of: kana, in: $0.text), kanaCount: $0.kanaCount, isPrediction: $0.isPrediction) }
         // The candidate window shows text only: one row per text.
         var shown = Set<String>()
         return out.filter { shown.insert($0.text).inserted }
+    }
+
+    /// `text` with each run of Latin letters from the reading spelled as it is there.
+    static func keepingEnglish(of reading: String, in text: String) -> String {
+        var text = text
+        for word in reading.split(whereSeparator: { !($0.isASCII && $0.isLetter) }) {
+            if let range = text.range(of: word, options: .caseInsensitive), text[range] != word {
+                text.replaceSubrange(range, with: word)
+            }
+        }
+        return text
     }
 
     /// The engine's candidates in its order: text and the reading it covers.

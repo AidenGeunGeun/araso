@@ -23,6 +23,13 @@ import Testing
         #expect(converter.candidates(for: "かんじ").prefix(3).contains { $0.text == "漢字" })
     }
 
+    @Test func englishInsideAPhraseStaysAsTyped() throws {
+        #expect(AppleJapaneseConverter.keepingEnglish(of: "きょうはgoogleで", in: "今日はGoogleで") == "今日はgoogleで")
+        #expect(AppleJapaneseConverter.keepingEnglish(of: "ゆーちゅ", in: "YouTube") == "YouTube")
+        guard let converter = AppleJapaneseConverter(learning: learning) else { return }
+        #expect(converter.candidates(for: "きょうはgoogleでけんさく").first?.text == "今日はgoogleで検索")
+    }
+
     @Test func choicesComeFirstNextTime() throws {
         guard let converter = AppleJapaneseConverter(learning: learning) else { return }
         converter.learn(ConversionCandidate(text: "監事", kanaCount: 3), for: "かんじ")
