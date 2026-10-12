@@ -87,9 +87,14 @@ fi
 mkdir -p "$dest"
 rm -rf "$app"
 mv "$work/Seamtype.app" "$app"
-# Stopped after the new copy is in place: a keystroke during the install launches the old one
-# again, and it would run (old code over new files) until a restart.
+# Stopped only after the new copy is in place: macOS launches an input method from whatever is on
+# disk when an app asks, so stopping it earlier only starts the old code again under a new pid.
+# SIGTERM, then SIGKILL whatever is left, and wait until it is gone (as vChewing's installer does):
+# a Seamtype still running would keep the old code, and registering may start one.
 pkill -x Seamtype 2>/dev/null || true
+i=0; while pgrep -x Seamtype >/dev/null && [ $i -lt 30 ]; do sleep 0.1; i=$((i+1)); done
+pkill -9 -x Seamtype 2>/dev/null || true
+i=0; while pgrep -x Seamtype >/dev/null && [ $i -lt 30 ]; do sleep 0.1; i=$((i+1)); done
 "$app/Contents/MacOS/Seamtype" --register
 killall TextInputMenuAgent 2>/dev/null || true
 # The switch indicator by the caret keeps the icon it read first (they ignore SIGTERM).

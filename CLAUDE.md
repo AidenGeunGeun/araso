@@ -131,10 +131,13 @@ runtime.
   the logged-in user (users have no Swift toolchain, so registration can't use the scripts).
   `release.sh` signs the app with the hardened runtime even ad hoc, and `build-app.sh` runs the
   self-test under Rosetta too for a universal build.
-- **Reinstalling:** every install path stops Seamtype *after* the new copy is in place (a
-  keystroke mid-install relaunches the old one, which then runs old code over new files until a
-  restart), then runs the new copy's `--register` (`Registration.swift`): it unregisters other
-  copies from LaunchServices. Don't switch the input source away and back there: right after a
-  reinstall the source isn't listed yet, so it can't be selected again and the user is left on ABC. `--uninstall [--delete-data]` runs `Uninstaller` for the scripts.
+- **Reinstalling** (the pattern of vChewing's installer): put the new bundle in place first, then
+  stop Seamtype (SIGTERM, wait, SIGKILL, wait); stopping it earlier only lets macOS start the old
+  code again. Then the new copy's `--register` (`Registration.swift`) unregisters other copies from
+  LaunchServices and registers/enables the source only if macOS doesn't list/enable it yet.
+  Don't kill `imklaunchagent` (every app that was typing loses all input methods until it
+  restarts), and don't start Seamtype yourself (`open`): apps that held the old process report its
+  endpoint invalid and the new one's endpoint is dropped with it, so keys go nowhere.
+  `--uninstall [--delete-data]` runs `Uninstaller` for the scripts.
 - **Stale registrations:** extra copies of the app registered with LaunchServices (`build/`,
   the old `AutoIME.app`) can make macOS launch the wrong one. `build-app.sh` unregisters its copy.

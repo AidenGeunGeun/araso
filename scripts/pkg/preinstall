@@ -1,5 +1,0 @@
-#!/bin/sh
-# Stop a running Seamtype. postinstall stops it again: a keystroke while the files are copied
-# launches the old one again.
-pkill -x Seamtype 2>/dev/null || true
-exit 0

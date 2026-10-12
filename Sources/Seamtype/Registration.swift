@@ -8,9 +8,17 @@ enum Registration {
     /// Registers this bundle as an input method and enables its input source; returns the status.
     static func run() -> OSStatus {
         forgetOtherCopies()
-        let status = TISRegisterInputSource(Bundle.main.bundleURL as CFURL)
         let filter = [kTISPropertyInputSourceID as String: SeamtypeSource.id] as CFDictionary
-        if status == noErr, let source = (TISCreateInputSourceList(filter, true)?.takeRetainedValue() as? [TISInputSource])?.first {
+        func listed() -> TISInputSource? {
+            (TISCreateInputSourceList(filter, true)?.takeRetainedValue() as? [TISInputSource])?.first
+        }
+        // Registering one macOS already lists (a reinstall at the same path) is left out, as
+        // Squirrel and vChewing do; so is enabling one the user has already added.
+        var status = noErr
+        if listed() == nil { status = TISRegisterInputSource(Bundle.main.bundleURL as CFURL) }
+        if status == noErr, let source = listed(),
+           TISGetInputSourceProperty(source, kTISPropertyInputSourceIsEnabled)
+               .map({ CFBooleanGetValue(Unmanaged<CFBoolean>.fromOpaque($0).takeUnretainedValue()) }) != true {
             TISEnableInputSource(source)
         }
         return status
