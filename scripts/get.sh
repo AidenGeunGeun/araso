@@ -85,8 +85,12 @@ if [ "$action" = reinstall ] && [ -d "$system" ] && (exec </dev/tty) 2>/dev/null
 fi
 
 mkdir -p "$dest"
-rm -rf "$app"
-mv "$work/Seamtype.app" "$app"
+# Swapped by renaming within the folder, so there is never a moment without a Seamtype.app there
+# for macOS to launch (the old one keeps running meanwhile).
+rm -rf "$dest/.Seamtype.app.new" "$dest/.Seamtype.app.old"
+ditto "$work/Seamtype.app" "$dest/.Seamtype.app.new"
+[ -d "$app" ] && mv "$app" "$dest/.Seamtype.app.old"
+mv "$dest/.Seamtype.app.new" "$app"
 # Stopped only after the new copy is in place: macOS launches an input method from whatever is on
 # disk when an app asks, so stopping it earlier only starts the old code again under a new pid.
 # SIGTERM, then SIGKILL whatever is left, and wait until it is gone (as vChewing's installer does):
@@ -96,6 +100,7 @@ i=0; while pgrep -x Seamtype >/dev/null && [ $i -lt 30 ]; do sleep 0.1; i=$((i+1
 pkill -9 -x Seamtype 2>/dev/null || true
 i=0; while pgrep -x Seamtype >/dev/null && [ $i -lt 30 ]; do sleep 0.1; i=$((i+1)); done
 "$app/Contents/MacOS/Seamtype" --register
+rm -rf "$dest/.Seamtype.app.old"
 killall TextInputMenuAgent 2>/dev/null || true
 # The switch indicator by the caret keeps the icon it read first (they ignore SIGTERM).
 killall -KILL CursorUIViewService TextInputSwitcher 2>/dev/null || true

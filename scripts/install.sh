@@ -67,8 +67,12 @@ if [[ $action == reinstall && -d $system ]] && $tty; then
 fi
 
 mkdir -p "$dest"
-rm -rf "$dest/Seamtype.app"
-cp -R build/Seamtype.app "$dest/"
+# Swapped by renaming within the folder, so there is never a moment without a Seamtype.app there
+# for macOS to launch (the old one keeps running meanwhile).
+rm -rf "$dest/.Seamtype.app.new" "$dest/.Seamtype.app.old"
+ditto build/Seamtype.app "$dest/.Seamtype.app.new"
+[[ -d "$dest/Seamtype.app" ]] && mv "$dest/Seamtype.app" "$dest/.Seamtype.app.old"
+mv "$dest/.Seamtype.app.new" "$dest/Seamtype.app"
 # Stopped only after the new copy is in place: macOS launches an input method from whatever is on
 # disk when an app asks, so stopping it earlier only starts the old code again under a new pid.
 # SIGTERM, then SIGKILL whatever is left, and wait until it is gone (as vChewing's installer does):
@@ -85,6 +89,7 @@ id=com.aimdevlee.inputmethod.Seamtype
 enabled=false
 # Registering also forgets other copies LaunchServices knows.
 "$dest/Seamtype.app/Contents/MacOS/Seamtype" --register
+rm -rf "$dest/.Seamtype.app.old"
 if swift scripts/enable-input-source.swift --check $id; then enabled=true; else
   for _ in {1..10}; do  # an input source the user already added comes back within ~30 s
     sleep 3
