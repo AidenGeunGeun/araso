@@ -61,9 +61,11 @@ func attribute(_ element: AXUIElement, _ name: String) -> AnyObject? {
     var value: AnyObject?
     return AXUIElementCopyAttributeValue(element, name as CFString, &value) == .success ? value : nil
 }
-/// Every element under `element`, depth first.
+/// Every element under `element`, depth first. Some element in the window lists the application
+/// among its children; following it again recursed until the stack overflowed.
 func descendants(_ element: AXUIElement) -> [AXUIElement] {
-    let children = attribute(element, kAXChildrenAttribute) as? [AXUIElement] ?? []
+    let children = (attribute(element, kAXChildrenAttribute) as? [AXUIElement] ?? [])
+        .filter { attribute($0, kAXRoleAttribute) as? String != kAXApplicationRole }
     return children + children.flatMap(descendants)
 }
 func front() {
@@ -106,6 +108,7 @@ for _ in 0..<8 where !ready {
 }
 guard ready else {
     print("Keys don't go through Seamtype in its settings window (dkssud didn't become 안녕): pick Seamtype in the input menu, then run again")
+    settings.terminate() // exit skips the defer
     exit(2)
 }
 var passed = 0

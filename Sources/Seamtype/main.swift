@@ -34,6 +34,11 @@ if CommandLine.arguments.contains("--register") {
     exit(status == noErr ? 0 : 1)
 }
 
+// `Seamtype --registered`: exit 0 if macOS lists the input source (for the pkg's postinstall).
+if CommandLine.arguments.contains("--registered") {
+    exit(MainActor.assumeIsolated { Registration.isListed() } ? 0 : 1)
+}
+
 // `Seamtype --uninstall [--delete-data]`: what About's Uninstall… does, for the install scripts.
 if CommandLine.arguments.contains("--uninstall") {
     MainActor.assumeIsolated {

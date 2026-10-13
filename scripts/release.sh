@@ -43,12 +43,14 @@ if [[ -n ${SEAMTYPE_NOTARY_PROFILE:-} ]]; then
   rm $out/notarize.zip
 fi
 
-# Not relocatable: the installer must not "upgrade" a copy it finds elsewhere (a development
-# install in ~/Library/Input Methods) instead of installing into /Library/Input Methods.
+# The payload goes to a staging folder and the postinstall syncs it into /Library/Input Methods:
+# PackageKit would swap the bundle for a new folder, which imklaunchagent can't launch from until
+# the user logs out. Not relocatable: the installer must not "upgrade" a copy it finds elsewhere
+# (the installed one, or a development install in ~/Library/Input Methods) in place.
 cp -R "$app" $out/root/
 pkgbuild --analyze --root $out/root $out/component.plist | grep -v '^pkgbuild: ' || true
 plutil -replace 0.BundleIsRelocatable -bool false $out/component.plist
-pkgbuild --root $out/root --component-plist $out/component.plist --install-location "/Library/Input Methods" \
+pkgbuild --root $out/root --component-plist $out/component.plist --install-location "/Library/Application Support/Seamtype/Install" \
   --scripts scripts/pkg --identifier com.aimdevlee.inputmethod.Seamtype.pkg --version "$version" \
   $out/Seamtype-component.pkg | grep -v '^pkgbuild: ' || true
 pkg=$out/Seamtype-$version.pkg

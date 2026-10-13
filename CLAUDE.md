@@ -127,8 +127,12 @@ runtime.
   `Seamtype.pkg` (the website's download button) and `Seamtype.zip` (`scripts/get.sh`) under those
   names for `releases/latest/download/`, plus the versioned copies.
   `SEAMTYPE_ZIP=build/release/Seamtype.zip sh scripts/get.sh` tries the zip locally. The pkg installs
-  into `/Library/Input Methods` and is not relocatable; its postinstall runs `Seamtype --register` as
-  the logged-in user (users have no Swift toolchain, so registration can't use the scripts).
+  into `/Library/Input Methods` and is not relocatable. Its payload lands in
+  `/Library/Application Support/Seamtype/Install` and the postinstall rsyncs it into the existing
+  bundle: a bundle PackageKit swaps for a new folder leaves imklaunchagent failing to launch it
+  (`LaunchInputMethod() Error, status=-50`) until the user logs out. Then the postinstall runs
+  `lsregister -f` and `Seamtype --register` as the logged-in user, until `Seamtype --registered`
+  sees the source (users have no Swift toolchain, so registration can't use the scripts).
   `release.sh` signs the app with the hardened runtime even ad hoc, and `build-app.sh` runs the
   self-test under Rosetta too for a universal build.
 - **Reinstalling** (the pattern of vChewing's installer): put the new bundle in place first, then

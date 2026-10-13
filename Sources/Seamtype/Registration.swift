@@ -25,6 +25,14 @@ enum Registration {
         return status
     }
 
+    /// `Seamtype --registered`: whether macOS lists the input source, enabled or not. The list is
+    /// cached per process, so the pkg asks a fresh one after each `--register`: one run while
+    /// LaunchServices was still taking in the replaced bundle reported success and left no source.
+    static func isListed() -> Bool {
+        let filter = [kTISPropertyInputSourceID as String: SeamtypeSource.id] as CFDictionary
+        return !((TISCreateInputSourceList(filter, true)?.takeRetainedValue() as? [TISInputSource]) ?? []).isEmpty
+    }
+
     /// Any other copy LaunchServices knows (a build folder, a stale download, an old path) can be
     /// the one macOS launches as the input method, and then nothing types until a restart.
     private static func forgetOtherCopies() {
