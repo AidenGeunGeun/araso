@@ -126,6 +126,9 @@ runtime.
   `SEAMTYPE_NOTARY_PROFILE=seamtype`, or the assets come out ad hoc and unsigned. Upload
   `Seamtype.pkg` (the website's download button) and `Seamtype.zip` (`scripts/get.sh`) under those
   names for `releases/latest/download/`, plus the versioned copies.
+  Pushing a `v<version>` tag that matches `Resources/Info.plist` runs `.github/workflows/release.yml`,
+  which does the same with the certificates and notary credentials from the repo secrets and leaves
+  a draft release with the four assets; write the notes and publish it by hand.
   `SEAMTYPE_ZIP=build/release/Seamtype.zip sh scripts/get.sh` tries the zip locally. The pkg installs
   into `/Library/Input Methods` and is not relocatable. Its payload lands in
   `/Library/Application Support/Seamtype/Install` and the postinstall rsyncs it into the existing
