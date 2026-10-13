@@ -16,6 +16,9 @@ final class InputController: IMKInputController {
     private var current: (session: InputSession, generation: Int)?
     /// When right ⌘ went down, while no other key has been pressed with it: a tap pauses.
     private var rightCommandDown: Date?
+    /// When the switch key (right ⌥ or right ⇧, `Settings.switchKey`) went down, while no other
+    /// key has been pressed with it: a tap switches the word's language, like ⇧Esc.
+    private var switchTapDown: Date?
 
     /// This client's session, rebuilt (after committing what was being typed) when a setting changed.
     @MainActor private var session: InputSession {
@@ -42,6 +45,9 @@ final class InputController: IMKInputController {
         static let f6: UInt16 = 97
         static let f7: UInt16 = 98
         static let rightCommand: UInt16 = 54
+        static let rightOption: UInt16 = 61
+        static let rightShift: UInt16 = 60
+        static let space: UInt16 = 49
     }
 
     override func activateServer(_ sender: Any!) {
@@ -96,9 +102,16 @@ final class InputController: IMKInputController {
     }
 
     override func handle(_ event: NSEvent!, client sender: Any!) -> Bool {
+        if let event, event.type == .flagsChanged {
+            // Which modifier key and which modifiers are down: no typed text.
+            log.debug("flagsChanged key=\(event.keyCode) flags=\(event.modifierFlags.intersection(.deviceIndependentFlagsMask).rawValue, format: .hex) client=\(sender is IMKTextInput)")
+        }
         guard let event, let input = sender as? IMKTextInput else { return false }
         if event.type == .flagsChanged {
-            MainActor.assumeIsolated { rightCommandChanged(event, client: input) }
+            MainActor.assumeIsolated {
+                rightCommandChanged(event, client: input)
+                switchTapChanged(event, client: input)
+            }
             return false
         }
         guard event.type == .keyDown else {
@@ -106,6 +119,7 @@ final class InputController: IMKInputController {
             return false
         }
         rightCommandDown = nil // ⌘ with a key is a shortcut, not a tap
+        switchTapDown = nil // ⌥ or ⇧ with a key types a character, not a tap
         return MainActor.assumeIsolated {
             let key = key(for: event)
             let handled = session.handle(key, client: IMKClient(input))
@@ -137,6 +151,38 @@ final class InputController: IMKInputController {
         togglePause(client: client)
     }
 
+    /// The switch key (right ⌥ or right ⇧) pressed and released on its own, within a moment:
+    /// switch the word being typed, or the one just committed, to its next reading (as ⇧Esc
+    /// does). The app still gets the modifier's events, and a lone modifier does nothing there,
+    /// so nothing leaks the way an Esc can (Chromium apps see an Esc the input method took and
+    /// close their window).
+    @MainActor private func switchTapChanged(_ event: NSEvent, client: IMKTextInput) {
+        let keyCode: UInt16
+        let flag: NSEvent.ModifierFlags
+        switch Runtime.shared.settings.switchKey {
+        case .rightOption: keyCode = KeyCode.rightOption; flag = .option
+        case .rightShift: keyCode = KeyCode.rightShift; flag = .shift
+        case .optionSpace, .off: return
+        }
+        guard event.keyCode == keyCode else {
+            switchTapDown = nil // another modifier joined in
+            return
+        }
+        if event.modifierFlags.contains(flag) {
+            // Only on its own: a key remapped as a Hyper key (Karabiner) reports ⌃⌥⇧⌘ at once,
+            // and its tap belongs to whatever the user bound it to.
+            let others = event.modifierFlags.intersection([.command, .control, .option, .shift]).subtracting(flag)
+            switchTapDown = others.isEmpty ? Date() : nil
+            return
+        }
+        guard let down = switchTapDown, Date().timeIntervalSince(down) < 0.5 else { return }
+        switchTapDown = nil
+        guard !session.inVimNormalMode else { return } // vim's own keys; ⇧Esc is the way out there
+        let handled = session.handle(.cycle, client: IMKClient(client))
+        syncCandidates()
+        log.debug("handle switchTap handled=\(handled) app=\(self.session.app ?? "?", privacy: .public)")
+    }
+
     /// Pauses or resumes this text field, and says so under the caret.
     @MainActor private func togglePause(client: IMKTextInput?) {
         session.togglePause(client: client.map(IMKClient.init))
@@ -151,8 +197,12 @@ final class InputController: IMKInputController {
         return rect
     }
 
-    private func key(for event: NSEvent) -> InputSession.Key {
+    @MainActor private func key(for event: NSEvent) -> InputSession.Key {
         let modifiers = event.modifierFlags.intersection([.command, .control, .option])
+        if modifiers == .option, !event.modifierFlags.contains(.shift), event.keyCode == KeyCode.space,
+           Runtime.shared.settings.switchKey == .optionSpace {
+            return .cycle // ⌥Space chosen as the switch key, like ⇧Esc
+        }
         if modifiers == .control {
             switch event.charactersIgnoringModifiers?.lowercased() {
             case "k": return .katakana
