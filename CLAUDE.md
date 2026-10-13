@@ -63,12 +63,18 @@ tests use `FakeTextField`). It owns the preview and hysteresis, commits, Esc rea
   those guards, ordinary Japanese phrases split (`chanwokoroshita` → `초무をころした`).
 - In a Strict app, a token of 3 keys or fewer kept English by the threshold wins over a Korean
   preview shown along the way (`gst` stays `gst`); longer words keep the preview's hysteresis.
+- The keys that switch a word's reading are per app (`AppPolicy.switchKeys`; default right ⌥ tap
+  and ⇧Esc). `InputController` turns a chosen tap, ⌥Space or ⇧Esc into `.cycle`, and only a chosen
+  one; an unchosen Esc or ⇧Esc commits and goes to the app. Esc still goes back to the kana in the
+  candidate window and with live conversion. `AppPolicies.migrateSwitchKey` moves 0.1.9's
+  `switchKey` (settings.json) into `"*"`; an entry's old `escapeToApp` still applies until
+  the entry names its own `switchKeys`.
 - Return on an underlined word only confirms it (`returnConfirmsOnly`, on by default); off, the
   app gets the Return too, except after Japanese.
 - Vim reports its modes through `scripts/vim/seamtype.{lua,vim}` (`Seamtype --vim <mode> --app
   $__CFBundleIdentifier`, a distributed notification). `Runtime` hands it to the active controller,
-  which takes it only if vim runs in its app (a signal without `--app`, only where Esc goes to the
-  app). Outside insert mode every key passes straight through, and while
+  which takes it only if vim runs in its app (a signal without `--app`, only where Esc isn't a
+  switch key). Outside insert mode every key passes straight through, and while
   vim reports, Esc is vim's whatever the app's policy says; nothing guesses the mode from keys.
 - A right ⌘ tap (flagsChanged, in `InputController`) pauses the session until the next tap,
   `activate`, or a settings change (a fresh session). The menu icon can't change, so `PauseHUD`

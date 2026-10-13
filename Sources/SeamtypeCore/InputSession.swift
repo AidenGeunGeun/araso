@@ -16,10 +16,10 @@ public protocol TextClient: AnyObject {
 ///
 /// While a word is being composed:
 ///   letters        extend it; the underlined preview shows the likely language
-///   Esc            cycle it: english → english+particle (github에) → korean → japanese
-///                  (where the app's Esc is set to go to the app, or inside a vim that reports
-///                  its modes, Esc commits and goes to the app; ⇧Esc cycles)
-///   ⇧Esc           cycle it, in every app
+///   switch key     cycle it: english → english+particle (github에) → korean → japanese
+///                  (the app's `switchKeys`: Esc, or `.cycle` for ⇧Esc and the others). Where
+///                  Esc isn't one, or inside a vim that reports its modes, Esc commits and goes
+///                  to the app
 ///   Delete         remove the last kana of a Japanese phrase; in Korean the last jamo of the
 ///                  syllable being typed, then whole syllables (as the system's 2-set does);
 ///                  else the last keystroke. The word keeps its language until the next letter.
@@ -40,10 +40,10 @@ public protocol TextClient: AnyObject {
 ///   A candidate that covers only the start of the reading commits that part and
 ///   continues converting the rest.
 /// Right after a word was committed with space/punctuation:
-///   Esc / ⇧Esc     cycle that committed word the same way (Esc where it switches languages,
-///                  ⇧Esc everywhere).
-///   Delete         the app deletes the space or punctuation; Esc can still change the word.
-/// ⇧Esc with nothing to change is dropped, never passed to the app.
+///   switch keys    cycle that committed word the same way (`AppPolicy.switchKeys`: Esc, or
+///                  `.cycle` for the others).
+///   Delete         the app deletes the space or punctuation; the word can still be changed.
+/// A `.cycle` with nothing to change is dropped, never passed to the app.
 ///                  The same correction made twice is learned for good.
 @MainActor
 public final class InputSession {
@@ -51,7 +51,7 @@ public final class InputSession {
         case letter(Character)
         case delete
         case escape
-        /// ⇧Esc: switch the word's language in every app, including those where Esc goes to the app.
+        /// A switch key other than Esc (⇧Esc, a right ⌥ tap…), sent only where it is chosen.
         case cycle
         /// Space, digit or punctuation typed by the input method.
         case printable(Character)
@@ -170,6 +170,7 @@ public final class InputSession {
                 returnConfirmsOnly: Bool = true) {
         self.engine = engine
         self.policies = policies
+        policy = policies.defaultPolicy
         self.converter = converter
         self.japaneseEnabled = japaneseEnabled
         self.liveConversion = liveConversion
@@ -234,8 +235,9 @@ public final class InputSession {
         if case .printable = key, keys.isEmpty {} else { afterDigit = false }
         let pending = lastCommit
         lastCommit = nil
-        // Esc switches languages unless the app owns it (or a reporting vim); ⇧Esc always does.
-        let switchesLanguage = key == .cycle || (key == .escape && !policy.escapeToApp && vimMode == nil)
+        // Esc switches languages where it is a switch key (and no reporting vim owns it); the
+        // other switch keys arrive as `.cycle` only where they are chosen.
+        let switchesLanguage = key == .cycle || (key == .escape && policy.switchKeys.contains(.escape) && vimMode == nil)
         if switchesLanguage, keys.isEmpty, let pending {
             if let changed = cycle(pending, client: client) {
                 lastCommit = changed
@@ -276,19 +278,20 @@ public final class InputSession {
             return true
 
         case .escape, .cycle:
-            // ⇧Esc is Seamtype's own: with nothing to change it goes nowhere, rather than reaching
-            // the app as an Esc (in a terminal, Claude Code's "cancel the draft").
+            // A chosen ⇧Esc is Seamtype's own: with nothing to change it goes nowhere, rather than
+            // reaching the app as an Esc (in a terminal, Claude Code's "cancel the draft").
             guard !keys.isEmpty else { return key == .cycle }
+            // A live-converted phrase goes back to its kana first, also with an Esc that isn't a
+            // switch key, as in macOS's live conversion (not inside vim: Esc is vim's there).
+            if isLive, (forced ?? previewLanguage) == .japanese, switchesLanguage || vimMode == nil {
+                liveSuppressed = true
+                updatePreview(client)
+                return true
+            }
             guard switchesLanguage else {
                 // The app's Esc: the word goes in as shown, then the app gets the key.
                 commit(client: client)
                 return false
-            }
-            // A live-converted phrase goes back to its kana first.
-            if isLive, (forced ?? previewLanguage) == .japanese {
-                liveSuppressed = true
-                updatePreview(client)
-                return true
             }
             // Cycle from what the user sees.
             let shown = forced ?? pinned ?? previewLanguage ?? decide(partial: true).language

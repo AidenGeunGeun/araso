@@ -12,7 +12,7 @@ import Testing
         let engine = LearningEngine(base: SplittingEngine(base: trilingual, english: trilingual.english, japanese: trilingual.segmenter),
                                     storeURL: dir.appendingPathComponent("seamtype-live-\(UUID().uuidString).json"))
         let converter = try #require(AzooKeyConverter(memory: dir.appendingPathComponent("seamtype-live-\(UUID().uuidString)")))
-        session = InputSession(engine: engine, converter: converter, japaneseEnabled: true, liveConversion: true)
+        session = InputSession(engine: engine, policies: .escSwitches, converter: converter, japaneseEnabled: true, liveConversion: true)
     }
 
     /// Letters and printable keys as themselves, "⏎" Return, "⎋" Esc.
@@ -61,6 +61,18 @@ import Testing
         type("⎋")
         #expect(!field.text.contains("きょう"))
         type("⎋⎋⎋")
+    }
+
+    /// Where Esc isn't a switch key, it still shows the kana first; the next one goes to the app.
+    @Test func escapeShowsKanaEvenWhereItGoesToTheApp() throws {
+        let dir = FileManager.default.temporaryDirectory
+        let converter = try #require(AzooKeyConverter(memory: dir.appendingPathComponent("seamtype-live-\(UUID().uuidString)")))
+        let session = InputSession(engine: session.engine, converter: converter, japaneseEnabled: true, liveConversion: true)
+        for ch in "kyouhaiitenkidesune" { _ = session.handle(.letter(ch), client: field) }
+        #expect(session.handle(.escape, client: field))
+        #expect(field.text == "きょうはいいてんきですね")
+        #expect(!session.handle(.escape, client: field))
+        #expect(field.text == "きょうはいいてんきですね" && field.marked.location == NSNotFound)
     }
 
     @Test func kanaCommitAfterEscape() {
