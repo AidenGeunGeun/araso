@@ -1,4 +1,5 @@
 import SeamtypeCore
+import Carbon
 import Cocoa
 import InputMethodKit
 import os
@@ -120,6 +121,11 @@ final class InputController: IMKInputController {
         }
         rightCommandDown = nil // ⌘ with a key is a shortcut, not a tap
         switchTapDown = nil // ⌥ or ⇧ with a key types a character, not a tap
+        if maskedField(input) {
+            // A masked password field: the keys go to the app as typed, as when paused.
+            log.debug("handle masked passed app=\(input.bundleIdentifier() ?? "?", privacy: .public)")
+            return false
+        }
         return MainActor.assumeIsolated {
             let key = key(for: event)
             let handled = session.handle(key, client: IMKClient(input))
@@ -132,6 +138,16 @@ final class InputController: IMKInputController {
             log.debug("handle \(String(describing: key).prefix(while: { $0 != "(" }), privacy: .public) handled=\(handled) app=\(self.session.app ?? "?", privacy: .public)")
             return handled
         }
+    }
+
+    /// A masked password field has the focus (`MaskedField`). The system is asked only while
+    /// Secure Event Input is on.
+    private func maskedField(_ client: IMKTextInput) -> Bool {
+        guard IsSecureEventInputEnabled() else { return false }
+        let owner = (CGSessionCopyCurrentDictionary() as? [String: Any])?["kCGSSessionSecureInputPID"] as? NSNumber
+        return MaskedField.passesKeys(secureInput: true, owner: owner?.int32Value,
+                                      frontmost: NSWorkspace.shared.frontmostApplication?.processIdentifier,
+                                      caret: client.selectedRange())
     }
 
     /// Right ⌘ pressed and released on its own, within a moment: pause or resume Seamtype in

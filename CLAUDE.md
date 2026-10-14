@@ -76,6 +76,15 @@ tests use `FakeTextField`). It owns the preview and hysteresis, commits, Esc rea
   which takes it only if vim runs in its app (a signal without `--app`, only where Esc isn't a
   switch key). Outside insert mode every key passes straight through, and while
   vim reports, Esc is vim's whatever the app's policy says; nothing guesses the mode from keys.
+- A masked password field that still reaches the input method (KakaoTalk's login, App Store's
+  password sheet) gets its keys passed straight to the app, as when paused:
+  `MaskedField.passesKeys` (asked by `InputController`) sees the frontmost app holding Secure Event Input
+  (`kCGSSessionSecureInputPID`) and the field reporting no caret. The frontmost app, because App
+  Store's sheet is a PassKit extension (the client) while App Store holds Secure Event Input.
+  Asked to show marked text while handling a key, that field types the key itself (lowercase when
+  ⇧ was already down) and drops whatever the input method inserts; deciding each key there lost
+  letters (`PASSWORD` came out `pASSwrD`). A terminal with Secure Keyboard Entry reports its
+  caret, so it isn't affected.
 - A right ⌘ tap (flagsChanged, in `InputController`) pauses the session until the next tap,
   `activate`, or a settings change (a fresh session). The menu icon can't change, so `PauseHUD`
   shows the icon under the caret for a moment, struck through when paused (drawn by

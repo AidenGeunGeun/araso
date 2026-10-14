@@ -335,9 +335,10 @@ Exact match counts kana/kanji style differences (ひとまとめ vs 一まとめ
 
 ## Known limits
 
-- Never tested end to end in every app. Secure fields (passwords) bypass input methods, and undo
-  after commit needs apps that report their caret and text; in a terminal, set `"holdSpace": true`
-  to keep the word underlined after Space instead.
+- Never tested end to end in every app. Secure fields (passwords) bypass input methods; a masked
+  field that still reaches it (KakaoTalk's login, App Store's password sheet) gets the keys as
+  typed, with no word decided. Undo after commit needs apps that report their caret and text; in a
+  terminal, set `"holdSpace": true` to keep the word underlined after Space instead.
 - Where Esc is a switch key, Esc right after a word (e.g. to close a popup) changes that word first.
   It isn't learned unless repeated; leave Esc out for such apps in the per-app settings.
 - Japanese: only the first clause is resized with ←/→ (Return commits it and moves on to the
