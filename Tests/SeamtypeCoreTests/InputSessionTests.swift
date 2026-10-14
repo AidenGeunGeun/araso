@@ -24,6 +24,15 @@ final class FakeTextField: TextClient {
         cursor = target.location + length
     }
 
+    func setMarkedText(_ s: String, replacing range: NSRange) {
+        let ns = text as NSString
+        let target = marked.location != NSNotFound ? NSUnionRange(range, marked) : range
+        text = ns.replacingCharacters(in: target, with: s)
+        let length = (s as NSString).length
+        marked = length > 0 ? NSRange(location: target.location, length: length) : NSRange(location: NSNotFound, length: 0)
+        cursor = target.location + length
+    }
+
     func insertText(_ s: String, replacing range: NSRange?) {
         let target = range ?? (marked.location != NSNotFound ? marked : NSRange(location: cursor, length: 0))
         text = (text as NSString).replacingCharacters(in: target, with: s)

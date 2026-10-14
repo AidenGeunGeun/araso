@@ -416,6 +416,11 @@ private final class IMKClient: TextClient {
         input.setMarkedText(text, selectionRange: NSRange(location: length, length: 0), replacementRange: Self.noRange)
     }
 
+    func setMarkedText(_ text: String, replacing range: NSRange) {
+        let length = (text as NSString).length
+        input.setMarkedText(text, selectionRange: NSRange(location: length, length: 0), replacementRange: range)
+    }
+
     func insertText(_ text: String, replacing range: NSRange?) {
         input.insertText(text, replacementRange: range ?? Self.noRange)
     }

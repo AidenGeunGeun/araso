@@ -3,6 +3,8 @@ import Foundation
 /// The text field the input method is typing into. Ranges are UTF-16, like NSString.
 public protocol TextClient: AnyObject {
     func setMarkedText(_ text: String)
+    /// Marked text in place of `range`, text the app already has (the marked text, if any, goes too).
+    func setMarkedText(_ text: String, replacing range: NSRange)
     /// `range == nil` replaces the marked text (or the selection if nothing is marked).
     func insertText(_ text: String, replacing range: NSRange?)
     func selectedRange() -> NSRange
@@ -28,6 +30,9 @@ public protocol TextClient: AnyObject {
 ///                  types the other width)
 ///   0–9            with `fullWidthDigits`, after Japanese text or inside a phrase they are part
 ///                  of it, full-width (１２３, ０３－１２３４); Space offers the half-width form
+///                  Otherwise the app types them; a switch key right after digits or symbols it
+///                  typed makes them Japanese (123 → １２３, [ → 「), and in Japanese text a romaji
+///                  word straight after a number is a counter, converted with it (3ji → 3時)
 ///   , . ? ! - '    inside a Japanese phrase they are part of it (、。？！ー); otherwise
 ///                  they commit the word, then type the key
 ///   Return         commit the word as shown, and nothing else (the next Return is the app's);
@@ -80,6 +85,9 @@ public final class InputSession {
         public var selected: Int
         /// The user chose Japanese for these keys with Esc (going back to kana keeps that).
         var userForced = false
+        /// Digits the app had already typed just before the phrase, taken into the reading
+        /// (3ji → 3じ → 3時); not part of `keys`.
+        var numberPrefix = ""
 
         public var current: ConversionCandidate { candidates[selected] }
         /// What the user sees: the selected candidate, then any reading it doesn't cover.
@@ -143,6 +151,12 @@ public final class InputSession {
     private var previewLanguage: Language?
     /// The last key passed to the app was a digit (so "." there is a decimal point).
     private var afterDigit = false
+    /// Digits and symbols the app just typed for us, one after another, and where they start:
+    /// a switch key right after them makes them Japanese (123 → １２３, [ → 「), and a Japanese
+    /// phrase typed right after digits converts with them (3ji → 3時).
+    private var passedRun: (text: String, location: Int)?
+    /// The word being typed started right after a number, in Japanese text: a counter (3ji → 3時).
+    private var afterNumberInJapanese = false
     /// Live conversion: a Japanese phrase is shown as its top kanji candidate while it is typed,
     /// and committed that way.
     public let liveConversion: Bool
@@ -188,6 +202,7 @@ public final class InputSession {
         app = bundleIdentifier
         policy = policies.policy(for: bundleIdentifier)
         previousLanguage = nil
+        passedRun = nil
         paused = false
     }
 
@@ -233,6 +248,10 @@ public final class InputSession {
         if conversion != nil { return handleConverting(key, client: client) }
 
         if case .printable = key, keys.isEmpty {} else { afterDigit = false }
+        switch key {
+        case .letter, .printable, .escape, .cycle: break
+        default: passedRun = nil
+        }
         let pending = lastCommit
         lastCommit = nil
         // Esc switches languages where it is a switch key (and no reporting vim owns it); the
@@ -251,12 +270,24 @@ public final class InputSession {
             return false
         }
         if let pending { finalize(pending) }
+        if switchesLanguage, keys.isEmpty, let run = passedRunBeforeCaret(client) {
+            passedRun = nil
+            startSymbol(run.text, client, replacing: run.range)
+            return true
+        }
 
         switch key {
         case .letter(let ch):
             // A symbol on its own is confirmed by the next word, which is judged by itself.
             if !keys.isEmpty, keys.allSatisfy({ RomajiComposer.symbols[$0] != nil }) { commit(client: client) }
-            if keys.isEmpty { lastRecorded = nil; liveSuppressed = false } // a new word
+            if keys.isEmpty { // a new word
+                lastRecorded = nil
+                liveSuppressed = false
+                let cursor = client.selectedRange()
+                afterNumberInJapanese = japaneseEnabled && previousLanguage == .japanese
+                    && passedRun?.text.last?.isNumber == true && cursor.location != NSNotFound
+                    && passedRunRange(endingAt: cursor.location, client) != nil
+            }
             addedNMarker = false
             pinned = nil
             keys.append(ch)
@@ -312,7 +343,7 @@ public final class InputSession {
                     }
                     // A number after Japanese text starts a Japanese word: １２３, ３がつ → ３月.
                     if ch.isASCII, ch.isNumber, digitsFullWidth {
-                        startSymbol(ch, client)
+                        startSymbol(String(ch), client)
                         return true
                     }
                 }
@@ -320,9 +351,10 @@ public final class InputSession {
                 // or the next word confirms it, as in a Japanese IME; Space shows its other forms.
                 // Not inside a number (3.5, 10:30), but a bracket closes the way it was opened.
                 if RomajiComposer.symbols[ch] != nil, (previousLanguage == .japanese && !afterDigit) || closesFullWidth(ch) {
-                    startSymbol(ch, client)
+                    startSymbol(String(ch), client)
                     return true
                 }
+                notePassed(ch, client)
                 return false
             }
             if japaneseEnabled, belongsToJapanesePhrase(ch) {
@@ -338,12 +370,13 @@ public final class InputSession {
             }
             if closesFullWidth(ch) { // 日本語（English）
                 commit(client: client)
-                startSymbol(ch, client)
+                startSymbol(String(ch), client)
                 return true
             }
             let marked = client.markedRange()
             let location = marked.location != NSNotFound ? marked.location : client.selectedRange().location
             let previous = previousLanguage
+            passedRun = nil
             let word = finishWord()
             // Only the word goes in; the app types the space or punctuation itself, as with the
             // system's Korean input. Handing over "word + space" for the space key made terminals
@@ -416,13 +449,49 @@ public final class InputSession {
     // MARK: - Japanese conversion
 
     /// A symbol typed as its own Japanese word, shown full-width (or as the 「」・ a Japanese IME types).
-    private func startSymbol(_ ch: Character, _ client: TextClient) {
+    /// With `range`, it takes the place of what the app typed there, in one step: an empty
+    /// insertText to delete it first is dropped on the way to the app (1 became 1１). Nor can the
+    /// result be checked: the app answers markedRange before it has applied the change.
+    private func startSymbol(_ symbol: String, _ client: TextClient, replacing range: NSRange? = nil) {
         lastRecorded = nil
         liveSuppressed = false
-        keys = String(ch)
+        keys = symbol
         forced = .japanese
         forcedByUser = false
-        updatePreview(client)
+        guard let range else { return updatePreview(client) }
+        previewLanguage = .japanese
+        client.setMarkedText(japaneseDisplay(), replacing: range)
+    }
+
+    /// Keeps `passedRun` up to date with a key the app is about to type.
+    private func notePassed(_ ch: Character, _ client: TextClient) {
+        let cursor = client.selectedRange()
+        guard japaneseEnabled, policy.fullWidth, ch.isASCII, ch.isNumber || RomajiComposer.symbols[ch] != nil,
+              cursor.location != NSNotFound, cursor.length == 0 else {
+            passedRun = nil
+            return
+        }
+        if let run = passedRun, run.location + (run.text as NSString).length == cursor.location {
+            passedRun = (run.text + String(ch), run.location)
+        } else {
+            passedRun = (String(ch), cursor.location)
+        }
+    }
+
+    /// The range of `passedRun` when it is still in the text, unchanged, ending at `end`.
+    private func passedRunRange(endingAt end: Int, _ client: TextClient) -> NSRange? {
+        guard let run = passedRun else { return nil }
+        let range = NSRange(location: run.location, length: (run.text as NSString).length)
+        guard NSMaxRange(range) == end, client.text(in: range) == run.text else { return nil }
+        return range
+    }
+
+    /// The digits and symbols just typed, and where they are, when the caret is right after them.
+    private func passedRunBeforeCaret(_ client: TextClient) -> (text: String, range: NSRange)? {
+        let cursor = client.selectedRange()
+        guard japaneseEnabled, conversion == nil, let run = passedRun, cursor.location != NSNotFound, cursor.length == 0,
+              let range = passedRunRange(endingAt: cursor.location, client) else { return nil }
+        return (run.text, range)
     }
 
     /// Full-width openers not closed yet in this sentence, so ) ] } close them full-width
@@ -555,14 +624,31 @@ public final class InputSession {
     }
 
     private func startConversion(_ client: TextClient) {
-        let kana = japaneseReading(partial: false)
+        var kana = japaneseReading(partial: false)
         guard let converter, !kana.isEmpty else { return }
         let userForced = forced == .japanese && forcedByUser
         if userForced {
             record(keys, as: .japanese, engineChoice: committedLanguage())
         }
+        // A number the app typed just before the phrase is part of it: 3ji is 3時, not 3 and 時
+        // picked out of 地, 字, 自…
+        let marked = client.markedRange()
+        var prefixRange: NSRange?
+        if marked.location != NSNotFound, let run = passedRun, run.text.last?.isNumber == true,
+           run.text.allSatisfy({ Self.numberCharacters.contains($0) }),
+           let range = passedRunRange(endingAt: marked.location, client) {
+            prefixRange = NSRange(location: range.location, length: range.length + marked.length)
+            kana = run.text + kana
+        }
+        let numberPrefix = prefixRange == nil ? "" : passedRun!.text
+        passedRun = nil
         var candidates = conversionCandidates(for: kana)
-        let live = isLive ? liveCandidate(for: kana) : nil
+        if !numberPrefix.isEmpty {
+            // The number as it was typed (3時) before other widths and spellings (３時, 三時).
+            candidates = candidates.filter { $0.text.hasPrefix(numberPrefix) } + candidates.filter { !$0.text.hasPrefix(numberPrefix) }
+        }
+        // Live conversion showed the phrase without the number, so no candidate is on screen yet.
+        let live = isLive && numberPrefix.isEmpty ? liveCandidate(for: kana) : nil
         if let phrases = replacements[kana], !phrases.isEmpty {
             // Text replacements come first, or right after the live candidate already on screen.
             let at = live.flatMap { candidates.firstIndex(of: $0) }.map { $0 + 1 } ?? 0
@@ -580,7 +666,8 @@ public final class InputSession {
             selected = (i + 1) % candidates.count
         }
         liveSuppressed = false
-        conversion = Conversion(kana: kana, keys: keys, candidates: candidates, selected: selected, userForced: userForced)
+        conversion = Conversion(kana: kana, keys: keys, candidates: candidates, selected: selected, userForced: userForced,
+                                numberPrefix: numberPrefix)
         keys = ""
         forced = nil
         forcedByUser = false
@@ -588,7 +675,11 @@ public final class InputSession {
         syllableStart = nil
         enginePreview = nil
         previousLanguage = .japanese
-        client.setMarkedText(conversion!.display)
+        if let prefixRange {
+            client.setMarkedText(conversion!.display, replacing: prefixRange) // the number, then the phrase
+        } else {
+            client.setMarkedText(conversion!.display)
+        }
     }
 
     /// Shows the reading as katakana (or hiragana) as the selected "candidate": Return
@@ -624,7 +715,7 @@ public final class InputSession {
         let candidates = conversionCandidates(for: clause).filter { $0.kanaCount == clause.count }
         guard !candidates.isEmpty else { return nil }
         return Conversion(kana: conversion.kana, keys: conversion.keys, candidates: candidates, selected: 0,
-                          userForced: conversion.userForced)
+                          userForced: conversion.userForced, numberPrefix: conversion.numberPrefix)
     }
 
     private func handleConverting(_ key: Key, client: TextClient) -> Bool {
@@ -669,10 +760,13 @@ public final class InputSession {
         case .escape, .cycle, .delete:
             self.conversion = nil
             liveSuppressed = true // "back to kana" means kana, also with live conversion
+            // A number taken in from before the phrase goes back as it was typed.
+            if !conversion.numberPrefix.isEmpty { client.insertText(conversion.numberPrefix, replacing: nil) }
+            let kana = String(conversion.kana.dropFirst(conversion.numberPrefix.count))
             // Back to editing the romaji — when it still spells the reading. After part of a
             // phrase with English in it was committed it may not; keep the kana rather than lose it.
-            guard JapaneseSegmenter.reading(of: conversion.keys, segmenter: segmenter) == conversion.kana else {
-                client.insertText(conversion.kana, replacing: nil)
+            guard JapaneseSegmenter.reading(of: conversion.keys, segmenter: segmenter) == kana else {
+                client.insertText(kana, replacing: nil)
                 previousLanguage = .japanese
                 return true
             }
@@ -707,7 +801,7 @@ public final class InputSession {
         let rest = String(conversion.kana.dropFirst(candidate.kanaCount))
         self.conversion = nil
         guard !rest.isEmpty else { return }
-        let restKeys = Self.keys(conversion.keys, after: candidate.kanaCount)
+        let restKeys = Self.keys(conversion.keys, after: max(0, candidate.kanaCount - conversion.numberPrefix.count))
         let candidates = conversionCandidates(for: rest)
         if candidates.isEmpty {
             client.insertText(rest, replacing: nil)
@@ -773,6 +867,16 @@ public final class InputSession {
             lastTrace = Trace(keys: keys, previous: previousLanguage, decision: decision, partial: partial)
             return decision
         }
+        // A word typed straight after a number in Japanese text is a counter when it is romaji
+        // (3ji, 5fun, 3hon); a unit like km or pm has letters that aren't (5km stays English).
+        if afterNumberInJapanese, keys.allSatisfy(\.isLetter), RomajiComposer.compose(keys, partial: partial).strayLetters == 0 {
+            keptEnglishByStrict = false
+            let decision = Decision(language: .japanese, confidence: SplittingEngine.confidence,
+                                    output: RomajiComposer.compose(keys, partial: partial).text,
+                                    explanation: "counter after a number")
+            lastTrace = Trace(keys: keys, previous: previousLanguage, decision: decision, partial: partial)
+            return decision
+        }
         let d = engine.decide(keys, context: DecisionContext(previousLanguage: previousLanguage, partial: partial))
         let kept = d.language != .english && d.confidence < policy.conversionThreshold
         keptEnglishByStrict = kept && policy.conversionThreshold >= AppPolicy.strictThreshold && keys.count <= 3
@@ -805,10 +909,16 @@ public final class InputSession {
     /// same rule as the preview, so what you see is what you get.
     private func committedLanguage() -> Language {
         let d = decide(partial: false)
-        if let shown = enginePreview, shown != d.language, !isWeakFlipAllowed(to: d, from: shown) {
+        guard let shown = enginePreview, shown != d.language else { return d.language }
+        // Kanji on screen (live conversion): Space converts them, unless the keys are an English
+        // word. A short word reads as the start of a longer Japanese one while typed and as
+        // English once it ends (zi showed 地, then went in as "zi"). Kana alone keep the usual rule.
+        if shown == .japanese, d.language == .english, isLive, !keptEnglishByStrict,
+           !EnglishModel.shared.isKnownWord(keys), RomajiComposer.compose(keys).isClean,
+           liveCandidate(for: japaneseReading(partial: false)) != nil {
             return shown
         }
-        return d.language
+        return isWeakFlipAllowed(to: d, from: shown) ? d.language : shown
     }
 
     /// Whether `decision` may replace the reading on screen: when it's confident, when it's

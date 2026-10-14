@@ -44,6 +44,19 @@ import Testing
         #expect(field.text.hasSuffix("s"), "\(field.text)")
     }
 
+    /// A short word shown as kanji converts on Space, though once it ends it reads as English
+    /// (zi went in as "zi " after 地 was on screen); an English word still goes in as typed.
+    @Test func spaceConvertsAShortWordShownAsKanji() {
+        type("zi")
+        let live = field.text
+        #expect(live != "zi")
+        type(" ")
+        #expect(session.conversion != nil)
+        #expect(field.text != live)
+        type("⏎hi ")
+        #expect(field.text.hasSuffix("hi "))
+    }
+
     @Test func spaceShowsTheNextCandidate() {
         type("kyouhaiitenkidesune")
         let live = field.text

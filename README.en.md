@@ -99,6 +99,8 @@ While a word is being typed it is underlined and shows the language Seamtype exp
 
 A symbol typed on its own after Japanese is full-width and stays underlined, as in a Japanese IME (`！`, `＿`, `「`): Return confirms it (no newline), Space offers its other forms (`!`, `‼︎`, `『`…), and a letter confirms it and starts a new word. Inside numbers (`3.5`, `10:30`) it stays half-width, and a bracket opened full-width closes full-width even after an English word (`日本語（English）`).
 
+With Japanese on, numbers and symbols can be Japanese too. Typed on their own at the start of a sentence or after Korean or English they go in half-width, but a language switch key right after them turns them into their Japanese form, underlined (`123` → `１２３`, `[` → `「`, `?` → `？`). In Japanese text, a word typed straight after a number reads as a counter, and Space converts it together with the number (`3ji` → `3時`, `5fun` → `5分`). Units that aren't romaji, like `5km` or `3pm`, stay English.
+
 While converting (candidate window open):
 
 | Key | Effect |
