@@ -25,6 +25,27 @@ out=build/release
 rm -rf $out
 mkdir -p $out/root
 
+# pkgbuild and productbuild narrate every step; show their output only when they fail, and any
+# warning when they don't.
+quietly() {
+  local log
+  log=$("$@" 2>&1) || { print -r -- "$log" >&2; return 1; }
+  print -r -- "$log" | grep -i 'warning' >&2 || true
+}
+# notarytool submit --wait can end without an error when Apple rejects the upload: check the
+# status, and print Apple's log of what it found when it isn't Accepted.
+notarize() {
+  local result id notary_status
+  result=$(xcrun notarytool submit "$1" --keychain-profile "$SEAMTYPE_NOTARY_PROFILE" --wait --output-format json) || true
+  id=$(plutil -extract id raw - <<< "$result" 2>/dev/null) || true
+  notary_status=$(plutil -extract status raw - <<< "$result" 2>/dev/null) || true
+  [[ $notary_status == Accepted ]] && return
+  print -r -- "notarization of $1: ${notary_status:-failed}" >&2
+  print -r -- "$result" >&2
+  [[ -n $id ]] && xcrun notarytool log "$id" --keychain-profile "$SEAMTYPE_NOTARY_PROFILE" >&2
+  return 1
+}
+
 sign=(--force --options runtime --sign "${SEAMTYPE_APP_SIGN:--}")
 [[ -n ${SEAMTYPE_APP_SIGN:-} ]] && sign+=(--timestamp)  # notarization wants a secure timestamp
 codesign $sign "$app" 2>/dev/null
@@ -38,7 +59,7 @@ codesign --verify --strict "$app"
 # too. The stapled ticket travels inside the bundle, into both the zip and the package.
 if [[ -n ${SEAMTYPE_NOTARY_PROFILE:-} ]]; then
   ditto -c -k --keepParent "$app" $out/notarize.zip
-  xcrun notarytool submit $out/notarize.zip --keychain-profile "$SEAMTYPE_NOTARY_PROFILE" --wait
+  notarize $out/notarize.zip
   xcrun stapler staple "$app"
   rm $out/notarize.zip
 fi
@@ -48,20 +69,20 @@ fi
 # the user logs out. Not relocatable: the installer must not "upgrade" a copy it finds elsewhere
 # (the installed one, or a development install in ~/Library/Input Methods) in place.
 cp -R "$app" $out/root/
-pkgbuild --analyze --root $out/root $out/component.plist | grep -v '^pkgbuild: ' || true
+quietly pkgbuild --analyze --root $out/root $out/component.plist
 plutil -replace 0.BundleIsRelocatable -bool false $out/component.plist
-pkgbuild --root $out/root --component-plist $out/component.plist --install-location "/Library/Application Support/Seamtype/Install" \
+quietly pkgbuild --root $out/root --component-plist $out/component.plist --install-location "/Library/Application Support/Seamtype/Install" \
   --scripts scripts/pkg --identifier com.aimdevlee.inputmethod.Seamtype.pkg --version "$version" \
-  $out/Seamtype-component.pkg | grep -v '^pkgbuild: ' || true
+  $out/Seamtype-component.pkg
 pkg=$out/Seamtype-$version.pkg
 # An array: zsh would pass ${…:+--sign "$name"} as one word, which productbuild rejects.
 pkgsign=()
 [[ -n ${SEAMTYPE_PKG_SIGN:-} ]] && pkgsign=(--sign "$SEAMTYPE_PKG_SIGN" --timestamp)
 # The optional clean reinstall (Customize → Reset settings and learned words): scripts only.
-pkgbuild --nopayload --scripts scripts/pkg-reset --identifier com.aimdevlee.inputmethod.Seamtype.reset \
-  --version "$version" $out/Seamtype-reset.pkg | grep -v '^pkgbuild: ' || true
+quietly pkgbuild --nopayload --scripts scripts/pkg-reset --identifier com.aimdevlee.inputmethod.Seamtype.reset \
+  --version "$version" $out/Seamtype-reset.pkg
 sed "s/@VERSION@/$version/g" scripts/Distribution.xml > $out/Distribution.xml
-productbuild --distribution $out/Distribution.xml --package-path $out $pkgsign $pkg | grep -v '^productbuild: ' || true
+quietly productbuild --distribution $out/Distribution.xml --package-path $out $pkgsign $pkg
 # pkgbuild registered the staged copy with LaunchServices; like build-app.sh, unregister it so
 # macOS never picks it when it launches the input method.
 /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -u "$out/root/Seamtype.app" 2>/dev/null || true
@@ -72,7 +93,7 @@ ditto -c -k --keepParent "$app" $out/Seamtype-$version.zip
 cp $out/Seamtype-$version.zip $out/Seamtype.zip
 
 if [[ -n ${SEAMTYPE_NOTARY_PROFILE:-} ]]; then
-  xcrun notarytool submit $pkg --keychain-profile "$SEAMTYPE_NOTARY_PROFILE" --wait
+  notarize $pkg
   xcrun stapler staple $pkg
 fi
 cp $pkg $out/Seamtype.pkg

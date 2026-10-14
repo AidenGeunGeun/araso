@@ -10,8 +10,8 @@
 # Without a terminal to ask in, it reinstalls, unless the installer package's copy is in /Library:
 # then it stops, since that copy can only be removed with a password.
 #
-# Releases aren't signed with a Developer ID. A download made with curl isn't quarantined, so
-# Gatekeeper doesn't stop it; the quarantine flag is cleared anyway in case it's there.
+# The app in the release zip is signed with the Developer ID and notarized, and a download made with
+# curl isn't quarantined anyway; the quarantine flag is cleared in case it's there.
 # SEAMTYPE_ZIP=/path/to/Seamtype.zip installs a local zip instead (for trying a build).
 set -eu
 

@@ -150,8 +150,13 @@ runtime.
   `SEAMTYPE_NOTARY_PROFILE=seamtype`, or the assets come out ad hoc and unsigned. Upload
   `Seamtype.pkg` (the website's download button) and `Seamtype.zip` (`scripts/get.sh`) under those
   names for `releases/latest/download/`, plus the versioned copies.
-  Pushing a `v<version>` tag that matches `Resources/Info.plist` runs `.github/workflows/release.yml`,
-  which does the same with the certificates and notary credentials from the repo secrets and leaves
+  To release, run the Release workflow from the Actions tab with the new version
+  (`gh workflow run release.yml -f version=0.1.11`): its `bump` job sets the version in
+  `Resources/Info.plist` (and the build number one up), runs the tests and pushes that commit to
+  main with a `v<version>` tag, as the release GitHub App (`RELEASE_APP_ID`/`RELEASE_APP_PRIVATE_KEY`,
+  a bypass actor of the main and release tags rulesets). The tag, also when an admin
+  pushes one that matches `Info.plist`, runs `.github/workflows/release.yml`'s `release` job, which
+  does the same with the certificates and notary credentials from the repo secrets and leaves
   a draft release with the four assets and `.github/release-notes.md` as its notes; fill them in
   and publish it by hand.
 - **Release notes** are in Korean, and About shows their first section in the app

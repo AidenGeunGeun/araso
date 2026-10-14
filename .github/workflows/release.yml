@@ -1,15 +1,27 @@
-# On a v<version> tag: scripts/release.sh with the Developer ID (signed, notarized, stapled), then
-# a draft release with Seamtype{,-<version>}.{zip,pkg} and .github/release-notes.md as its notes.
-# Fill in the notes and publish it by hand;
+# Run it from the Actions tab (Release → Run workflow) with the new version: the `bump` job sets
+# CFBundleShortVersionString to it and CFBundleVersion one up in Resources/Info.plist, runs the
+# tests, and pushes that commit to main with a v<version> tag. It pushes as the release GitHub App,
+# which must be a bypass actor of the main and release tags rulesets (they let only admins through
+# otherwise); a push made with GITHUB_TOKEN also wouldn't start the run below.
+#
+# On a v<version> tag (pushed by `bump`, or by an admin): scripts/release.sh with the Developer ID
+# (signed, notarized, stapled), then a draft release with Seamtype{,-<version>}.{zip,pkg} and
+# .github/release-notes.md as its notes. Fill in the notes and publish it by hand;
 # the updater only sees published releases.
 #
 # Secrets:
+#   RELEASE_APP_ID, RELEASE_APP_PRIVATE_KEY            the release GitHub App (Contents: read and write)
 #   DEVELOPER_ID_APP_P12, DEVELOPER_ID_INSTALLER_P12   base64 of each exported .p12
 #   P12_PASSWORD                                       the password the .p12 files were exported with
 #   NOTARY_APPLE_ID, NOTARY_PASSWORD                   Apple ID and an app-specific password
 name: Release
 
 on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'New version, e.g. 0.1.11'
+        required: true
   push:
     tags: ['v*']
 
@@ -17,7 +29,56 @@ permissions:
   contents: write
 
 jobs:
+  bump:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: macos-latest
+    concurrency: release-bump
+    steps:
+      - uses: actions/create-github-app-token@v2
+        id: app
+        with:
+          app-id: ${{ secrets.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+
+      # Always main, whatever branch the run was started from.
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          token: ${{ steps.app.outputs.token }}
+
+      - name: Set the version in Info.plist
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          grep -Eqx '[0-9]+\.[0-9]+\.[0-9]+' <<< "$VERSION" || { echo "not a version: $VERSION"; exit 1; }
+          plist=Resources/Info.plist
+          current=$(plutil -extract CFBundleShortVersionString raw $plist)
+          build=$(plutil -extract CFBundleVersion raw $plist)
+          [[ $(printf '%s\n%s\n' "$current" "$VERSION" | sort -V | tail -1) == "$VERSION" && "$current" != "$VERSION" ]] ||
+            { echo "$VERSION is not newer than $current"; exit 1; }
+          git ls-remote --exit-code --tags origin "refs/tags/v$VERSION" >/dev/null && { echo "v$VERSION already exists"; exit 1; }
+          plutil -replace CFBundleShortVersionString -string "$VERSION" $plist
+          plutil -replace CFBundleVersion -string $((build + 1)) $plist
+          git diff
+
+      - run: swift test
+
+      - name: Commit and tag
+        env:
+          VERSION: ${{ inputs.version }}
+          SLUG: ${{ steps.app.outputs.app-slug }}
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+        run: |
+          id=$(gh api "/users/$SLUG%5Bbot%5D" --jq .id)
+          git config user.name "$SLUG[bot]"
+          git config user.email "$id+$SLUG[bot]@users.noreply.github.com"
+          git commit -am "$VERSION"
+          git tag "v$VERSION"
+          # One push: main and the tag land together or not at all (main moved on: run it again).
+          git push --atomic origin HEAD:main "v$VERSION"
+
   release:
+    if: github.event_name == 'push'
     runs-on: macos-latest
     env:
       SEAMTYPE_APP_SIGN: "Developer ID Application: Dongbin Lee (2UZ65T3U82)"
@@ -60,6 +121,8 @@ jobs:
 
       # build-app.sh runs the self-test of the Intel half under Rosetta.
       - run: /usr/bin/pgrep -q oahd || softwareupdate --install-rosetta --agree-to-license
+
+      - run: swift test
 
       - run: scripts/release.sh
 
