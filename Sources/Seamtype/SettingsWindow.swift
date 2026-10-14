@@ -454,7 +454,7 @@ private struct GeneralPane: View {
                 }
                 Toggle(isOn: binding(\.japanese)) {
                     Text(L("Japanese"))
-                    Text(L("Romaji becomes kana; Space converts to kanji."))
+                    Text(L("Off by default. Turn on to type Japanese with romaji; Space converts to kanji."))
                 }
             }
             if model.settings.japanese {
