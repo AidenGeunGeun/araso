@@ -415,6 +415,26 @@ import Testing
     }
 }
 
+/// A word learned as Japanese types as Japanese only while Japanese is on.
+@MainActor @Suite struct LearnedJapaneseTests {
+    @Test(arguments: [(true, "すし "), (false, "sushi ")])
+    func followsTheJapaneseSetting(japanese: Bool, typed: String) {
+        let lex = FileManager.default.temporaryDirectory.appendingPathComponent("seamtype-lj-\(UUID().uuidString).json")
+        let engine = LearningEngine(base: japanese ? SplittingEngine(base: trilingual, english: trilingual.english, japanese: trilingual.segmenter)
+                                                   : splitting, storeURL: lex)
+        engine.learn("sushi", as: .japanese, engineChoice: .english)
+        engine.learn("sushi", as: .japanese, engineChoice: .english)
+        let session = InputSession(engine: engine, japaneseEnabled: japanese)
+        let field = FakeTextField()
+        for ch in "sushi " {
+            if !(ch.isLetter ? session.handle(.letter(ch), client: field) : session.handle(.printable(ch), client: field)) {
+                field.insertText(String(ch), replacing: nil)
+            }
+        }
+        #expect(field.text == typed)
+    }
+}
+
 /// A Strict app with Japanese on: a consonant at the end, still waiting for its vowel while
 /// typed, kept a Korean word under the threshold on screen, and Space then committed it as
 /// Korean (qud showed qud and went in as 병).

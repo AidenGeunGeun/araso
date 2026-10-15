@@ -45,6 +45,9 @@ let splitting = SplittingEngine(base: sharedEngine, english: sharedEngine.englis
         #expect(Language.english.next(for: "dkssud") == .korean)
         // No split available: english ↔ korean.
         #expect(Language.english.next(for: "hello") == .korean)
+        // The engine's split (x에), which the particle split doesn't find: ㅌ에 is garbled, skipped.
+        #expect(Language.english.next(for: "xdp", splits: true) == .mixed)
+        #expect(Language.mixed.next(for: "xdp", splits: true) == .english)
     }
 
     @Test func mixedSentence() {

@@ -340,7 +340,7 @@ public final class InputSession {
             }
             // Cycle from what the user sees.
             let shown = forced ?? pinned ?? previewLanguage ?? decide(partial: true).language
-            forced = shown.next(for: keys, japanese: japaneseEnabled)
+            forced = shown.next(for: keys, japanese: japaneseEnabled, splits: engineSplits(keys))
             pinned = nil
             forcedByUser = true
             if forced != .japanese { dropNMarker() }
@@ -680,7 +680,7 @@ public final class InputSession {
 
     private func startConversion(_ client: TextClient) {
         var kana = japaneseReading(partial: false)
-        guard let converter, !kana.isEmpty else { return }
+        guard converter != nil, !kana.isEmpty else { return }
         let userForced = forced == .japanese && forcedByUser
         if userForced {
             record(keys, as: .japanese, engineChoice: committedLanguage())
@@ -758,7 +758,7 @@ public final class InputSession {
     /// candidates for exactly that much of the reading, the rest shown as kana. A boundary
     /// never falls inside an English word (google). Nil when it can't move further.
     private func resizeFirstClause(_ conversion: Conversion, by step: Int) -> Conversion? {
-        guard let converter else { return nil }
+        guard converter != nil else { return nil }
         let reading = Array(conversion.kana)
         var length = conversion.current.kanaCount + step
         while (1..<reading.count).contains(length),
@@ -933,6 +933,11 @@ public final class InputSession {
             return decision
         }
         var d = engine.decide(keys, context: DecisionContext(previousLanguage: previousLanguage, partial: partial))
+        // A word learned as Japanese while Japanese was on: with it off, the engine without what
+        // was learned decides it (sushi stays sushi, not すし). Turned on again, it is learned again.
+        if d.language == .japanese, !japaneseEnabled {
+            d = engine.base.decide(keys, context: DecisionContext(previousLanguage: previousLanguage, partial: partial))
+        }
         // While typing, a consonant at the end may still be waiting for its vowel, which keeps
         // Japanese close and a Korean word under a Strict app's threshold until the word ends
         // (qud: 0.60 while typed, 0.98 at Space). The word as it would go in now decides, so the
@@ -1230,13 +1235,19 @@ public final class InputSession {
 
     /// Replaces a just-committed word with its next rendering, but only if the caret
     /// still sits right after it and the text there is what we inserted.
+    /// Whether the keys have a split reading to cycle to: the engine's (x에, hello월드), which the
+    /// particle split alone doesn't find.
+    private func engineSplits(_ keys: String) -> Bool {
+        engine.render(keys, as: .mixed) != keys
+    }
+
     private func cycle(_ commit: Committed, client: TextClient) -> Committed? {
         let range = NSRange(location: commit.location, length: (commit.text as NSString).length)
         let cursor = client.selectedRange()
         guard cursor.location != NSNotFound, cursor.length == 0, cursor.location == NSMaxRange(range),
               client.text(in: range) == commit.text else { return nil }
 
-        let language = commit.language.next(for: commit.keys, japanese: japaneseEnabled)
+        let language = commit.language.next(for: commit.keys, japanese: japaneseEnabled, splits: engineSplits(commit.keys))
         let reading = language == .japanese ? JapaneseSegmenter.reading(of: commit.keys, segmenter: segmenter)
                                             : engine.render(commit.keys, as: language)
         let text = reading + commit.boundary

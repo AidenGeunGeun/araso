@@ -21,13 +21,14 @@ public enum Language: String, Codable, Sendable {
     /// japanese (when enabled) → english. Readings that can't exist for these keys
     /// are skipped (no Korean for "ra-men"), and so are garbled ones (dkssud as
     /// Japanese: dkっすd) as long as a clean alternative exists — a typo can still
-    /// be forced into its language when nothing reads cleanly.
-    public func next(for keys: String, japanese: Bool = false) -> Language {
+    /// be forced into its language when nothing reads cleanly. `splits`: whether the engine
+    /// splits the keys (x에, hello월드 as well as github에); left out, the particle split decides.
+    public func next(for keys: String, japanese: Bool = false, splits: Bool? = nil) -> Language {
         let order: [Language] = [.english, .mixed, .korean, .japanese]
         let available = order.filter { language in
             switch language {
             case .english: return true
-            case .mixed: return MixedWord.split(keys) != nil
+            case .mixed: return splits ?? (MixedWord.split(keys) != nil)
             case .korean: return HangulComposer.compose(keys: keys) != nil
             case .japanese: return japanese
             }
