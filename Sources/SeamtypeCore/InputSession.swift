@@ -616,7 +616,13 @@ public final class InputSession {
         if !(forced == .japanese && forcedByUser), let (word, particle) = segmenter?.englishWithParticle(keys) {
             return word + particle
         }
-        if !partial, let segments = segmenter?.segment(keys) { return JapaneseSegmenter.text(segments) }
+        if !partial {
+            // Letters still waiting for their vowel when the phrase ends go in as shown
+            // (watashihag → わたしはg, not わたしhag); only n becomes ん.
+            let typed = RomajiComposer.compose(keys, partial: true)
+            if typed.strayLetters == 0, !typed.pending.isEmpty { return RomajiComposer.compose(keys, partial: false).text }
+            if let segments = segmenter?.segment(keys) { return JapaneseSegmenter.text(segments) }
+        }
         // While typing, a consonant at the end is just waiting for its vowel (watashihag → わたしはg),
         // not a stray letter to split an English word ("hag") out of.
         if partial, RomajiComposer.compose(keys, partial: true).strayLetters > 0, let segments = segmenter?.segment(keys) {
@@ -661,10 +667,15 @@ public final class InputSession {
     /// What a Japanese phrase commits as without the candidate window: the kana, or with
     /// live conversion the candidate that was on screen (which the converter learns).
     private func committedJapanese() -> String {
-        let kana = japaneseReading(partial: false)
-        guard isLive, let converter, let candidate = liveCandidate(for: kana) else { return kana }
+        let reading = japaneseReading(partial: false)
+        // Letters still waiting for their vowel follow the candidate, as japaneseDisplay shows
+        // them (今日はいい天気でs, not a candidate for the whole reading with the s in it).
+        let pending = RomajiComposer.compose(keys, partial: true).pending
+        let kana = reading.hasSuffix(pending) ? String(reading.dropLast(pending.count)) : reading
+        let letters = String(reading.dropFirst(kana.count))
+        guard isLive, let converter, !kana.isEmpty, let candidate = liveCandidate(for: kana) else { return reading }
         converter.learn(candidate, for: kana)
-        return candidate.text
+        return candidate.text + letters
     }
 
     private func startConversion(_ client: TextClient) {

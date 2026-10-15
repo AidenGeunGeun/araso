@@ -54,6 +54,19 @@ import Testing
         #expect(field.text == "きょうはいいてんk")
     }
 
+    /// Return commits what was shown: letters waiting for their vowel stay letters rather than
+    /// splitting an English word out of the phrase (わたしhag), and only n becomes ん.
+    @Test func returnCommitsPendingLettersAsShown() {
+        for (keys, shown, committed) in [("watashihag", "わたしはg", "わたしはg"), ("kyouhaiitenkides", "きょうはいいてんきでs", "きょうはいいてんきでs"),
+                                         ("nagaremasen", "ながれませn", "ながれません")] {
+            type(keys)
+            #expect(field.text.hasSuffix(shown), "\(keys): \(field.text)")
+            #expect(session.handle(.enter, client: field))
+            #expect(field.text.hasSuffix(committed), "\(keys): \(field.text)")
+            type(" ")
+        }
+    }
+
     @Test func spaceConvertsAndReturnCommits() {
         type("kyouhaiitenkidesune ")
         #expect(session.conversion != nil)
