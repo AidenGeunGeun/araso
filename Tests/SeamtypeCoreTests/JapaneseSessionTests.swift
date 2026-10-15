@@ -415,6 +415,24 @@ import Testing
     }
 }
 
+/// A Strict app with Japanese on: a consonant at the end, still waiting for its vowel while
+/// typed, kept a Korean word under the threshold on screen, and Space then committed it as
+/// Korean (qud showed qud and went in as 병).
+@MainActor @Suite struct StrictJapaneseTests {
+    @Test(arguments: [("qud", "병"), ("eho", "돼"), ("ajanf", "머물")])
+    func koreanWordShowsWhatItCommits(keys: String, word: String) {
+        let lex = FileManager.default.temporaryDirectory.appendingPathComponent("seamtype-sj-\(UUID().uuidString).json")
+        let engine = LearningEngine(base: SplittingEngine(base: trilingual, english: trilingual.english, japanese: trilingual.segmenter), storeURL: lex)
+        let session = InputSession(engine: engine, policies: AppPolicies(overrides: [AppPolicies.defaultKey: .init(conversionThreshold: AppPolicy.strictThreshold)]),
+                                   converter: FakeConverter(), japaneseEnabled: true)
+        let field = FakeTextField()
+        for ch in keys { _ = session.handle(.letter(ch), client: field) }
+        #expect(field.text == word)
+        #expect(session.handle(.enter, client: field))
+        #expect(field.text == word)
+    }
+}
+
 @MainActor @Suite struct TextReplacementTests {
     let field = FakeTextField()
     let converter = FakeConverter()

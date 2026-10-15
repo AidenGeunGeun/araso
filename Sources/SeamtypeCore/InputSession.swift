@@ -932,7 +932,15 @@ public final class InputSession {
             lastTrace = Trace(keys: keys, previous: previousLanguage, decision: decision, partial: partial)
             return decision
         }
-        let d = engine.decide(keys, context: DecisionContext(previousLanguage: previousLanguage, partial: partial))
+        var d = engine.decide(keys, context: DecisionContext(previousLanguage: previousLanguage, partial: partial))
+        // While typing, a consonant at the end may still be waiting for its vowel, which keeps
+        // Japanese close and a Korean word under a Strict app's threshold until the word ends
+        // (qud: 0.60 while typed, 0.98 at Space). The word as it would go in now decides, so the
+        // preview shows what Space commits (병), not English that turns Korean on Space.
+        if partial, d.language == .korean, d.confidence < policy.conversionThreshold {
+            let now = engine.decide(keys, context: DecisionContext(previousLanguage: previousLanguage, partial: false))
+            if now.language == .korean, now.confidence >= policy.conversionThreshold { d = now }
+        }
         let kept = d.language != .english && d.confidence < policy.conversionThreshold
         keptEnglishByStrict = kept && policy.conversionThreshold >= AppPolicy.strictThreshold && keys.count <= 3
         let decision = kept
