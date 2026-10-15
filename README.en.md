@@ -214,7 +214,9 @@ Languages. Changes apply at once.
 ### Settings files
 
 The menu and the settings window both write `~/Library/Application Support/Seamtype/settings.json`.
-You can edit it by hand; missing keys keep the default.
+You can edit it by hand; missing keys, and values of the wrong type (`"true"` in quotes), keep the
+default. A file that isn't readable JSON is moved to `settings.json.unreadable` rather than written
+over (`apps.json` and `lexicon.json` too).
 
 ```json
 { "japanese": true, "liveConversion": true }
@@ -238,8 +240,8 @@ converts). The top candidate is right for about 4 in 5 short phrases and 3 in 4 
 keystroke.
 
 Per-app behavior lives in `apps.json` in the same folder. `"*"` is your default for every app; an
-app (by bundle identifier, a key ending in `.` matches as a prefix) names only the keys that differ
-from it. No app is listed unless you list it.
+app (by bundle identifier, a key ending in `.` matches as a prefix, the longest one when several
+do) names only the keys that differ from it. No app is listed unless you list it.
 
 ```json
 { "*":                     { "switchKeys": ["escape", "shiftEscape"] },

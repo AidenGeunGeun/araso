@@ -26,6 +26,39 @@ import Testing
         #expect(!Settings.load(from: url).returnConfirmsOnly)
     }
 
+    /// A hand-edited value of the wrong type costs only that key; a file that isn't JSON is set
+    /// aside rather than written over by the next save.
+    @Test func badValuesDontCostTheWholeFile() throws {
+        let url = dir.appendingPathComponent("settings.json")
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        try Data(#"{ "japanese": "true", "liveConversion": true, "fullWidthSpace": true }"#.utf8).write(to: url)
+        let settings = Settings.load(from: url)
+        #expect(!settings.japanese)
+        #expect(settings.liveConversion && settings.fullWidthSpace)
+
+        try Data(#"{ "japanese": true "#.utf8).write(to: url)
+        #expect(Settings.load(from: url) == Settings())
+        #expect(!FileManager.default.fileExists(atPath: url.path))
+        let aside = url.appendingPathExtension("unreadable")
+        #expect(try String(contentsOf: aside, encoding: .utf8) == #"{ "japanese": true "#)
+        try Settings(liveConversion: true).save(to: url)
+        #expect(try String(contentsOf: aside, encoding: .utf8) == #"{ "japanese": true "#)
+    }
+
+    @Test func badAppEntriesDontCostTheOthers() throws {
+        let url = dir.appendingPathComponent("apps.json")
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        try Data(#"{ "com.mitchellh.ghostty": {"conversionThreshold": 0.97}, "com.example.Game": {"enabled": "false", "holdSpace": true}, "com.example.Odd": true }"#.utf8).write(to: url)
+        let policies = AppPolicies.load(from: url)
+        #expect(policies.policy(for: "com.mitchellh.ghostty").conversionThreshold == 0.97)
+        #expect(policies.overrides["com.example.Game"] == AppPolicy.Override(holdSpace: true))
+        #expect(policies.apps == ["com.example.Game", "com.mitchellh.ghostty"])
+
+        try Data("{ not json".utf8).write(to: url)
+        #expect(AppPolicies.load(from: url).overrides.isEmpty)
+        #expect(FileManager.default.fileExists(atPath: url.appendingPathExtension("unreadable").path))
+    }
+
     /// 0.1.9's one extra switch key in settings.json moves into the default's switch keys.
     @Test(arguments: [
         (#"{ "japanese": true }"#, nil as [SwitchKey]?),

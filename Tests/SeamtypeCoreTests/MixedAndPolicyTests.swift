@@ -73,6 +73,21 @@ let splitting = SplittingEngine(base: sharedEngine, english: sharedEngine.englis
         #expect(AppPolicies.load(from: url.appendingPathExtension("missing")).overrides.isEmpty)
     }
 
+    /// Of two prefixes that match, the longer one is the app's, every time (it was whichever the
+    /// dictionary listed first, which changed from launch to launch).
+    @Test func theLongestPrefixWins() throws {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("seamtype-apps-\(UUID().uuidString).json")
+        defer { try? FileManager.default.removeItem(at: url) }
+        // Enough other entries that the dictionary's order varies between the loads.
+        let others = (0..<40).map { #""com.example.app\#($0)": {"enabled": false}"# }.joined(separator: ", ")
+        try Data(#"{"com.": {"conversionThreshold": 0.5}, "com.jetbrains.": {"conversionThreshold": 0.97}, \#(others)}"#.utf8).write(to: url)
+        for _ in 0..<50 {
+            let policies = AppPolicies.load(from: url)
+            #expect(policies.policy(for: "com.jetbrains.goland").conversionThreshold == 0.97)
+            #expect(policies.policy(for: "com.apple.Terminal").conversionThreshold == 0.5)
+        }
+    }
+
     /// An app's entry changes only the keys it names; the rest follows the user's default.
     @Test func appEntriesSitOnTheDefault() throws {
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("seamtype-apps-\(UUID().uuidString).json")

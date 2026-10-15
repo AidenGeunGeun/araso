@@ -250,11 +250,7 @@ public final class LearningEngine: DecisionEngine, @unchecked Sendable {
         let data = storeURL.flatMap { try? Data(contentsOf: $0) }
         if let data, let saved = try? JSONDecoder().decode(Store.self, from: data) { return saved }
         // Unreadable (hand-edited, or from a newer version): keep it aside, don't overwrite it.
-        if data != nil, let url = storeURL {
-            let aside = url.appendingPathExtension("unreadable")
-            try? FileManager.default.removeItem(at: aside)
-            try? FileManager.default.moveItem(at: url, to: aside)
-        }
+        if data != nil, let url = storeURL { SupportDirectory.setAside(url) }
         return Store()
     }
 

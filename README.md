@@ -202,7 +202,8 @@ Vim(8.2 이상, `+job`)은 [`scripts/vim/seamtype.vim`](scripts/vim/seamtype.vim
 ### 설정 파일
 
 메뉴와 설정 창 모두 `~/Library/Application Support/Seamtype/settings.json`에 씁니다. 직접 고쳐도 되고,
-없는 항목은 기본값을 따릅니다.
+없는 항목이나 형식이 틀린 값(`"true"`처럼 따옴표 친 값)은 기본값을 따릅니다. JSON으로 읽을 수 없는 파일은
+덮어쓰지 않고 `settings.json.unreadable`로 옮겨 둡니다(`apps.json`, `lexicon.json`도 같습니다).
 
 ```json
 { "japanese": true, "liveConversion": true }
@@ -224,7 +225,7 @@ Vim(8.2 이상, `+job`)은 [`scripts/vim/seamtype.vim`](scripts/vim/seamtype.vim
 확인하세요. 변환은 키마다 8–21 ms 걸립니다.
 
 앱별 동작은 같은 폴더의 `apps.json`에 있습니다. `"*"`는 모든 앱의 기본값이고, 앱(번들 ID, `.`으로 끝나는
-키는 앞부분이 같은 앱 전부)에는 기본값과 다른 항목만 적습니다. 직접 넣지 않으면 어떤 앱도 들어 있지
+키는 앞부분이 같은 앱 전부, 여러 개가 맞으면 가장 긴 것)에는 기본값과 다른 항목만 적습니다. 직접 넣지 않으면 어떤 앱도 들어 있지
 않습니다.
 
 ```json
