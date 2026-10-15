@@ -175,7 +175,9 @@ runtime.
   - 설명: About cuts it at two lines (about 70–80 Korean characters), so the first sentence says
     what changed; examples, exceptions and setting keys come after it.
   - What a user notices, not how it was built; a fix says what works now. 3–5 items, biggest first.
-  `SEAMTYPE_ZIP=build/release/Seamtype.zip sh scripts/get.sh` tries the zip locally. The pkg installs
+  `SEAMTYPE_ZIP=build/release/Seamtype.zip sh scripts/get.sh` tries the zip locally (get.sh runs
+  nothing from a zip whose app isn't Developer ID signed by team 2UZ65T3U82 and notarized; an ad hoc
+  build needs `SEAMTYPE_UNSIGNED=1`). The pkg installs
   into `/Library/Input Methods` and is not relocatable. Its payload lands in
   `/Library/Application Support/Seamtype/Install` and the postinstall rsyncs it into the existing
   bundle: a bundle PackageKit swaps for a new folder leaves imklaunchagent failing to launch it
