@@ -32,10 +32,12 @@ public struct JapaneseSegmenter: Sendable {
     static let trailingParticles: Set<String> = ["で", "に", "を", "は", "が", "の", "と", "も", "から", "まで", "より"]
 
     private let cache = Cache()
+    private let particleSplitter: ParticleSplitter
 
     public init(english: EnglishModel, japanese: JapaneseModel) {
         self.english = english
         self.japanese = japanese
+        particleSplitter = ParticleSplitter(english: english, japanese: japanese)
     }
 
     /// The segments, or nil when the keys compose cleanly (nothing to split) or no
@@ -52,20 +54,11 @@ public struct JapaneseSegmenter: Sendable {
         return result
     }
 
-    /// `githubde` → github + で: a known English word and one case particle, the whole not
-    /// itself English. Decided like `github에`, whatever the previous word was. Checked
-    /// directly from the end, longest English word first.
+    /// `githubde` → github + で, when that reading beats the whole token as kana, Korean or
+    /// English (`ParticleSplitter`).
     public func englishWithParticle(_ keys: String) -> (english: String, particle: String)? {
-        let chars = Array(keys)
-        guard chars.count >= 4, !english.isKnownWord(keys), RomajiComposer.compose(keys).strayLetters > 0 else { return nil }
-        for cut in stride(from: chars.count - 1, through: max(3, chars.count - 4), by: -1) {
-            let front = String(chars[..<cut])
-            let tail = RomajiComposer.compose(String(chars[cut...]))
-            guard tail.isClean, Self.trailingParticles.contains(tail.text), front.allSatisfy(\.isLetter),
-                  english.isKnownWord(front) else { continue }
-            return (front, tail.text)
-        }
-        return nil
+        guard case let .japanese(word, particle)? = particleSplitter.split(keys, japaneseOn: true) else { return nil }
+        return (word, particle)
     }
 
     // MARK: - Search

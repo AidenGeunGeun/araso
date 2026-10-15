@@ -72,9 +72,6 @@ public final class SplittingEngine: DecisionEngine, @unchecked Sendable {
     public let base: DecisionEngine
     public let english: EnglishModel
     public let korean: KoreanModel
-    /// The front counts as English if it's in the word list, or spells like English
-    /// (trigram score at least this) and can't be read as Hangul.
-    public var englishSpellingFloor = -2.6
     /// English word + Korean word (hello월드) only when the whole token spells less like
     /// English than this; stricter still when the Korean half isn't in the word lists.
     public var mixedWordSpellingCeiling = -2.7
@@ -87,24 +84,30 @@ public final class SplittingEngine: DecisionEngine, @unchecked Sendable {
     /// With Japanese on: English word + Japanese particle (githubで), decided the same way.
     public let japanese: JapaneseSegmenter?
 
+    /// Scores English word + particle against the whole token.
+    public let particles: ParticleSplitter
+
     public init(base: DecisionEngine, english: EnglishModel, korean: KoreanModel = KoreanModel(),
                 japanese: JapaneseSegmenter? = nil) {
         self.base = base
         self.english = english
         self.korean = korean
         self.japanese = japanese
+        particles = ParticleSplitter(english: english, korean: korean, japanese: japanese?.japanese)
     }
 
     public func decide(_ keys: String, context: DecisionContext) -> Decision {
-        if let mixed = MixedWord.split(keys),
-           Self.isAcronym(mixed.english) || Self.isCapitalizedName(mixed.english)
-            || (mixed.english.count >= 3 && looksEnglish(mixed.english)),
-           !english.isKnownWord(keys),
-           // A capital with no shifted jamo (the S of Slack) was typed as English on purpose,
-           // even if the letters would also spell Korean (slackdptj, 님차에서).
-           Self.hasEnglishOnlyCapital(mixed.english) || !readsAsKorean(keys) {
+        // English word + particle, Korean (github에) or with Japanese on Japanese (githubで),
+        // when that reading beats the whole token in one language. Before English + Korean
+        // word: beautywo is beauty + を, not beau + 쇼재.
+        switch particles.split(keys, japaneseOn: japanese != nil) {
+        case .korean(let mixed)?:
             return Decision(language: .mixed, confidence: Self.confidence, output: mixed.text,
                             explanation: "split \(mixed.english)+\(mixed.korean)")
+        case .japanese(let word, let particle)?:
+            return Decision(language: .japanese, confidence: Self.confidence, output: word + particle,
+                            explanation: "split \(word)+\(particle)")
+        case nil: break
         }
         if let mixed = MixedWord.splitSingleLetter(keys), !english.isKnownWord(keys), !readsAsKorean(keys) {
             return Decision(language: .mixed, confidence: Self.confidence, output: mixed.text,
@@ -113,12 +116,6 @@ public final class SplittingEngine: DecisionEngine, @unchecked Sendable {
         if let mixed = englishThenKoreanWord(keys) {
             return Decision(language: .mixed, confidence: Self.confidence, output: mixed.text,
                             explanation: "split \(mixed.english)+\(mixed.korean)")
-        }
-        // Not when the keys spell a Korean word: guswo is 현재, not gus + を (but slackwo,
-        // 님차재, is no word, so slackを).
-        if let (word, particle) = japanese?.englishWithParticle(keys), !isKoreanWord(keys) {
-            return Decision(language: .japanese, confidence: Self.confidence, output: word + particle,
-                            explanation: "split \(word)+\(particle)")
         }
         return base.decide(keys, context: context)
     }
@@ -183,18 +180,6 @@ public final class SplittingEngine: DecisionEngine, @unchecked Sendable {
 
     static func hasEnglishOnlyCapital(_ front: String) -> Bool {
         front.contains { $0.isUppercase && !DubeolsikLayout.isKoreanShiftKey($0) }
-    }
-
-    private func looksEnglish(_ front: String) -> Bool {
-        if english.isKnownWord(front) { return true }
-        let hangul = HangulComposer.compose(keys: front)
-        return hangul.map { !$0.strayJamo.isEmpty } ?? true
-            && english.averageLogProbability(front) >= englishSpellingFloor
-    }
-
-    private func isKoreanWord(_ keys: String) -> Bool {
-        guard let composed = HangulComposer.compose(keys: keys), composed.strayJamo.isEmpty else { return false }
-        return korean.isKnownWord(composed.text)
     }
 
     private func readsAsKorean(_ keys: String) -> Bool {

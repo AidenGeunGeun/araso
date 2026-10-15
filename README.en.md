@@ -266,8 +266,11 @@ Locally, in this order. A keystroke's preview takes at most ~3 ms and a word's f
 1. **Your corrections** (made twice, see [learning](#undo-after-commit-and-learning)) always win
    (`lexicon.json`).
 2. **Mixed words** are split, in an app set to Strict too.
-   - English + particle, when the front looks English (or is typed in capitals) and the end is a
-     Korean particle or ending: `githubdp` → `github에`, `UIrkxdmsrjs` → `UI같은건`
+   - English + particle, when the end is a Korean particle or ending and reading it that way beats
+     reading the whole token as Hangul or as English. The more common the English word (or an
+     acronym or name typed in capitals) and the less the whole reads as a Korean word, the likelier
+     the split: `githubdp` → `github에`, `UIrkxdmsrjs` → `UI같은건`, `formdptj` → `form에서` (래그 is
+     no word). `gosemfdmf` stays `핸들을`.
    - A single English letter + particle, as in a variable name: `xdp` → `x에`, `Xfmf` → `X를`. Not
      `도`/`나` after a lowercase letter, which are common English endings (`heh`, `tsk`); a capital
      gives `X도`.
@@ -277,7 +280,9 @@ Locally, in this order. A keystroke's preview takes at most ~3 ms and a word's f
    - Korean, then an English word: `dhsmfdmsgoogledptj` → `오늘은google에서`. The Korean goes in
      and the rest keeps composing.
    - With Japanese on:
-     - a known English word + one case particle: `githubde` → `githubで`
+     - English + one case particle, compared the same way with reading the whole as kana:
+       `githubde` → `githubで`, `APIwo` → `APIを`, `redde` → `redで`. What reads naturally as
+       Japanese stays kana (`sitede` → `してで`).
      - Japanese after Korean: `dlfurrireki` → `이력りれき` (Space for `履歴`)
      - a Korean particle or word after Japanese: `rirekifmf` → `りれき를`,
        `kyouhaehtlfkrdms` → `きょうは도시락은`. The Japanese part is committed on the spot, so with

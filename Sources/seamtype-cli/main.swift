@@ -7,6 +7,7 @@ import Foundation
 //   echo "..." | seamtype-cli                          convert stdin line by line
 //   seamtype-cli --compose < keys.txt                  print "keys<TAB>hangul" per line
 //   seamtype-cli --decide < keys_prev.tsv              heuristic verdict for "keys<TAB>previous" lines
+//   seamtype-cli --type [--japanese] < keys.txt        "keys<TAB>text" after typing keys + Space into a session
 
 var args = Array(CommandLine.arguments.dropFirst())
 
@@ -105,6 +106,25 @@ case "--decide":
                                               finals.reduce(0, +) / Double(finals.count), finals.max()!).data(using: .utf8)!)
     }
     exit(0)
+case "--type":
+    // Each line's keys and a Space through a fresh InputSession (real engines, no converter):
+    // what ends up in the field, as typed.
+    let withJapanese = args.count > 1 && args[1] == "--japanese"
+    let heuristic = HeuristicEngine(japanese: withJapanese ? JapaneseModel.shared : nil)
+    MainActor.assumeIsolated {
+        let engine = LearningEngine(base: SplittingEngine(base: heuristic, english: heuristic.english, japanese: heuristic.segmenter),
+                                    storeURL: FileManager.default.temporaryDirectory.appendingPathComponent("seamtype-type-\(UUID().uuidString).json"))
+        while let keys = readLine() {
+            let field = PlainTextField()
+            let session = InputSession(engine: engine, japaneseEnabled: withJapanese)
+            for ch in keys + " " {
+                let handled = ch.isLetter ? session.handle(.letter(ch), client: field) : session.handle(.printable(ch), client: field)
+                if !handled { field.insertText(String(ch), replacing: nil) } // the app types keys passed on
+            }
+            print("\(keys)\t\(field.text)")
+        }
+    }
+    exit(0)
 default:
     break
 }
@@ -130,4 +150,36 @@ if args.isEmpty {
     while let line = readLine() { run(line) }
 } else {
     run(args.joined(separator: " "))
+}
+
+/// A text field for `--type`: committed text, an optional marked span, and a caret.
+final class PlainTextField: TextClient {
+    var text = ""
+    var marked = NSRange(location: NSNotFound, length: 0)
+    var cursor = 0
+
+    func setMarkedText(_ s: String) {
+        setMarkedText(s, replacing: NSRange(location: cursor, length: 0))
+    }
+
+    func setMarkedText(_ s: String, replacing range: NSRange) {
+        let target = marked.location != NSNotFound ? NSUnionRange(range, marked) : range
+        text = (text as NSString).replacingCharacters(in: target, with: s)
+        let length = (s as NSString).length
+        marked = length > 0 ? NSRange(location: target.location, length: length) : NSRange(location: NSNotFound, length: 0)
+        cursor = target.location + length
+    }
+
+    func insertText(_ s: String, replacing range: NSRange?) {
+        let target = range ?? (marked.location != NSNotFound ? marked : NSRange(location: cursor, length: 0))
+        text = (text as NSString).replacingCharacters(in: target, with: s)
+        marked = NSRange(location: NSNotFound, length: 0)
+        cursor = target.location + (s as NSString).length
+    }
+
+    func selectedRange() -> NSRange { NSRange(location: cursor, length: 0) }
+    func markedRange() -> NSRange { marked }
+    func text(in range: NSRange) -> String? {
+        NSMaxRange(range) <= (text as NSString).length ? (text as NSString).substring(with: range) : nil
+    }
 }

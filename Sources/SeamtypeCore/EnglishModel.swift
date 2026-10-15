@@ -138,7 +138,7 @@ public final class EnglishModel: @unchecked Sendable {
     public static let commonWords: [String] = """
     ok okay hi hey yeah yep nope lol omg btw thx thanks pls please email emails app apps api apis url urls
     http https www github git commit push pull merge branch repo json yaml xml html css js ts swift python java
-    kotlin rust golang npm yarn pnpm node react vue svelte ios macos android iphone ipad mac wifi bluetooth usb
+    kotlin rust golang npm yarn pnpm node react vue svelte docker kubernetes ios macos android iphone ipad mac wifi bluetooth usb
     login logout signup username password online offline website blog vlog youtube google slack notion figma
     debug deploy refactor config backend frontend database cache server client async await todo todos ai llm gpt
     claude chatgpt laptop smartphone selfie emoji internet podcast startup dev devs devops ui ux

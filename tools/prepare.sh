@@ -44,3 +44,4 @@ python3 make_eval.py $cli data/ko_50k.txt data/en_50k.txt data/ja_tokens.jsonl d
 python3 eval3.py $cli data/eval.tsv
 python3 eval_context.py $cli data/ko_50k.txt data/en_50k.txt 10000   # top words after each language
 python3 eval_overlap.py $cli data/ja_tokens.jsonl data/en_50k.txt   # English/Japanese look-alikes
+python3 eval_particles.py $cli data/en_50k.txt                       # English word + Korean/Japanese particle

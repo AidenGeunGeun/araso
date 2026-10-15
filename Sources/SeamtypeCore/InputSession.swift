@@ -611,6 +611,11 @@ public final class InputSession {
 
     /// Kana for the keys, with any English words inside the phrase kept as typed.
     private func japaneseReading(partial: Bool) -> String {
+        // An English word with a particle (redde → redで) even when every key also makes kana,
+        // as the engine split it; a reading the user picked by hand stays kana (れっで).
+        if !(forced == .japanese && forcedByUser), let (word, particle) = segmenter?.englishWithParticle(keys) {
+            return word + particle
+        }
         if !partial, let segments = segmenter?.segment(keys) { return JapaneseSegmenter.text(segments) }
         // While typing, a consonant at the end is just waiting for its vowel (watashihag → わたしはg),
         // not a stray letter to split an English word ("hag") out of.
@@ -1067,6 +1072,8 @@ public final class InputSession {
                     || (korean.syllables.count >= 2
                         && korean.syllables.allSatisfy({ Self.koreanModel.syllableLogProbability($0) > KoreanModel.unknownSyllableLogP })),
                   RomajiComposer.compose(front).isClean,
+                  // Not an English word with a particle (linderman isn't linで그무).
+                  segmenter?.englishWithParticle(front) == nil,
                   case let decision = engine.decide(front, context: DecisionContext(previousLanguage: previousLanguage)),
                   decision.language == .japanese, decision.confidence >= 0.9 else { continue }
             keys = front
