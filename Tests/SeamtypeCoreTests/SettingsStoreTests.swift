@@ -59,7 +59,7 @@ import Testing
         #expect(FileManager.default.fileExists(atPath: url.appendingPathExtension("unreadable").path))
     }
 
-    /// 0.1.9's one extra switch key in settings.json moves into the default's switch keys.
+    /// The one extra switch key in settings.json (builds before 0.1.9) moves into the default's switch keys.
     @Test(arguments: [
         (#"{ "japanese": true }"#, nil as [SwitchKey]?),
         (#"{ "switchKey": "rightOption", "japanese": true }"#, nil), // the new default already
@@ -93,7 +93,7 @@ import Testing
         #expect(AppPolicies.load(from: apps).defaultPolicy.switchKeys == [.shiftEscape])
     }
 
-    /// apps.json from 0.1.9: `escapeToApp` changes the default's Esc for an entry that doesn't
+    /// apps.json from 0.1.8: `escapeToApp` changes the default's Esc for an entry that doesn't
     /// name its switch keys; a later version's key name is skipped.
     @Test func oldEscapeToAppAndUnknownKeys() throws {
         let url = dir.appendingPathComponent("apps.json")

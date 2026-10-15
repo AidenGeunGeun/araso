@@ -141,7 +141,7 @@ func run(_ line: String) {
     guard verbose else { return }
     for word in result.words {
         let d = word.decision
-        let lang = d.language == .korean ? "ko" : "en"
+        let lang = ["english": "en", "korean": "ko", "mixed": "mixed", "japanese": "ja"][d.language.rawValue] ?? d.language.rawValue
         print(String(format: "  %-16@ → %@ [%@ %.2f] %@", word.keys as NSString, d.output, lang, d.confidence, d.explanation))
     }
 }

@@ -65,7 +65,7 @@ public struct AppPolicy: Codable, Equatable, Sendable {
         public var switchKeys: Set<SwitchKey>?
         public var holdSpace: Bool?
         public var fullWidth: Bool?
-        /// 0.1.9 and earlier: true sent Esc to the app, false made it switch. Read for an entry
+        /// 0.1.8 and earlier: true sent Esc to the app, false made it switch. Read for an entry
         /// that doesn't name `switchKeys`, as a change to the default's Esc, and kept until it does.
         var escapeToApp: Bool?
 
@@ -124,7 +124,7 @@ public struct AppPolicy: Codable, Equatable, Sendable {
             try c.encodeIfPresent(switchKeys.map(SwitchKey.list), forKey: .switchKeys)
             try c.encodeIfPresent(holdSpace, forKey: .holdSpace)
             try c.encodeIfPresent(fullWidth, forKey: .fullWidth)
-            // The 0.1.9 key stays until the entry names its own switch keys.
+            // The 0.1.8 key stays until the entry names its own switch keys.
             if switchKeys == nil { try c.encodeIfPresent(escapeToApp, forKey: .escapeToApp) }
         }
     }
@@ -213,7 +213,8 @@ public struct AppPolicies: Sendable {
         try encoder.encode(overrides).write(to: url, options: .atomic)
     }
 
-    /// 0.1.9 kept one extra switch key in settings.json (`"switchKey"`), on top of Esc and ⇧Esc.
+    /// Builds between 0.1.8 and 0.1.9 (no release) kept one extra switch key in settings.json
+    /// (`"switchKey"`), on top of Esc and ⇧Esc.
     /// Moves it into the default's `switchKeys` (unless the default names its own) and takes it
     /// out of settings.json. Running it again, or in two processes at once, changes nothing more.
     public static func migrateSwitchKey(settings: URL? = Settings.storeURL, apps: URL? = AppPolicies.storeURL) {

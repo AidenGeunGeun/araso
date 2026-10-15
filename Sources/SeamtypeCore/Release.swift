@@ -95,8 +95,10 @@ public struct Release: Equatable, Sendable {
             && leaf.hasPrefix("1. Developer ID Installer:") && leaf.hasSuffix("(\(team))")
     }
 
-    /// "0.1.10" is newer than "0.1.9"; a missing part counts as 0 ("0.2" == "0.2.0").
+    /// "0.1.10" is newer than "0.1.9"; a missing part counts as 0 ("0.2" == "0.2.0"). Only a plain
+    /// version is newer: 0.2.0-beta.1 isn't newer than 0.2.0 or anything else.
     public static func isNewer(_ version: String, than current: String) -> Bool {
+        guard isVersion(version) else { return false }
         func parts(_ v: String) -> [Int] { v.split(separator: ".").map { Int($0.prefix(while: \.isNumber)) ?? 0 } }
         let a = parts(version), b = parts(current)
         for i in 0..<max(a.count, b.count) {

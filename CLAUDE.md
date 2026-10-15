@@ -72,9 +72,9 @@ tests use `FakeTextField`). It owns the preview and hysteresis, commits, Esc rea
 - The keys that switch a word's reading are per app (`AppPolicy.switchKeys`; default right ⌥ tap
   and ⇧Esc). `InputController` turns a chosen tap, ⌥Space or ⇧Esc into `.cycle`, and only a chosen
   one; an unchosen Esc or ⇧Esc commits and goes to the app. Esc still goes back to the kana in the
-  candidate window and with live conversion. `AppPolicies.migrateSwitchKey` moves 0.1.9's
-  `switchKey` (settings.json) into `"*"`; an entry's old `escapeToApp` still applies until
-  the entry names its own `switchKeys`.
+  candidate window and with live conversion. `AppPolicies.migrateSwitchKey` moves the
+  `switchKey` of builds between 0.1.8 and 0.1.9 (settings.json, never released) into `"*"`; an
+  entry's `escapeToApp` (0.1.8 and earlier) still applies until the entry names its own `switchKeys`.
 - Return on an underlined word only confirms it (`returnConfirmsOnly`, on by default); off, the
   app gets the Return too, except after Japanese.
 - Vim reports its modes through `scripts/vim/seamtype.{lua,vim}` (`Seamtype --vim <mode> --app

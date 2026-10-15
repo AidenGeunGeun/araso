@@ -218,6 +218,7 @@ Vim(8.2 이상, `+job`)은 [`scripts/vim/seamtype.vim`](scripts/vim/seamtype.vim
 | `fullWidthDigits` | 꺼짐 | 일본어 뒤의 숫자를 전각으로 씁니다(`１２３`, 주소·전화번호의 `０３－１２３４`). 밑줄 친 채 남고 Space로 `123`(반각)이나 `三月` 같은 변환을 고릅니다. |
 | `fullWidthSpace` | 꺼짐 | 일본어 뒤의 Space를 전각 공백(`　`)으로 씁니다. ⇧Space는 설정과 반대 폭의 공백을 넣습니다(꺼져 있으면 전각). |
 | `japaneseEngine` | `"apple"` | 한자 변환 엔진. `"apple"`은 macOS 일본어 입력기의 엔진을, `"azooKey"`는 앱에 든 AzooKey를 씁니다. |
+| `checkForUpdates` | 켜짐 | 하루에 한 번 GitHub에 최신 릴리스 버전을 묻습니다(다른 것은 보내지 않습니다). 새 버전이 있으면 입력 메뉴와 정보에 알려 줍니다. |
 
 라이브 변환에서 Space는 다음 후보부터 후보 창을 열고, Esc는 가나를 보여 줍니다(한 번 더 누르면, Esc가 언어
 바꾸기 키면 언어를 바꾸고 아니면 가나로 확정한 뒤 앱으로 갑니다). 짧은 읽기는 한자로만 바뀝니다(`と`는 그대로, `私`는 변환). 맨 앞 후보는 짧은 구절 5개 중 4개,
@@ -239,7 +240,7 @@ Vim(8.2 이상, `+job`)은 [`scripts/vim/seamtype.vim`](scripts/vim/seamtype.vim
 | --- | --- | --- |
 | `enabled` | `true` | `false`면 모든 키를 그대로 넘깁니다(영어만 입력). |
 | `conversionThreshold` | `0.5` | 이만큼 확신할 때만 친 영문을 다른 글자로 바꿉니다. `0.97`(엄격하게)은 터미널에서 짧은 셸 명령이 한글로 바뀌지 않게 하고, `0.5`는 글을 쓸 때 한국어를 더 많이 바꿉니다. |
-| `switchKeys` | `["rightOption", "shiftEscape"]` | 읽기를 바꾸는 키([언어 바꾸기 키](#언어-바꾸기-키)). `"rightOption"`(오른쪽 ⌥ 단독), `"optionSpace"`(⌥Space), `"rightShift"`(오른쪽 ⇧ 단독), `"escape"`(Esc), `"shiftEscape"`(⇧Esc). 고르지 않은 키는 앱으로 갑니다. 0.1.9의 `escapeToApp`과 settings.json의 `switchKey`는 읽어서 옮깁니다. |
+| `switchKeys` | `["rightOption", "shiftEscape"]` | 읽기를 바꾸는 키([언어 바꾸기 키](#언어-바꾸기-키)). `"rightOption"`(오른쪽 ⌥ 단독), `"optionSpace"`(⌥Space), `"rightShift"`(오른쪽 ⇧ 단독), `"escape"`(Esc), `"shiftEscape"`(⇧Esc). 고르지 않은 키는 앱으로 갑니다. 0.1.8까지 쓰던 `escapeToApp`은 읽어서 옮깁니다. |
 | `holdSpace` | `false` | Space가 단어를 끝내지 않고 공백까지 밑줄 안에 넣습니다. 치는 중인 단어처럼 언어 바꾸기 키로 바꾸고 Delete로 지울 수 있고, 다음 단어를 치면 공백과 함께 들어갑니다. 확정한 단어를 고칠 수 없는 터미널용이라 앱별로만 정하며(`"*"`에는 두지 않습니다), Return은 확정만 하고 텍스트 대치는 동작하지 않습니다. |
 | `fullWidth` | `true` | `false`면 이 앱에서는 전각 숫자·공백 설정을 따르지 않고 반각으로 씁니다(터미널, 코드 편집기용). |
 

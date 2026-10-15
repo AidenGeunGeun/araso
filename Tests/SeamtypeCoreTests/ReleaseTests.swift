@@ -120,6 +120,8 @@ import Testing
         #expect(!Release.isNewer("0.1.5", than: "0.1.5"))
         #expect(!Release.isNewer("0.2", than: "0.2.0"))
         #expect(!Release.isNewer("0.1.4", than: "0.1.5"))
+        #expect(!Release.isNewer("0.2.0-beta.1", than: "0.2.0"))
+        #expect(!Release.isNewer("0.2.0-beta.1", than: "0.1.9"))
     }
 
     @Test func updateChecksAreOnUnlessTurnedOff() throws {
