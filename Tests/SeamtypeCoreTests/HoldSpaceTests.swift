@@ -2,8 +2,9 @@ import Foundation
 import Testing
 @testable import SeamtypeCore
 
-/// An app set to hold Space (`AppPolicy.holdSpace`, for terminals): the word stays underlined with
-/// its space until the next word starts, so a switch key still changes it and Delete takes back only the space.
+/// An app set to hold the word (`AppPolicy.holdSpace`, for terminals): after Space or a symbol the word
+/// stays underlined with that boundary until the next word starts, so a switch key still changes it and
+/// Delete takes back only the boundary.
 @MainActor @Suite struct HoldSpaceTests {
     let field = FakeTextField()
     let learning: LearningEngine
@@ -37,6 +38,78 @@ import Testing
         #expect(type("dkssud ").last == true)
         #expect(field.text == "안녕 ")
         #expect(marked == "안녕 ")
+    }
+
+    /// A symbol is a boundary like Space: the word stays underlined with it, so it can still be changed.
+    @Test(arguments: [".", ",", "?", "!", "-", "'", ";", ":", ")", "\"", "/"])
+    func aSymbolKeepsTheWordUnderlinedWithIt(symbol: String) {
+        #expect(type("dkssud" + symbol).last == true)
+        #expect(field.text == "안녕" + symbol)
+        #expect(marked == "안녕" + symbol)
+    }
+
+    /// A switch key changes the word; the symbol stays as typed, half-width, also for Japanese.
+    @Test func aSwitchRightAfterASymbolChangesTheWordAndKeepsTheSymbol() {
+        type("dkssud.")
+        #expect(session.handle(.cycle, client: field))
+        #expect(field.text == "dkssud." && marked == "dkssud.")
+        #expect(session.handle(.cycle, client: field))
+        #expect(field.text == "안녕." && marked == "안녕.")
+    }
+
+    @Test func deleteTakesBackOnlyTheSymbolThenAShiftEscChangesTheWord() {
+        type("dkssud.")
+        #expect(session.handle(.delete, client: field))
+        #expect(field.text == "안녕" && marked == "안녕")
+        #expect(session.handle(.cycle, client: field))
+        #expect(field.text == "dkssud" && marked == "dkssud")
+    }
+
+    /// One boundary only: the next letter, Return, a second symbol, Space or a digit puts the word
+    /// in with its symbol in one insertion, and the key goes where it goes with holding off.
+    @Test func theNextLetterCommitsTheWordWithItsSymbolInOneInsertion() {
+        type("dkssud.gktpdy")
+        #expect(field.text == "안녕.하세요" && marked == "하세요")
+        #expect(field.insertions == ["안녕."])
+    }
+
+    @Test func returnCommitsTheWordWithItsSymbolAndOnlyConfirms() {
+        type("dkssud.")
+        #expect(session.handle(.enter, client: field))
+        #expect(field.text == "안녕." && marked == nil)
+        #expect(!session.handle(.enter, client: field))
+    }
+
+    @Test(arguments: [".", " ", "3", "!"])
+    func aSecondBoundaryCommitsTheWordWithItsSymbolAndGoesToTheApp(next: String) {
+        #expect(type("dkssud." + next).last == false)
+        #expect(field.text == "안녕." + next && marked == nil)
+        #expect(field.insertions == ["안녕.", next]) // the word with its symbol in one; the key typed by the app
+    }
+
+    /// A held symbol ended the word: switched to Japanese, Space commits it instead of converting.
+    /// The space itself then follows the rules for a space after Japanese text, as after any word
+    /// that went in as Japanese (half-width here, `fullWidthSpace` being off).
+    @Test func spaceOnAHeldSymbolWordSwitchedToJapaneseCommitsWithoutConverting() {
+        let (japanese, field) = Self.japaneseSession()
+        for ch in "hello" { japanese.handle(.letter(ch), client: field) }
+        japanese.handle(.printable("."), client: field)
+        #expect(field.text == "hello.")
+        japanese.handle(.cycle, client: field)
+        #expect(field.text == "へっぉ.")
+        #expect(!japanese.handle(.printable(" "), client: field))
+        #expect(japanese.conversion == nil)
+        #expect(field.text == "へっぉ." && field.marked.location == NSNotFound)
+    }
+
+    /// A holding session with Japanese on, and its field.
+    static func japaneseSession(live: Bool = false) -> (InputSession, FakeTextField) {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("seamtype-hold-ja-\(UUID().uuidString).json")
+        let engine = LearningEngine(base: SplittingEngine(base: trilingual, english: trilingual.english, japanese: trilingual.segmenter), storeURL: url)
+        let session = InputSession(engine: engine, policies: AppPolicies(overrides: ["test.hold": .init(holdSpace: true)]),
+                                   converter: FakeConverter(), japaneseEnabled: true, liveConversion: live)
+        session.activate(app: "test.hold")
+        return (session, FakeTextField())
     }
 
     @Test func theNextWordCommitsTheHeldOne() {
@@ -134,12 +207,7 @@ import Testing
 
     /// A held word is still the word being typed: switched to Japanese, Space converts it.
     @Test func spaceOnAHeldWordSwitchedToJapaneseConverts() {
-        let url = FileManager.default.temporaryDirectory.appendingPathComponent("seamtype-hold-ja-\(UUID().uuidString).json")
-        let engine = LearningEngine(base: SplittingEngine(base: trilingual, english: trilingual.english, japanese: trilingual.segmenter), storeURL: url)
-        let japanese = InputSession(engine: engine, policies: AppPolicies(overrides: ["test.hold": .init(holdSpace: true)]),
-                                    converter: FakeConverter(), japaneseEnabled: true)
-        japanese.activate(app: "test.hold")
-        let field = FakeTextField()
+        let (japanese, field) = Self.japaneseSession()
         for ch in "hello" { japanese.handle(.letter(ch), client: field) }
         japanese.handle(.printable(" "), client: field)
         #expect(field.text == "hello ")
@@ -153,7 +221,8 @@ import Testing
     /// Holding changes when a word goes in, never what goes in: in a Strict app (as terminals are
     /// usually set) a line comes out the same with or without it.
     @Test(arguments: ["gst ls", "cd src", "git status", "rm -rf", "ls -al", "gs ", "vi ", "tmux a",
-                      "brew install", "npm run dev", "dkssud gktpdy", "rkskek "])
+                      "brew install", "npm run dev", "dkssud gktpdy", "rkskek ",
+                      "echo \"hi.\"", "git commit -m \"fix.\"", "ls -al.", "a/b/c", "dkssud, gktpdy!", "x; y"])
     func strictAppTypesTheSameLine(keys: String) {
         func run(hold: Bool) -> String {
             let field = FakeTextField()
@@ -201,12 +270,7 @@ import Testing
 
     /// With live conversion on too, Space on a held word switched to Japanese converts, without the held space.
     @Test func spaceOnAHeldWordSwitchedToJapaneseConvertsWithLiveConversion() {
-        let url = FileManager.default.temporaryDirectory.appendingPathComponent("seamtype-hold-live-\(UUID().uuidString).json")
-        let engine = LearningEngine(base: SplittingEngine(base: trilingual, english: trilingual.english, japanese: trilingual.segmenter), storeURL: url)
-        let live = InputSession(engine: engine, policies: AppPolicies(overrides: ["test.hold": .init(holdSpace: true)]),
-                                converter: FakeConverter(), japaneseEnabled: true, liveConversion: true)
-        live.activate(app: "test.hold")
-        let field = FakeTextField()
+        let (live, field) = Self.japaneseSession(live: true)
         for ch in "hello" { live.handle(.letter(ch), client: field) }
         live.handle(.printable(" "), client: field)
         live.handle(.cycle, client: field)

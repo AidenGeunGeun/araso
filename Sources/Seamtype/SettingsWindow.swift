@@ -743,8 +743,8 @@ private struct AppRowView: View {
                           choices: [(holdSpaceName(false), false), (holdSpaceName(true), true)]) { value in
                     model.setEntry(for: row.id) { $0.holdSpace = value }
                 }
-                .help(L("Hold: Space puts the space inside the underline, so the word can still be changed until the next word starts. For terminals."))
-                .frame(width: AppColumns.space, alignment: .leading)
+                .help(L("Hold: Space or punctuation goes inside the underline, so the word can still be changed until the next word starts. For terminals."))
+                .frame(width: AppColumns.hold, alignment: .leading)
             }
             .disabled(!(row.entry.enabled ?? defaultPolicy.enabled))
         }
@@ -780,11 +780,11 @@ private struct ChoiceRow<Choice: View>: View {
 private enum AppColumns {
     static let conversion: CGFloat = 130
     static let switchKeys: CGFloat = 190
-    static let space: CGFloat = 112
+    static let hold: CGFloat = 150
     static let enabled: CGFloat = 100
 }
 
-/// What Space does to the word in an app (`AppPolicy.holdSpace`), as the Apps column shows it.
+/// What Space or punctuation does to the word in an app (`AppPolicy.holdSpace`), as the Apps column shows it.
 private func holdSpaceName(_ holds: Bool) -> String { holds ? L("Hold") : L("Finish") }
 
 /// Names the exceptions' columns after the default settings above them.
@@ -795,7 +795,7 @@ private struct AppColumnsHeader: View {
             Text(L("Convert words")).frame(width: AppColumns.enabled, alignment: .leading)
             Text(L("Conversion")).frame(width: AppColumns.conversion, alignment: .leading)
             Text(L("Switch keys")).frame(width: AppColumns.switchKeys, alignment: .leading)
-            Text(L("After Space")).frame(width: AppColumns.space, alignment: .leading)
+            Text(L("After Space / punctuation")).frame(width: AppColumns.hold, alignment: .leading)
         }
         .font(.caption).foregroundStyle(.secondary).lineLimit(1)
         .accessibilityHidden(true)
