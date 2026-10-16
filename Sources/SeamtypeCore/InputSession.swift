@@ -153,7 +153,7 @@ public final class InputSession {
     /// The mode vim last reported (`vimChanged`), nil when no vim is reporting. In normal mode
     /// every key goes straight through; while vim reports at all, Esc is vim's.
     private var vimMode: VimSignal?
-    /// The user paused Seamtype in this text field (a right ⌘ tap): keys go through as typed
+    /// The user paused Seamtype in this text field (the pause key): keys go through as typed
     /// until the next tap or another text field.
     public private(set) var paused = false
     /// Language of the current preview, so in-phrase symbols know where they belong.

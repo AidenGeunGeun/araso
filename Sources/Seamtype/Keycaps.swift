@@ -56,6 +56,25 @@ extension SwitchKey {
     static func sorted(_ keys: Set<SwitchKey>) -> [SwitchKey] { allCases.filter(keys.contains) }
 }
 
+extension PauseKey {
+    /// "right ⌘", "⌃⌥P", "Off": for the input menu and the settings.
+    var label: String {
+        switch self {
+        case .off: return L("Off")
+        case .tap(let tap): return L("right %@", tap.glyph)
+        case .shortcut(let shortcut): return shortcut.display
+        }
+    }
+
+    /// "Right ⌘ tap", "⌃⌥P", "Off": in the settings' pop-up, named as its items are.
+    var title: String {
+        switch self {
+        case .tap(let tap): return L("Right %@ tap", tap.glyph)
+        case .off, .shortcut: return label
+        }
+    }
+}
+
 /// A key as a small keycap, the size of a list's: chosen ones are filled with the accent color.
 struct Keycap: View {
     let key: SwitchKey
@@ -89,6 +108,8 @@ struct Keycap: View {
 /// Keycaps to turn on and off, one per switch key.
 struct KeycapToggles: View {
     let selection: Set<SwitchKey>
+    /// Taken by another key (the pause key): can't be turned on.
+    var taken: SwitchKey? = nil
     let set: (SwitchKey, Bool) -> Void
 
     var body: some View {
@@ -96,6 +117,7 @@ struct KeycapToggles: View {
             ForEach(SwitchKey.allCases, id: \.self) { key in
                 Toggle(key.displayName, isOn: Binding(get: { selection.contains(key) }, set: { set(key, $0) }))
                     .toggleStyle(KeycapToggleStyle(key: key))
+                    .disabled(key == taken && !selection.contains(key))
             }
         }
     }
@@ -112,12 +134,14 @@ struct KeycapToggleStyle: ToggleStyle {
         let key: SwitchKey
         @Binding var isOn: Bool
         @State private var hovering = false
+        /// Off only while the pause key is this key.
+        @Environment(\.isEnabled) private var isEnabled
 
         var body: some View {
             Button { isOn.toggle() } label: { EmptyView() }
                 .buttonStyle(Press(key: key, on: isOn, hovering: hovering))
                 .onHover { hovering = $0 }
-                .help(key.help)
+                .help(isEnabled ? key.help : L("This key pauses. Choose another pause key first."))
                 .accessibilityLabel(key.displayName)
                 .accessibilityValue(isOn ? L("On") : L("Off"))
                 .accessibilityAddTraits(isOn ? .isSelected : [])

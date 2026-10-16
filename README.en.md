@@ -95,7 +95,7 @@ While a word is being typed it is underlined and shows the language Seamtype exp
 | Return | commit only (press again for a newline or to send; a setting) | commit as shown, kana or live-converted kanji (no newline) |
 | ⌃K / F7, ⌃J / F6 | (the app's shortcut) | katakana / hiragana (Space flips, Return commits) |
 | Tab, arrows, ⌘/⌃/⌥ | commit, the app gets the key | same |
-| **Right ⌘** (tapped on its own) | pause / resume Seamtype in this text field | same |
+| **Right ⌘** (tapped on its own; a setting) | pause / resume Seamtype in this text field | same |
 
 A symbol typed on its own after Japanese is full-width and stays underlined, as in a Japanese IME (`！`, `＿`, `「`): Return confirms it (no newline), Space offers its other forms (`!`, `‼︎`, `『`…), and a letter confirms it and starts a new word. Inside numbers (`3.5`, `10:30`) it stays half-width, and a bracket opened full-width closes full-width even after an English word (`日本語（English）`).
 
@@ -174,7 +174,12 @@ another app or text field, or change a setting, to resume.
 
 Each tap shows Seamtype's icon under the caret for a moment, like the input source indicator,
 struck through when paused. The menu bar icon doesn't change, so to check later, look for the tick
-in the input menu. Turn the key off under Keys in the settings window.
+in the input menu.
+
+Change the pause key under Keys in the settings window: right ⌘, ⌥, ⇧ or ⌃ tapped on its own, a
+recorded shortcut (one with ⌘, ⌃ or ⌥, like ⌃⌥P, or a function key alone), or none. A key that
+switches languages (right ⌥ or ⇧, ⌥Space) or types kana (⌃J, ⌃K, F6, F7) can't be chosen. A
+shortcut the app also has in its menus may reach the app first.
 
 ### vim
 
@@ -203,7 +208,7 @@ quits, words are decided again at the shell.
 ## Settings
 
 From the input menu (the menu bar, while Seamtype is selected) you can:
-- pause Seamtype in this text field (like right ⌘)
+- pause Seamtype in this text field (like the pause key)
 - turn word conversion on or off for the app in front, set its conversion threshold
   (Normal/Strict), whether Esc switches languages and whether the word is held after Space or
   punctuation, or drop its settings. Those are greyed while conversion is off
@@ -211,7 +216,7 @@ From the input menu (the menu bar, while Seamtype is selected) you can:
 - undo the last learned word, and open Try Typing, the remembered words or the settings window
 
 The settings window has Languages (Japanese and its options), Keys (the language switch keys,
-Return, right ⌘), per-app behavior, Try Typing (how each word was decided, with scores), the learned
+Return, the pause key), per-app behavior, Try Typing (how each word was decided, with scores), the learned
 words (forget one or all) and About. The kanji candidate order resets under Japanese input in
 Languages. Changes apply at once.
 
@@ -231,7 +236,7 @@ over (`apps.json` and `lexicon.json` too).
 | `japanese` | **off** | Detect romaji Japanese and convert it. |
 | `liveConversion` | off | While you type a Japanese phrase, show its top kanji candidate (`今日はいい天気でs`); Return commits it as shown. Like macOS Live Conversion. |
 | `returnConfirmsOnly` | on | Return on an underlined word only confirms it. Off, the app gets that Return too (a Japanese phrase is still only confirmed). |
-| `rightCommandPause` | on | A right ⌘ tap pauses Seamtype in the text field (see [Pause](#pause)). |
+| `pauseKey` | `"rightCommand"` | The pause key (see [Pause](#pause)): `"rightCommand"`, `"rightOption"`, `"rightShift"` or `"rightControl"` tapped alone, `"off"`, or a shortcut such as `{ "keyCode": 35, "modifiers": ["control", "option"], "key": "P" }`. The older `"rightCommandPause": false` reads as `"off"`. |
 | `fullWidthDigits` | off | Numbers after Japanese come out full-width (`１２３`, `０３－１２３４` in addresses and phone numbers), underlined, with Space offering `123` (half-width) or conversions like `三月`. |
 | `fullWidthSpace` | off | Space after Japanese types a full-width space (`　`). ⇧Space types the other width (full-width while this is off). |
 | `japaneseEngine` | `"apple"` | Kanji conversion: `"apple"` uses the engine of macOS's Japanese input, `"azooKey"` the AzooKey converter in the app. |

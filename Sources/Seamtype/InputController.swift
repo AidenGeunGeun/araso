@@ -15,8 +15,9 @@ private let log = Logger(subsystem: "com.aimdevlee.inputmethod.Seamtype", catego
 @objc(SeamtypeInputController)
 final class InputController: IMKInputController {
     private var current: (session: InputSession, generation: Int)?
-    /// When right ⌘ went down, while no other key has been pressed with it: a tap pauses.
-    private var rightCommandDown: Date?
+    /// When the pause key (a right modifier, `Settings.pauseKey`) went down, while no other key
+    /// has been pressed with it: a tap pauses.
+    private var pauseTapDown: Date?
     /// Which switch key (right ⌥ or right ⇧, in `AppPolicy.switchKeys`) went down and when,
     /// while no other key has been pressed with it: a tap switches the word's language.
     private var switchTapDown: (key: UInt16, at: Date)?
@@ -45,7 +46,6 @@ final class InputController: IMKInputController {
         static let up: UInt16 = 126
         static let f6: UInt16 = 97
         static let f7: UInt16 = 98
-        static let rightCommand: UInt16 = 54
         static let rightOption: UInt16 = 61
         static let rightShift: UInt16 = 60
         static let space: UInt16 = 49
@@ -110,7 +110,7 @@ final class InputController: IMKInputController {
         guard let event, let input = sender as? IMKTextInput else { return false }
         if event.type == .flagsChanged {
             MainActor.assumeIsolated {
-                rightCommandChanged(event, client: input)
+                pauseTapChanged(event, client: input)
                 switchTapChanged(event, client: input)
             }
             return false
@@ -119,7 +119,7 @@ final class InputController: IMKInputController {
             log.debug("handle: not a key event from a text client")
             return false
         }
-        rightCommandDown = nil // ⌘ with a key is a shortcut, not a tap
+        pauseTapDown = nil // a modifier with a key is a shortcut, not a tap
         switchTapDown = nil // ⌥ or ⇧ with a key types a character, not a tap
         if maskedField(input) {
             // A masked password field: the keys go to the app as typed, as when paused.
@@ -127,6 +127,11 @@ final class InputController: IMKInputController {
             return false
         }
         return MainActor.assumeIsolated {
+            if case .shortcut(let shortcut) = Runtime.shared.settings.pauseKey,
+               shortcut.matches(keyCode: event.keyCode, modifiers: KeyModifiers(event.modifierFlags)) {
+                togglePause(client: input)
+                return true
+            }
             let key = key(for: event)
             let handled = session.handle(key, client: IMKClient(input))
             syncCandidates()
@@ -150,20 +155,24 @@ final class InputController: IMKInputController {
                                       caret: client.selectedRange())
     }
 
-    /// Right ⌘ pressed and released on its own, within a moment: pause or resume Seamtype in
-    /// this text field. The app still gets the ⌘ events, as a lone ⌘ does nothing.
-    @MainActor private func rightCommandChanged(_ event: NSEvent, client: IMKTextInput) {
-        guard Runtime.shared.settings.rightCommandPause else { return }
-        guard event.keyCode == KeyCode.rightCommand else {
-            rightCommandDown = nil // another modifier joined in
+    /// The pause key, a right modifier, pressed and released on its own within a moment: pause
+    /// or resume Seamtype in this text field. The app still gets the modifier's events, as a lone
+    /// modifier does nothing.
+    @MainActor private func pauseTapChanged(_ event: NSEvent, client: IMKTextInput) {
+        guard case .tap(let tap) = Runtime.shared.settings.pauseKey else { return }
+        guard event.keyCode == tap.keyCode else {
+            pauseTapDown = nil // another modifier joined in
             return
         }
-        if event.modifierFlags.contains(.command) {
-            rightCommandDown = Date()
+        let flag = NSEvent.ModifierFlags(tap)
+        if event.modifierFlags.contains(flag) {
+            // Only on its own, as for a switch key: a Hyper key's tap is bound to something else.
+            let others = event.modifierFlags.intersection([.command, .control, .option, .shift]).subtracting(flag)
+            pauseTapDown = others.isEmpty ? Date() : nil
             return
         }
-        guard let down = rightCommandDown, Date().timeIntervalSince(down) < 0.5 else { return }
-        rightCommandDown = nil
+        guard let down = pauseTapDown, Date().timeIntervalSince(down) < 0.5 else { return }
+        pauseTapDown = nil
         togglePause(client: client)
     }
 
@@ -174,6 +183,10 @@ final class InputController: IMKInputController {
     /// close their window).
     @MainActor private func switchTapChanged(_ event: NSEvent, client: IMKTextInput) {
         let flag: NSEvent.ModifierFlags
+        if case .tap(let tap) = Runtime.shared.settings.pauseKey, tap.keyCode == event.keyCode {
+            switchTapDown = nil // the pause key wins where an app chose the same key
+            return
+        }
         switch event.keyCode {
         case KeyCode.rightOption where session.policy.switchKeys.contains(.rightOption): flag = .option
         case KeyCode.rightShift where session.policy.switchKeys.contains(.rightShift): flag = .shift
@@ -318,7 +331,8 @@ final class InputController: IMKInputController {
             // A temporary state of this text field first, then the app's saved settings: word
             // conversion and, under it, what only matters while it is on. The names are the
             // settings window's, so a choice reads the same in both.
-            add(runtime.settings.rightCommandPause ? L("Pause in This Text Field (right ⌘)") : L("Pause in This Text Field"),
+            add(runtime.settings.pauseKey == .off ? L("Pause in This Text Field")
+                    : L("Pause in This Text Field (%@)", runtime.settings.pauseKey.label),
                 // A session from before a settings change is replaced, unpaused, on the next key.
                 #selector(togglePause(_:)), on: current.map { $0.generation == runtime.generation && $0.session.paused } ?? false)
             menu.addItem(.separator())
@@ -456,5 +470,26 @@ private final class IMKClient: TextClient {
 
     func text(in range: NSRange) -> String? {
         input.attributedSubstring(from: range)?.string
+    }
+}
+
+extension NSEvent.ModifierFlags {
+    init(_ tap: PauseKey.Tap) {
+        switch tap {
+        case .rightCommand: self = .command
+        case .rightOption: self = .option
+        case .rightShift: self = .shift
+        case .rightControl: self = .control
+        }
+    }
+}
+
+extension KeyModifiers {
+    init(_ flags: NSEvent.ModifierFlags) {
+        self = []
+        if flags.contains(.control) { insert(.control) }
+        if flags.contains(.option) { insert(.option) }
+        if flags.contains(.shift) { insert(.shift) }
+        if flags.contains(.command) { insert(.command) }
     }
 }

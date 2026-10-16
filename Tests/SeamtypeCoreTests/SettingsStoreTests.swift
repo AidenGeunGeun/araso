@@ -14,16 +14,55 @@ import Testing
         }
     }
 
-    @Test func rightCommandPauseIsOnUnlessTurnedOff() throws {
+    @Test func pauseKeyIsRightCommandUnlessChanged() throws {
         let url = dir.appendingPathComponent("settings.json")
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         try Data(#"{ "japanese": true }"#.utf8).write(to: url)
-        #expect(Settings.load(from: url).rightCommandPause)
-        try Settings(rightCommandPause: false).save(to: url)
-        #expect(!Settings.load(from: url).rightCommandPause)
+        #expect(Settings.load(from: url).pauseKey == .tap(.rightCommand))
+        try Settings(pauseKey: .off).save(to: url)
+        #expect(Settings.load(from: url).pauseKey == .off)
+        let shortcut = PauseKey.Shortcut(keyCode: 35, modifiers: [.control, .option], key: "P")
+        try Settings(pauseKey: .shortcut(shortcut)).save(to: url)
+        #expect(Settings.load(from: url).pauseKey == .shortcut(shortcut))
         #expect(Settings.load(from: url).returnConfirmsOnly)
         try Settings(returnConfirmsOnly: false).save(to: url)
         #expect(!Settings.load(from: url).returnConfirmsOnly)
+    }
+
+    /// Before pauseKey, right ⌘ was turned off with rightCommandPause; that still holds, and a
+    /// save moves it into pauseKey.
+    @Test func rightCommandPauseOffMeansNoPauseKey() throws {
+        let url = dir.appendingPathComponent("settings.json")
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        try Data(#"{ "rightCommandPause": false }"#.utf8).write(to: url)
+        #expect(Settings.load(from: url).pauseKey == .off)
+        try Settings.load(from: url).save(to: url)
+        let saved = try JSONSerialization.jsonObject(with: Data(contentsOf: url)) as? [String: Any]
+        #expect(saved?["rightCommandPause"] == nil)
+        #expect(saved?["pauseKey"] as? String == "off")
+
+        try Data(#"{ "pauseKey": { "keyCode": 96, "modifiers": [] , "key": "F5" } }"#.utf8).write(to: url)
+        #expect(Settings.load(from: url).pauseKey == .shortcut(.init(keyCode: 96, modifiers: [], key: "F5")))
+        try Data(#"{ "pauseKey": "leftCommand" }"#.utf8).write(to: url)
+        #expect(Settings.load(from: url).pauseKey == .standard)
+    }
+
+    /// A shortcut that would type, or that Seamtype already uses, can't pause.
+    @Test func pauseShortcutProblems() {
+        func problem(_ keyCode: UInt16, _ modifiers: KeyModifiers, switchKeys: Set<SwitchKey> = AppPolicy.standardSwitchKeys) -> PauseKey.Shortcut.Problem? {
+            PauseKey.Shortcut(keyCode: keyCode, modifiers: modifiers, key: "").problem(switchKeys: switchKeys)
+        }
+        #expect(problem(35, [.control, .option]) == nil) // ⌃⌥P
+        #expect(problem(96, []) == nil) // F5
+        #expect(problem(35, []) == .types)
+        #expect(problem(35, [.shift]) == .types)
+        #expect(problem(97, []) == .seamtypes) // F6
+        #expect(problem(40, [.control]) == .seamtypes) // ⌃K
+        #expect(problem(49, [.option]) == nil)
+        #expect(problem(49, [.option], switchKeys: [.optionSpace]) == .switchKey)
+        #expect(PauseKey.tap(.rightOption).switchKey == .rightOption)
+        #expect(PauseKey.tap(.rightCommand).switchKey == nil)
+        #expect(PauseKey.Shortcut(keyCode: 35, modifiers: [.command, .control, .option, .shift], key: "P").display == "⌃⌥⇧⌘P")
     }
 
     /// A hand-edited value of the wrong type costs only that key; a file that isn't JSON is set

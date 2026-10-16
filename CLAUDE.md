@@ -91,7 +91,8 @@ tests use `FakeTextField`). It owns the preview and hysteresis, commits, Esc rea
   ⇧ was already down) and drops whatever the input method inserts; deciding each key there lost
   letters (`PASSWORD` came out `pASSwrD`). A terminal with Secure Keyboard Entry reports its
   caret, so it isn't affected.
-- A right ⌘ tap (flagsChanged, in `InputController`) pauses the session until the next tap,
+- The pause key (`Settings.pauseKey`: a right modifier tap, by default ⌘, read from flagsChanged, or a
+  shortcut caught in keyDown, both in `InputController`) pauses the session until it is pressed again,
   `activate`, or a settings change (a fresh session). The menu icon can't change, so `PauseHUD`
   shows the icon under the caret for a moment, struck through when paused (drawn by
   `make-icon.swift --slash`), for the menu's toggle too. It copies the system's input source

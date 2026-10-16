@@ -506,6 +506,8 @@ private struct GeneralPane: View {
 private struct KeysPane: View {
     @ObservedObject var model: SettingsModel
     @State private var showInfo = false
+    /// Why the key just typed for the pause shortcut can't be one, under the row's description.
+    @State private var pauseProblem: String?
 
     private func binding(_ key: WritableKeyPath<SeamtypeCore.Settings, Bool>) -> Binding<Bool> {
         Binding(get: { model.settings[keyPath: key] }, set: { model.set(key, $0) })
@@ -521,7 +523,7 @@ private struct KeysPane: View {
             Section {
                 LabeledContent {
                     HStack(spacing: 4) {
-                        KeycapToggles(selection: model.defaultPolicy.switchKeys) { key, on in
+                        KeycapToggles(selection: model.defaultPolicy.switchKeys, taken: model.settings.pauseKey.switchKey) { key, on in
                             model.setDefault { if on { $0.switchKeys.insert(key) } else { $0.switchKeys.remove(key) } }
                         }
                         Button { showInfo.toggle() } label: { Image(systemName: "info.circle") }
@@ -551,13 +553,134 @@ private struct KeysPane: View {
                     Text(L("Return only confirms"))
                     Text(L("Return on an underlined word confirms it; press it again for a new line. Japanese is always only confirmed."))
                 }
-                Toggle(isOn: binding(\.rightCommandPause)) {
-                    Text(L("Right ⌘ tap pauses"))
-                    Text(L("Keys go through as typed in that text field, for hjkl in terminal programs. Tap again to resume."))
+                LabeledContent {
+                    PauseKeyPicker(selection: model.settings.pauseKey, switchKeys: model.defaultPolicy.switchKeys,
+                                   problem: $pauseProblem) {
+                        model.set(\.pauseKey, $0)
+                    }
+                } label: {
+                    Text(L("Pause"))
+                    Text(L("Keys go through as typed in that text field, for hjkl in terminal programs. Press it again to resume."))
+                    if let pauseProblem {
+                        Label(pauseProblem, systemImage: "exclamationmark.triangle.fill")
+                            .foregroundStyle(.orange)
+                    }
                 }
+                .animation(.snappy(duration: 0.2), value: pauseProblem)
             }
         }
         .formStyle(.grouped)
+    }
+}
+
+/// The pause key: a right modifier tapped alone, a shortcut typed while recording, or none.
+/// The recorder that replaces the pop-up keeps one width, so typing into it moves nothing.
+private struct PauseKeyPicker: View {
+    let selection: PauseKey
+    /// The default's switch keys, which can't pause too.
+    let switchKeys: Set<SwitchKey>
+    @Binding var problem: String?
+    let set: (PauseKey) -> Void
+    @State private var monitor: Any?
+
+    private static let width: CGFloat = 150
+
+    var body: some View {
+        Group {
+            if monitor != nil {
+                Recorder(problem: problem != nil) { stopRecording() }
+            } else {
+                Menu {
+                    choice(L("Off"), .off)
+                    Divider()
+                    ForEach(PauseKey.Tap.allCases, id: \.self) { tap in
+                        let taken = tap.switchKey.map(switchKeys.contains) ?? false
+                        // A disabled item can't show a tooltip: the reason goes in its title.
+                        choice(taken ? L("%@ — switches languages", PauseKey.tap(tap).title) : PauseKey.tap(tap).title, .tap(tap))
+                            .disabled(taken)
+                    }
+                    Divider()
+                    if case .shortcut = selection {
+                        choice(selection.title, selection)
+                    }
+                    Button(L("Record Shortcut…")) { record() }
+                } label: {
+                    Text(selection.title)
+                }
+                .fixedSize()
+            }
+        }
+        .onDisappear { stopRecording() }
+    }
+
+    /// Where a shortcut is being typed: a field with the focus ring, as macOS's own recorders.
+    private struct Recorder: View {
+        let problem: Bool
+        let cancel: () -> Void
+
+        var body: some View {
+            let shape = RoundedRectangle(cornerRadius: 6, style: .continuous)
+            HStack(spacing: 4) {
+                Text(L("Type a shortcut"))
+                    .foregroundStyle(problem ? Color.orange : Color.secondary)
+                    .lineLimit(1)
+                Spacer(minLength: 0)
+                Button(action: cancel) { Image(systemName: "xmark.circle.fill") }
+                    .buttonStyle(.borderless)
+                    .foregroundStyle(.secondary)
+                    .help(L("Cancel (Esc)"))
+                    .accessibilityLabel(L("Cancel"))
+            }
+            .padding(.leading, 8).padding(.trailing, 4)
+            .frame(width: PauseKeyPicker.width, height: 22)
+            .background(shape.fill(Color(nsColor: .textBackgroundColor)))
+            .overlay(shape.strokeBorder(problem ? Color.orange : Color.accentColor, lineWidth: 2))
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel(L("Type a shortcut"))
+        }
+    }
+
+    private func choice(_ title: String, _ key: PauseKey) -> some View {
+        Toggle(title, isOn: Binding(get: { selection == key }, set: { if $0 { problem = nil; set(key) } }))
+    }
+
+    /// The next key typed in this window becomes the shortcut; Esc alone cancels.
+    private func record() {
+        problem = nil
+        monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+            let modifiers = KeyModifiers(event.modifierFlags)
+            if event.keyCode == 53, modifiers.isEmpty {
+                stopRecording()
+                return nil
+            }
+            let shortcut = PauseKey.Shortcut(keyCode: event.keyCode, modifiers: modifiers, key: Self.keyName(event))
+            switch shortcut.problem(switchKeys: switchKeys) {
+            case .types?: problem = L("Add ⌘, ⌃ or ⌥: without one the key types. F-keys can go alone.")
+            case .seamtypes?: problem = L("%@ types hiragana or katakana.", shortcut.display)
+            case .switchKey?: problem = L("%@ switches a word's language. Turn that off first.", shortcut.display)
+            case nil:
+                problem = nil
+                set(.shortcut(shortcut))
+                stopRecording()
+            }
+            return nil
+        }
+    }
+
+    private func stopRecording() {
+        if let monitor { NSEvent.removeMonitor(monitor) }
+        monitor = nil
+        problem = nil
+    }
+
+    /// The key as printed on it: "P", "F5", "Space", "←".
+    private static func keyName(_ event: NSEvent) -> String {
+        if let index = PauseKey.Shortcut.functionKeys.firstIndex(of: event.keyCode) { return "F\(index + 1)" }
+        let named: [UInt16: String] = [49: "Space", 36: "↩", 76: "⌤", 48: "⇥", 51: "⌫", 117: "⌦", 53: "⎋",
+                                       123: "←", 124: "→", 125: "↓", 126: "↑",
+                                       115: "↖", 119: "↘", 116: "⇞", 121: "⇟"]
+        if let name = named[event.keyCode] { return name }
+        return event.charactersIgnoringModifiers?.uppercased() ?? "#\(event.keyCode)"
     }
 }
 
@@ -731,7 +854,7 @@ private struct AppRowView: View {
                     model.setEntry(for: row.id) { $0.conversionThreshold = value }
                 }
                 .frame(width: AppColumns.conversion, alignment: .leading)
-                SwitchKeysMenu(own: row.entry.switchKeys,
+                SwitchKeysMenu(own: row.entry.switchKeys, taken: model.settings.pauseKey.switchKey,
                                effective: row.entry.applied(to: defaultPolicy).switchKeys,
                                inherited: defaultPolicy.switchKeys) { value in
                     model.setEntry(for: row.id) { $0.switchKeys = value }
@@ -829,6 +952,8 @@ private struct FieldMenu<Value>: View {
 /// changed one key at a time (the first change starts from what the app has now).
 private struct SwitchKeysMenu: View {
     let own: Set<SwitchKey>?
+    /// Taken by the pause key: can't be turned on.
+    let taken: SwitchKey?
     let effective: Set<SwitchKey>
     let inherited: Set<SwitchKey>
     let set: (Set<SwitchKey>?) -> Void
@@ -847,6 +972,7 @@ private struct SwitchKeysMenu: View {
                         if on { keys.insert(key) } else { keys.remove(key) }
                         set(keys)
                     }))
+                    .disabled(key == taken && !(own ?? effective).contains(key))
             }
         } label: {
             // A menu's label shows only text.
