@@ -62,6 +62,20 @@ import Testing
         #expect(field.text == expected)
     }
 
+    /// Shift held a key too long after ㄸ or ㄲ (어떤 as djEJs) in a terminal, after English too.
+    @Test func lingeringShiftTypesKorean() {
+        session.activate(app: "test.terminal")
+        type("ok djEJs qkRNleh TkdRJvnf Hello API ")
+        #expect(field.text == "ok 어떤 바뀌도 쌍꺼풀 Hello API ")
+    }
+
+    /// An acronym typed straight into a Korean word splits, and the same shape typed as fast Korean doesn't.
+    @Test func acronymBeforeKoreanWordSplits() {
+        session.activate(app: "test.terminal")
+        type("EUwjdcor TMfkrh TBvkdlf ")
+        #expect(field.text == "EU정책 쓰라고 TB파일 ")
+    }
+
     /// In a terminal (0.97), 어떻게 after an English word is 0.969 sure: what was shown is committed.
     @Test func spaceCommitsWhatThePreviewShows() {
         session.activate(app: "test.terminal")

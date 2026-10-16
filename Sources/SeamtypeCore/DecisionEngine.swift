@@ -147,8 +147,10 @@ public final class HeuristicEngine: DecisionEngine, @unchecked Sendable {
     }
 
     public func decide(_ keys: String, context: DecisionContext) -> Decision {
-        // Shift on a key that has no shifted jamo (e.g. "Hello", "API") is only ever English.
-        if keys.contains(where: { $0.isUppercase && !DubeolsikLayout.isKoreanShiftKey($0) }) {
+        // Shift on a key that has no shifted jamo (e.g. "Hello", "API") is only ever English,
+        // unless it lingers from a Korean shift key onto the next key (djEJs 어떤, dPFmf 예를):
+        // then the scores decide.
+        if DubeolsikLayout.hasEnglishOnlyCapital(keys) {
             return Decision(language: .english, confidence: 0.99, output: keys, explanation: "uppercase outside QWERTOP")
         }
 

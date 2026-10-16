@@ -89,6 +89,20 @@ public struct KoreanModel: Sendable {
         tiers[syllable] ?? Self.unknownSyllableLogP
     }
 
+    /// A syllable seen at all: in the tiers, the corpus or a word of the lists, however rarely
+    /// (삐, 쪄, 뾰, 쭈 are; 뗘, 쎠, 쓔 aren't). Rarer than `unknownSyllableLogP` still means
+    /// someone typed it.
+    public func knowsSyllable(_ syllable: Character) -> Bool {
+        tiers[syllable] != nil || Self.listSyllables.contains(syllable)
+    }
+
+    private static let listSyllables: Set<Character> = {
+        var set = Set<Character>()
+        for word in vocabulary { set.formUnion(word) }
+        for word in corpusWords { set.formUnion(word) }
+        return set
+    }()
+
     /// - Parameter partial: the token is still being typed, so a trailing lone
     ///   consonant is expected rather than penalized.
     public func score(keys: String, partial: Bool = false) -> Score? {
