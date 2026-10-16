@@ -415,6 +415,59 @@ import Testing
     }
 }
 
+/// nn is ㅜㅜ in Korean chat and ん in Japanese: the preview shows what Space commits (it showed
+/// ん and went in as ㅜㅜ), the sentence decides which, and the switch key reaches both.
+@MainActor @Suite struct ChatJamoTests {
+    let field = FakeTextField()
+    let session: InputSession
+
+    init() {
+        let lex = FileManager.default.temporaryDirectory.appendingPathComponent("seamtype-cj-\(UUID().uuidString).json")
+        let engine = LearningEngine(base: SplittingEngine(base: trilingual, english: trilingual.english, japanese: trilingual.segmenter), storeURL: lex)
+        session = InputSession(engine: engine, policies: .escSwitches, japaneseEnabled: true)
+    }
+
+    func type(_ s: String) {
+        for ch in s {
+            switch ch {
+            case "⎋": _ = session.handle(.escape, client: field)
+            case let c where c.isLetter: _ = session.handle(.letter(c), client: field)
+            default: if !session.handle(.printable(ch), client: field) { field.insertText(String(ch), replacing: nil) }
+            }
+        }
+    }
+
+    @Test func showsWhatSpaceCommits() {
+        type("nn")
+        #expect(field.text == "ㅜㅜ")
+        type(" ")
+        #expect(field.text == "ㅜㅜ ")
+        type("sugoi nn")
+        #expect(field.text.hasSuffix("すごい ん"))
+        type(" ")
+        #expect(field.text.hasSuffix("すごい ん "))
+    }
+
+    /// A doubled consonant with nothing after its っ isn't Japanese on its way: ff showed っf
+    /// and went in as ff, ss showed っs and went in as っs. って (tte) is still Japanese.
+    @Test(arguments: [("ff", "ff"), ("ww", "ww"), ("ss", "ss"), ("xxx", "xxx"), ("zz", "ㅋㅋ"), ("ttedokoni", "ってどこに")])
+    func doubledConsonantShowsWhatItCommits(keys: String, word: String) {
+        type(keys)
+        #expect(field.text == word)
+        type(" ")
+        #expect(field.text == word + " ")
+    }
+
+    @Test func switchKeyReachesTheChatReading() {
+        type("nn⎋⎋⎋")
+        #expect(field.text == "ㅜㅜ")
+        type(" ⎋")
+        #expect(field.text == "ん ")
+        type("⎋⎋")
+        #expect(field.text == "ㅜㅜ ")
+    }
+}
+
 /// A word learned as Japanese types as Japanese only while Japanese is on.
 @MainActor @Suite struct LearnedJapaneseTests {
     @Test(arguments: [(true, "すし "), (false, "sushi ")])

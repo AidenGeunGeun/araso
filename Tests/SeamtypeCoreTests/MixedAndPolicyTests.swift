@@ -48,6 +48,23 @@ let splitting = SplittingEngine(base: sharedEngine, english: sharedEngine.englis
         // The engine's split (x에), which the particle split doesn't find: ㅌ에 is garbled, skipped.
         #expect(Language.english.next(for: "xdp", splits: true) == .mixed)
         #expect(Language.mixed.next(for: "xdp", splits: true) == .english)
+        // Chat jamo (ㅜㅜ, ㅋㅋ) are a clean Korean reading, not garbled.
+        #expect(Language.english.next(for: "nn", japanese: true) == .korean)
+        #expect(Language.korean.next(for: "nn", japanese: true) == .japanese)
+        #expect(Language.japanese.next(for: "nn", japanese: true) == .english)
+    }
+
+    /// Every two of ㄱ…ㅎ typed alone (ㅁㅊ, ㅈㅅ, ㄹㅇ) is a reading the switch key reaches, also
+    /// when the keys read cleanly as romaji and English both (ra: ら, ra, ㄱㅁ).
+    @Test(arguments: [true, false])
+    func switchKeyReachesEveryConsonantPair(japanese: Bool) {
+        let keys = Array("rsefaqtdwczxvg")
+        for a in keys { for b in keys {
+            let pair = String([a, b])
+            var language = Language.english, seen: [Language] = []
+            for _ in 0..<4 { language = language.next(for: pair, japanese: japanese); seen.append(language) }
+            #expect(seen.contains(.korean), "\(pair): \(seen)")
+        }}
     }
 
     @Test func mixedSentence() {

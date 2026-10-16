@@ -20,7 +20,7 @@ public enum Language: String, Codable, Sendable {
     /// What Esc switches to: english → mixed (when the keys split) → korean →
     /// japanese (when enabled) → english. Readings that can't exist for these keys
     /// are skipped (no Korean for "ra-men"), and so are garbled ones (dkssud as
-    /// Japanese: dkっすd) as long as a clean alternative exists — a typo can still
+    /// Japanese: dkっすd; loose consonants and ㅜ/ㅠ such as ㅁㅊ or ㅜㅜ aren't garbled) as long as a clean alternative exists — a typo can still
     /// be forced into its language when nothing reads cleanly. `splits`: whether the engine
     /// splits the keys (x에, hello월드 as well as github에); left out, the particle split decides.
     public func next(for keys: String, japanese: Bool = false, splits: Bool? = nil) -> Language {
@@ -36,7 +36,7 @@ public enum Language: String, Codable, Sendable {
         let clean = available.filter { language in
             switch language {
             case .english, .mixed: return true
-            case .korean: return HangulComposer.compose(keys: keys)?.strayJamo.isEmpty == true
+            case .korean: return HangulComposer.compose(keys: keys).map { $0.strayJamo.isEmpty || $0.isJamoAbbreviation } == true
             case .japanese: return RomajiComposer.compose(keys).strayLetters == 0
             }
         }
@@ -173,9 +173,14 @@ public final class HeuristicEngine: DecisionEngine, @unchecked Sendable {
             let floor = score.composition.syllables.count >= 2 ? koreanKnownFloor.long : koreanKnownFloor.short
             k = KoreanModel.Score(averageLogProbability: max(score.averageLogProbability, floor), composition: score.composition)
         }
-        // A dictionary English word may already be complete: score its Japanese reading as
-        // finished too, so the preview shows what Space will commit ("to" stays to, not と).
-        let j = japanese?.score(keys: keys, partial: context.partial && !known)
+        // A dictionary English word may already be complete, and so are chat jamo (ㅜㅜ): score
+        // the Japanese reading as finished too, so the preview shows what Space will commit
+        // ("to" stays to, not と; nn shows ㅜㅜ, not ん that Space turned into ㅜㅜ). So is a
+        // doubled consonant with nothing after its っ (ff, ww): no Japanese word is only っ, so
+        // it isn't one on its way (ff showed っf and went in as ff); って (tte) still is.
+        let chat = k?.composition.isChat == true
+        let sokuonFirst = RomajiComposer.compose(keys, partial: true).isOnlySokuon
+        let j = japanese?.score(keys: keys, partial: context.partial && !known && !chat && !sokuonFirst)
         // English words inside a Japanese phrase (googlede…) score as segmented Japanese,
         // not as kana with stray letters.
         var segmented: (segments: [JapaneseSegmenter.Segment], score: Double)?

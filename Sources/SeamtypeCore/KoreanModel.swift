@@ -94,10 +94,7 @@ public struct KoreanModel: Sendable {
     public func score(keys: String, partial: Bool = false) -> Score? {
         guard let composition = HangulComposer.compose(keys: keys), !keys.isEmpty else { return nil }
         let units = composition.units
-        let allChat = units.count >= 2 && units.allSatisfy {
-            if case .jamo(let j) = $0 { return Self.chatJamo.contains(j) }
-            return false
-        }
+        let allChat = composition.isChat
         var total = 0.0
         for (i, unit) in units.enumerated() {
             switch unit {
@@ -114,5 +111,25 @@ public struct KoreanModel: Sendable {
             }
         }
         return Score(averageLogProbability: total / Double(keys.count), composition: composition)
+    }
+}
+
+extension HangulComposer.Result {
+    /// ㅋㅋ, ㅠㅠ, ㅜㅜ: two or more of the jamo typed on their own in chat. Korean as it is, and
+    /// already complete: they don't go on to make syllables.
+    public var isChat: Bool {
+        units.count >= 2 && units.allSatisfy {
+            if case .jamo(let j) = $0 { return KoreanModel.chatJamo.contains(j) }
+            return false
+        }
+    }
+
+    /// Two or more loose consonants, or ㅜ/ㅠ: what chat abbreviates to (ㅁㅊ, ㅈㅅ, ㄹㅇ, ㅜㅜ).
+    /// A reading worth switching to, though only the common ones (`isChat`) score as Korean.
+    public var isJamoAbbreviation: Bool {
+        units.count >= 2 && units.allSatisfy {
+            if case .jamo(let j) = $0 { return Jamo.isConsonant(j) || j == "ㅜ" || j == "ㅠ" }
+            return false
+        }
     }
 }

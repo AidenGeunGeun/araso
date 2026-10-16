@@ -1124,7 +1124,10 @@ public final class InputSession {
         case .mixed:
             let text = engine.render(keys, as: .mixed)
             return text == keys ? nil : text
-        case .japanese: return japaneseEnabled ? japaneseReading(partial: true) : nil
+        case .japanese:
+            // Only っ and letters (ss: っs) is no Japanese word, so it isn't a reading to hold on to.
+            guard japaneseEnabled else { return nil }
+            return RomajiComposer.compose(keys, partial: true).isOnlySokuon ? nil : japaneseReading(partial: true)
         }
     }
 
