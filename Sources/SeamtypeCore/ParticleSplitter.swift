@@ -121,8 +121,32 @@ public struct ParticleSplitter: Sendable {
         let e = english.averageLogProbability(keys) - weights.unknownWord / Double(n)
         let j = japaneseOn ? japaneseScore(keys) : -.infinity
         let whole = max(k, e, j)
-        let detail = String(format: "split=%.2f ko=%.2f en=%.2f ja=%.2f", best.score, k, e, j)
-        return (best.split, best.score - whole, detail)
+        // English + Korean word is a split too: the particle split has to beat it, but not by
+        // `margin`, which is for splitting at all (funeral로 over funer + 미로).
+        let w = englishThenKoreanWordScore(chars)
+        let lead = min(best.score - whole, best.score - w + weights.margin)
+        let detail = String(format: "split=%.2f ko=%.2f en=%.2f ja=%.2f en+ko=%.2f", best.score, k, e, j, w)
+        return (best.split, lead, detail)
+    }
+
+    /// The best reading of the keys as an English front and a Korean word of two syllables or
+    /// more, per key (PC카톡에서, not PCzkxhr에서): the front as `frontScore`, the word as the whole
+    /// token is scored as Korean. A word that is only a particle is the split itself, and one
+    /// with a syllable nobody writes is no word (mac + 뇃에서 doesn't stop macshot에서).
+    func englishThenKoreanWordScore(_ chars: [Character]) -> Double {
+        var best = -Double.infinity
+        for start in 2..<(chars.count - 1) {
+            let back = String(chars[start...])
+            guard back.first.map(DubeolsikLayout.startsSyllable) == true,
+                  let composed = HangulComposer.compose(keys: back), composed.strayJamo.isEmpty,
+                  composed.syllables.count >= 2, !MixedWord.suffixes.contains(composed.text),
+                  isKoreanWordOrWordWithParticle(composed.text)
+                    || composed.syllables.allSatisfy({ korean.syllableLogProbability($0) > KoreanModel.unknownSyllableLogP }),
+                  let w = frontScore(String(chars[..<start])) else { continue }
+            let k = koreanScore(back) * Double(back.count)
+            best = max(best, (w + k - weights.switchCost) / Double(chars.count))
+        }
+        return best
     }
 
     /// The front as English (log-probability of the word); nil when it can't be one.

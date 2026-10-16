@@ -190,8 +190,9 @@ public final class SplittingEngine: DecisionEngine, @unchecked Sendable {
     /// `hellodnjfem` → `hello월드`, `designvhsxm` → `design폰트`. The front has to be a known
     /// English word (or a name typed with capitals) and the back at least two syllables:
     /// a known Korean word (optionally with a particle), or, when the whole token spells
-    /// nothing like English, any Hangul made of syllables people use. Prefers the longest
-    /// English front. Names that spell like English stay whole (cartman isn't car스무).
+    /// nothing like English, any Hangul made of syllables people use. Of the cuts that pass, the
+    /// one `ParticleSplitter` scores best (PC + 카톡에서, not PCzk + 톡에서), the longer front on a
+    /// tie. Names that spell like English stay whole (cartman isn't car스무).
     func englishThenKoreanWord(_ keys: String) -> MixedWord? {
         let chars = Array(keys)
         guard chars.count >= 5, !english.isKnownWord(keys) else { return nil }
@@ -204,11 +205,14 @@ public final class SplittingEngine: DecisionEngine, @unchecked Sendable {
         // says otherwise.
         let englishOnlyCapital = Self.hasEnglishOnlyCapital(keys)
         guard englishOnlyCapital || !readsAsKorean(keys) else { return nil }
+        var best: (word: MixedWord, score: Double)?
         for start in stride(from: chars.count - 2, through: 2, by: -1) {
             let front = String(chars[..<start]), back = String(chars[start...])
             guard back.first.map(DubeolsikLayout.startsSyllable) == true,
                   let composed = HangulComposer.compose(keys: back), composed.strayJamo.isEmpty,
-                  composed.syllables.count >= 2 else { continue }
+                  composed.syllables.count >= 2,
+                  // A particle alone (PCzkxhr + 에서) is `ParticleSplitter`'s to decide.
+                  !MixedWord.suffixes.contains(composed.text) else { continue }
             let knownKorean = isKoreanWordOrWordWithParticle(composed.text)
             guard knownKorean
                     || (spelling < unknownWordSpellingCeiling
@@ -224,9 +228,12 @@ public final class SplittingEngine: DecisionEngine, @unchecked Sendable {
                     || (acronym && knownKorean && !spellsSeenKorean(front))
                     || (front.count >= 3 && english.isKnownWord(front))
             else { continue }
-            return MixedWord(english: front, koreanKeys: back, korean: composed.text)
+            let score = (particles.frontScore(front) ?? -.infinity) + particles.koreanScore(back) * Double(back.count)
+            if best.map({ score > $0.score }) ?? true {
+                best = (MixedWord(english: front, koreanKeys: back, korean: composed.text), score)
+            }
         }
-        return nil
+        return best?.word
     }
 
     private func isKoreanWordOrWordWithParticle(_ hangul: String) -> Bool {

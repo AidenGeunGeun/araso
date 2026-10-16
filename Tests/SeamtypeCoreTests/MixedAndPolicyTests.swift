@@ -95,6 +95,9 @@ let splitting = SplittingEngine(base: sharedEngine, english: sharedEngine.englis
         // the whole token doesn't read as Korean (뗘, 쎠, 쓔 are syllables nobody types) and a known
         // Korean word follows.
         ("EUwjdcor", "EU정책"), ("TUtjqj", "TU서버"), ("TBvkdlf", "TB파일"), ("ETLwjdcor", "ETL정책"), ("TTLtjfwjd", "TTL설정"),
+        // A word with a particle after it, even one the lists don't have: PC + 카톡에서, not
+        // PCzkxhr (a "name" for its capital C) + 에서, nor PCzk + 톡에서.
+        ("PCzkxhrdptj", "PC카톡에서"), ("APIzkxhrdptj", "API카톡에서"),
     ])
     func splitsEnglishPlusKoreanWord(keys: String, expected: String) {
         let d = splitting.decide(keys, context: DecisionContext())
