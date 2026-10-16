@@ -290,13 +290,15 @@ Locally, in this order. A keystroke's preview takes at most ~3 ms and a word's f
    - A single English letter + particle, as in a variable name: `xdp` → `x에`, `Xfmf` → `X를`. Not
      `도`/`나` after a lowercase letter, which are common English endings (`heh`, `tsk`); a capital
      gives `X도`.
-   - English + Korean word, when the front is a known English word (or a name typed with capitals)
-     and the back is in the Korean word list. When the whole token spells nothing like English, any
-     Hangul of common syllables splits too. `hellodnjfem` → `hello월드`, `githubtjqj` → `github서버`.
-     Acronyms too (`PDFvkdlf` → `PDF파일`). One shaped like a double consonant with a lingering
-     Shift (`EU` is `뗘`) splits only when that syllable doesn't exist in Korean and a word from the
-     list follows: `EUwjdcor` → `EU정책`. `TMwjdcor` is `쓰정책` (쓰 is a common syllable) and
-     `EUdlswmd` is `뗘인증` (인증 isn't in the list); type such acronyms as `TM 정책`, with a space.
+   - English + Korean word, by the same score comparison as English + particle: when the split
+     reading leads reading the token whole. After an acronym or a name typed with its capitals it
+     splits readily (`PDFvkdlf` → `PDF파일`, `PCzkxhr` → `PC카톡`, `iPhonevkdlf` → `iPhone파일`). After
+     an ordinary English word, a rarer pair, only when the whole token spells nothing like English:
+     `hellodnjfem` → `hello월드`, `githubtjqj` → `github서버`; `cartman` isn't `car스무`. One shaped like
+     a double consonant with a lingering Shift (`EU` is `뗘`) splits only when that syllable doesn't
+     exist in Korean and a word from the list follows: `EUwjdcor` → `EU정책`. `TMwjdcor` is `쓰정책` (쓰
+     is a common syllable) and `EUdlswmd` is `뗘인증` (인증 isn't in the list); type such acronyms as
+     `TM 정책`, with a space.
    - Korean, then an English word: `dhsmfdmsgoogledptj` → `오늘은google에서`. The Korean goes in
      and the rest keeps composing.
    - With Japanese on:
