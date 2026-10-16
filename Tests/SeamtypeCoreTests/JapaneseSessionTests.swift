@@ -54,6 +54,17 @@ import Testing
         #expect(field.text == "きょうはいいてんk")
     }
 
+    /// A capital is never romaji, as in macOS's Japanese input method: ⇧P shows P while typed
+    /// (not the p of a letter waiting for its vowel), and ⇧O is O, not お.
+    @Test func capitalLetterIsNotRomaji() {
+        type("hello P")
+        #expect(field.text == "hello P")
+        type(" O")
+        #expect(field.text == "hello P O")
+        type(" ")
+        #expect(field.text == "hello P O ")
+    }
+
     /// Return commits what was shown: letters waiting for their vowel stay letters rather than
     /// splitting an English word out of the phrase (わたしhag), and only n becomes ん.
     @Test func returnCommitsPendingLettersAsShown() {

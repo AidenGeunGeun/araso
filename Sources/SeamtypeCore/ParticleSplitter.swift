@@ -255,8 +255,9 @@ public struct ParticleSplitter: Sendable {
         return score.averageLogProbability
     }
 
-    /// The whole token as kana, per key. Capitals after the first letter aren't romaji
-    /// (UIde is UI + で); one at the start may begin a sentence (Kyouha).
+    /// The whole token as kana, per key: only what keeps it from splitting, as the decision
+    /// engine reads a capital as English. Capitals after the first letter aren't romaji
+    /// (UIde is UI + で); one at the start may begin a sentence (Kyouha stays whole).
     func japaneseScore(_ keys: String) -> Double {
         guard !keys.dropFirst().contains(where: \.isUppercase), let score = japanese?.score(keys: keys) else { return -.infinity }
         return score.averageLogProbability + weights.japaneseOffset

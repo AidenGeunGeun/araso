@@ -567,7 +567,7 @@ public final class InputSession {
         if ch.isASCII, ch.isNumber {
             guard digitsFullWidth else { return false }
             return forced == .japanese || (forced == nil && previewLanguage == .japanese
-                                           && ["", "n"].contains(RomajiComposer.compose(keys, partial: true).pending))
+                                           && ["", "n"].contains(RomajiComposer.compose(keys, partial: true).pending.lowercased()))
         }
         guard JapaneseModel.inPhraseSymbols.contains(ch) else { return false }
         if forced == .japanese { return true }
@@ -580,7 +580,7 @@ public final class InputSession {
         // A letter still waiting for its vowel says the word may not be Japanese after all
         // (baz) is baz), not ばz）); a final n is ん (nihon. is にほん。).
         if previewLanguage == .japanese {
-            return ch == "-" || ch == "'" || ["", "n"].contains(RomajiComposer.compose(keys, partial: true).pending)
+            return ch == "-" || ch == "'" || ["", "n"].contains(RomajiComposer.compose(keys, partial: true).pending.lowercased())
         }
         // An English word before the mark keeps it English (to-do, co-op); ra-men isn't one.
         guard forced == nil, ch == "-" || ch == "'", previewLanguage == .english,

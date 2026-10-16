@@ -33,6 +33,16 @@ import Testing
         #expect(RomajiComposer.compose("hon", partial: true).text == "ほn")
     }
 
+    /// Letters that don't become kana stay as typed: a capital P waiting for its vowel is P.
+    @Test func lettersLeftOverKeepTheirCase() {
+        #expect(RomajiComposer.compose("P", partial: true).text == "P")
+        #expect(RomajiComposer.compose("P", partial: true).pending == "P")
+        #expect(RomajiComposer.compose("KonniC", partial: true).text == "こんにC")
+        #expect(RomajiComposer.compose("HoN", partial: true).text == "ほN")
+        #expect(RomajiComposer.compose("Pdf").text == "Pdf")
+        #expect(RomajiComposer.compose("Konnichiha").text == "こんにちは")
+    }
+
     @Test(arguments: ["strength", "dkssud", "world", "keyboard", "gksrmf"])
     func nonJapaneseLeavesStrayLetters(word: String) {
         #expect(RomajiComposer.compose(word).strayLetters > 0)

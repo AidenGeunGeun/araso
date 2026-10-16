@@ -189,7 +189,9 @@ public final class HeuristicEngine: DecisionEngine, @unchecked Sendable {
         // it isn't one on its way (ff showed っf and went in as ff); って (tte) still is.
         let chat = k?.composition.isChat == true
         let sokuonFirst = RomajiComposer.compose(keys, partial: true).isOnlySokuon
-        let j = japanese?.score(keys: keys, partial: context.partial && !known && !chat && !sokuonFirst)
+        // A capital is never romaji: Japanese IMEs type ⇧ letters as themselves (⇧O is O, not お).
+        let j = keys.contains(where: \.isUppercase) ? nil
+            : japanese?.score(keys: keys, partial: context.partial && !known && !chat && !sokuonFirst)
         // English words inside a Japanese phrase (googlede…) score as segmented Japanese,
         // not as kana with stray letters.
         var segmented: (segments: [JapaneseSegmenter.Segment], score: Double)?

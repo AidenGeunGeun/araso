@@ -314,6 +314,8 @@ Locally, in this order. A keystroke's preview takes at most ~3 ms and a word's f
    lingers from a double consonant or ㅒ/ㅖ onto the one key right after (`djEJs` → `어떤`,
    `dlTDj` → `있어`, `dPFmf` → `예를`): those go by the scores. An acronym typed in capitals
    throughout (`TM`, `RN`) or a word starting on O or P (`PDFvkdlf` → `PDF파일`, `OAuth`) stays English.
+   A word with a capital in it is never read as Japanese: as in macOS's Japanese input method, a
+   letter typed with ⇧ stays a letter (`O` is `O`, not `お`; `Kyouha` stays as typed).
 4. **Heuristic:** the keys are scored per keystroke in all three languages, plus a nudge toward the
    previous word's language.
    - English: character trigrams, and a floor for words in the SCOWL list, by how common they are

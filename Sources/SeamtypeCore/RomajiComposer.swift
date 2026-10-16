@@ -24,7 +24,10 @@ public enum RomajiComposer {
     /// - Parameter partial: the word is still being typed, so a trailing "k" or "n"
     ///   is waiting for its vowel rather than stray.
     public static func compose(_ keys: String, partial: Bool = false) -> Result {
-        let chars = Array(keys.lowercased())
+        // Matched in lowercase; letters that don't become kana stay as typed (⇧P waiting for its
+        // vowel shows P, not p).
+        let typed = Array(keys)
+        let chars = typed.map { $0.isASCII ? Character($0.lowercased()) : $0 }
         var out = ""
         var stray = 0
         var kana = 0
@@ -54,7 +57,7 @@ public enum RomajiComposer {
                     }
                     if !vowels.contains(next) && next != "y" { emit("ん"); i += 1; continue }
                 } else {
-                    if partial { pending = "n" } else { emit("ん") }
+                    if partial { pending = String(typed[i]) } else { emit("ん") }
                     i += 1
                     continue
                 }
@@ -75,12 +78,11 @@ public enum RomajiComposer {
             }
             if matched { continue }
 
-            let rest = String(chars[i...])
-            if partial, prefixes.contains(rest) {
-                pending = rest
+            if partial, prefixes.contains(String(chars[i...])) {
+                pending = String(typed[i...])
                 break
             }
-            out.append(c)
+            out.append(typed[i])
             stray += 1
             i += 1
         }
