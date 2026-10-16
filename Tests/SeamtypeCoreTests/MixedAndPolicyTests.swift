@@ -20,6 +20,43 @@ let splitting = SplittingEngine(base: sharedEngine, english: sharedEngine.englis
         #expect(d.output == expected)
     }
 
+    // An acronym that a lingering Shift could also read as Korean (TM as 쓰, TL as 씨) splits when the
+    // particle is the form its last letter's name takes (티엠은, 이엘이), or when the Korean reading
+    // puts the wrong form after its word (씨을, 꺼을: no word + particle floor).
+    @Test(arguments: [("TMdms", "TM은"), ("TMdmf", "TM을"), ("TLdms", "TL은"), ("TLdmf", "TL을"),
+                      ("ELdl", "EL이"), ("ELdms", "EL은"), ("RJdmf", "RJ을"), ("RJdl", "RJ이")])
+    func acronymWithAgreeingParticleSplits(keys: String, expected: String) {
+        let d = splitting.decide(keys, context: DecisionContext())
+        #expect(d.language == .mixed, "\(keys) → \(d.output) \(d.explanation)")
+        #expect(d.output == expected)
+    }
+
+    // The same shape stays Korean when the Korean reading is right too: 는 after 티엠 is the wrong
+    // form (TM은), and 에 has one form for both (씨에, TL에). Typed without the lingering Shift
+    // (Tkfdmf, Tlsms) it's plain Korean.
+    @Test(arguments: [("TMsms", "쓰는"), ("RNsms", "꾸는"), ("TLdp", "씨에"), ("Tkfdmf", "쌀을"), ("Tlsms", "씨는")])
+    func acronymShapedParticleKoreanStaysKorean(keys: String, expected: String) {
+        let d = splitting.decide(keys, context: DecisionContext())
+        #expect(d.language == .korean, "\(keys) → \(d.output) \(d.explanation)")
+        #expect(d.output == expected)
+    }
+
+    @Test func particleFormFollowsTheFinalSound() {
+        typealias M = MixedWord
+        #expect(M.particleAgrees("을", final: M.finalSound(of: "책")!) == true)
+        #expect(M.particleAgrees("를", final: M.finalSound(of: "책")!) == false)
+        #expect(M.particleAgrees("이", final: M.finalSound(of: "씨")!) == false)
+        #expect(M.particleAgrees("가", final: M.finalSound(of: "씨")!) == true)
+        #expect(M.particleAgrees("로", final: M.finalSound(of: "울")!) == true) // 서울로
+        #expect(M.particleAgrees("으로", final: M.finalSound(of: "울")!) == false)
+        #expect(M.particleAgrees("을", final: M.finalSound(of: "울")!) == true)
+        #expect(M.particleAgrees("에", final: M.finalSound(of: "씨")!) == nil)
+        #expect(M.particleAgrees("은", final: M.finalSound(ofAcronym: "TM")) == true)
+        #expect(M.particleAgrees("는", final: M.finalSound(ofAcronym: "TM")) == false)
+        #expect(M.particleAgrees("는", final: M.finalSound(ofAcronym: "TV")) == true)
+        #expect(M.particleAgrees("로", final: M.finalSound(ofAcronym: "URL")) == true)
+    }
+
     // A lingering Shift (ㄲ then ㅜ as N) doesn't make the front a name: no split.
     @Test(arguments: [("RNfdmf", "꿀을"), ("qkRNleh", "바뀌도"), ("djEJsrj", "어떤거"), ("TMfkrh", "쓰라고")])
     func lingeringShiftIsNotAName(keys: String, expected: String) {

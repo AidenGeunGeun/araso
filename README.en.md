@@ -273,7 +273,11 @@ Locally, in this order. A keystroke's preview takes at most ~3 ms and a word's f
      reading the whole token as Hangul or as English. The more common the English word (or an
      acronym or name typed in capitals) and the less the whole reads as a Korean word, the likelier
      the split: `githubdp` → `github에`, `UIrkxdmsrjs` → `UI같은건`, `formdptj` → `form에서` (래그 is
-     no word). `gosemfdmf` stays `핸들을`.
+     no word). `gosemfdmf` stays `핸들을`. Of 은/는, 을/를 and 이/가, the form that fits the end of the
+     word before counts as likelier: an acronym ends as its last letter is said (`TMdms` → `TM은`,
+     티엠), and whole Hangul with the wrong form (`씨을`) isn't taken as a word + particle. An acronym
+     shaped like a double consonant with a lingering Shift stays Hangul when that reading is right
+     too: `TMsms` → `쓰는` (TM takes `은`), `TLdp` → `씨에` (`에` has one form).
    - A single English letter + particle, as in a variable name: `xdp` → `x에`, `Xfmf` → `X를`. Not
      `도`/`나` after a lowercase letter, which are common English endings (`heh`, `tsk`); a capital
      gives `X도`.

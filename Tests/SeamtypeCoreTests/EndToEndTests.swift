@@ -76,6 +76,13 @@ import Testing
         #expect(field.text == "EU정책 쓰라고 TB파일 ")
     }
 
+    /// An acronym a lingering Shift could read as Korean (TM as 쓰) keeps a particle in its own form.
+    @Test func acronymWithAgreeingParticle() {
+        session.activate(app: "test.terminal")
+        type("ok TMdms TLdmf TMsms ")
+        #expect(field.text == "ok TM은 TL을 쓰는 ")
+    }
+
     /// In a terminal (0.97), 어떻게 after an English word is 0.969 sure: what was shown is committed.
     @Test func spaceCommitsWhatThePreviewShows() {
         session.activate(app: "test.terminal")
