@@ -52,8 +52,7 @@ struct DictionaryPane: View {
                 }
                 .pickerStyle(.segmented).labelsHidden().fixedSize()
                 Spacer()
-                TextField(L("Search keys or words"), text: $search)
-                    .textFieldStyle(.roundedBorder).frame(width: 180)
+                ComposingSearchField(placeholder: L("Search keys or words"), text: $search).frame(width: 180)
                 Button { editing = .new(keys: "") } label: { Label(L("Add…"), systemImage: "plus") }
             }
             Text(L("These keys come out as written here, also with a particle after them. A word corrected once only leans that way, and is forgotten after 30 days unless you correct or type it again."))
@@ -317,6 +316,59 @@ struct EntrySheet: View {
     static func withParticle(_ keys: String, as language: Language) -> String {
         let word = UserDictionary.reading(keys, as: language)
         return word + (language == .japanese ? "で" : "에")
+    }
+}
+
+/// A search field that filters while a word is still being composed: SwiftUI's `TextField`
+/// passes on its text only once the input method commits it, and Seamtype keeps the word
+/// underlined until Space, Return or a focus change. Its field editor moves the caret with
+/// every change to the composed word, so the text is read on each selection change.
+private struct ComposingSearchField: NSViewRepresentable {
+    let placeholder: String
+    @Binding var text: String
+
+    func makeCoordinator() -> Coordinator { Coordinator(text: $text) }
+
+    func makeNSView(context: Context) -> NSSearchField {
+        let field = NSSearchField()
+        field.placeholderString = placeholder
+        field.delegate = context.coordinator
+        field.sendsSearchStringImmediately = true
+        context.coordinator.field = field
+        return field
+    }
+
+    func updateNSView(_ field: NSSearchField, context: Context) {
+        context.coordinator.text = $text
+        if field.currentEditor() == nil, field.stringValue != text { field.stringValue = text }
+    }
+
+    final class Coordinator: NSObject, NSSearchFieldDelegate {
+        var text: Binding<String>
+        weak var field: NSSearchField?
+        private var observer: NSObjectProtocol?
+
+        init(text: Binding<String>) {
+            self.text = text
+            super.init()
+            observer = NotificationCenter.default.addObserver(forName: NSTextView.didChangeSelectionNotification,
+                                                              object: nil, queue: .main) { [weak self] note in
+                guard let self, let editor = note.object as? NSTextView,
+                      let field = self.field, field.currentEditor() === editor else { return }
+                self.update(editor.string)
+            }
+        }
+
+        deinit { observer.map(NotificationCenter.default.removeObserver) }
+
+        func controlTextDidChange(_ note: Notification) {
+            guard let field = note.object as? NSSearchField else { return }
+            update(field.currentEditor()?.string ?? field.stringValue)
+        }
+
+        private func update(_ value: String) {
+            if text.wrappedValue != value { text.wrappedValue = value }
+        }
     }
 }
 
