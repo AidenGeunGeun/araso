@@ -162,7 +162,7 @@ final class SettingsModel: ObservableObject {
     @Published private(set) var learned: [Word] = []
     @Published private(set) var pending: [Word] = []
 
-    private let lexicon = LearningEngine(base: NoEngine())
+    private let dictionary = DictionaryEngine(base: NoEngine())
 
     init(tab: SettingsTab) {
         self.tab = tab
@@ -172,13 +172,13 @@ final class SettingsModel: ObservableObject {
 
     func reload() {
         settings = SeamtypeCore.Settings.load()
-        lexicon.reload()
+        dictionary.reload()
         let words = { (map: [String: Language]) in
             map.map { Word(keys: $0.key, text: NoEngine().render($0.key, as: $0.value), language: $0.value) }
                 .sorted { $0.keys < $1.keys }
         }
-        learned = words(lexicon.learned)
-        pending = words(lexicon.pending)
+        learned = words(dictionary.learned)
+        pending = words(dictionary.pending)
         let policies = AppPolicies.load()
         defaultPolicy = policies.defaultPolicy
         apps = policies.apps
@@ -257,23 +257,23 @@ final class SettingsModel: ObservableObject {
 
     // Learning
 
-    // Each starts from lexicon.json as it is now: the input method keeps learning while the
+    // Each starts from dictionary.json as it is now: the input method keeps learning while the
     // window is open, and writing the window's copy back would undo that.
 
     func forget(_ keys: String) {
-        lexicon.reload()
-        lexicon.forget(keys)
+        dictionary.reload()
+        dictionary.forget(keys)
         changed()
     }
 
     func forgetAll() {
-        lexicon.reload()
-        lexicon.forgetAll()
+        dictionary.reload()
+        dictionary.forgetAll()
         changed()
     }
 }
 
-/// Lets the window read and edit lexicon.json through `LearningEngine` without loading models.
+/// Lets the window read and edit dictionary.json through `DictionaryEngine` without loading models.
 private struct NoEngine: DecisionEngine {
     func decide(_ keys: String, context: DecisionContext) -> Decision {
         Decision(language: .english, confidence: 0.5, output: keys, explanation: "")

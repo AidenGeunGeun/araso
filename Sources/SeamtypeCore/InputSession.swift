@@ -118,7 +118,7 @@ public final class InputSession {
         }
     }
 
-    public let engine: LearningEngine
+    public let engine: DictionaryEngine
     public let converter: JapaneseConverter?
     public var japaneseEnabled: Bool
     public private(set) var keys = ""
@@ -188,7 +188,7 @@ public final class InputSession {
     private var liveSuppressed = false
     private var liveCache: (kana: String, candidate: ConversionCandidate?)?
 
-    public init(engine: LearningEngine, policies: AppPolicies = AppPolicies(),
+    public init(engine: DictionaryEngine, policies: AppPolicies = AppPolicies(),
                 converter: JapaneseConverter? = nil, japaneseEnabled: Bool = false, liveConversion: Bool = false,
                 returnConfirmsOnly: Bool = true) {
         self.engine = engine
@@ -1149,7 +1149,7 @@ public final class InputSession {
         // "Back to kana" without the user's Esc, or a reading kept while deleting, isn't a
         // correction: report it as the engine's.
         let decided = (forced != nil && !forcedByUser) || (forced == nil && pinned != nil) ? language : engineChoice
-        if forced != nil, forcedByUser { record(keys, as: language, engineChoice: decided) }
+        if forced != nil, forcedByUser { record(keys, as: language, engineChoice: decided) } else { engine.used(keys, as: language) }
         let text = language == .japanese ? committedJapanese()
                  : language == .korean ? hangul() ?? engine.render(keys, as: language) : engine.render(keys, as: language)
         liveSuppressed = false

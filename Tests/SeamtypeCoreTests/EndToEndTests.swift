@@ -10,7 +10,7 @@ import Testing
 
     init() throws {
         let dir = FileManager.default.temporaryDirectory
-        let engine = LearningEngine(base: SplittingEngine(base: trilingual, english: trilingual.english, japanese: trilingual.segmenter),
+        let engine = DictionaryEngine(base: SplittingEngine(base: trilingual, english: trilingual.english, japanese: trilingual.segmenter),
                                     storeURL: dir.appendingPathComponent("seamtype-e2e-\(UUID().uuidString).json"))
         let converter = try #require(AzooKeyConverter(memory: dir.appendingPathComponent("seamtype-e2e-\(UUID().uuidString)")))
         // A terminal the user set to strict, where Esc goes to the app; Esc switches elsewhere.

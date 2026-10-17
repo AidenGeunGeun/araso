@@ -9,7 +9,7 @@ import Testing
 
     init() {
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("seamtype-pause-\(UUID().uuidString).json")
-        session = InputSession(engine: LearningEngine(base: sharedEngine, storeURL: url))
+        session = InputSession(engine: DictionaryEngine(base: sharedEngine, storeURL: url))
         session.activate(app: "test.app")
     }
 
@@ -55,7 +55,7 @@ import Testing
     @Test func strictStillSplitsMixedWords() {
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("seamtype-strict-\(UUID().uuidString).json")
         let policies = AppPolicies(overrides: ["test.terminal": .init(conversionThreshold: AppPolicy.strictThreshold)])
-        let session = InputSession(engine: LearningEngine(base: splitting, storeURL: url), policies: policies)
+        let session = InputSession(engine: DictionaryEngine(base: splitting, storeURL: url), policies: policies)
         session.activate(app: "test.terminal")
         let field = FakeTextField()
         for ch in "ciw gst githubdp xdp hellodnjfem " {

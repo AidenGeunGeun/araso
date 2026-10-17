@@ -8,7 +8,7 @@ struct PreviewTraceTests {
     @Test(arguments: ["kyouhaiitenkidesune", "watashihagakuseidesu", "dkssudgktpdy", "keyboard", "githubdp", "arigatou"])
     func trace(keys: String) {
         let field = FakeTextField()
-        let engine = LearningEngine(base: SplittingEngine(base: trilingual, english: trilingual.english, japanese: trilingual.segmenter), storeURL: nil)
+        let engine = DictionaryEngine(base: SplittingEngine(base: trilingual, english: trilingual.english, japanese: trilingual.segmenter), storeURL: nil)
         let session = InputSession(engine: engine, japaneseEnabled: true)
         var shown: [String] = []
         for ch in keys {

@@ -114,7 +114,7 @@ case "--type":
     let threshold = ProcessInfo.processInfo.environment["SEAMTYPE_THRESHOLD"].flatMap(Double.init)
     let policies = AppPolicies(overrides: threshold.map { ["*": AppPolicy.Override(conversionThreshold: $0)] } ?? [:])
     MainActor.assumeIsolated {
-        let engine = LearningEngine(base: SplittingEngine(base: heuristic, english: heuristic.english, japanese: heuristic.segmenter),
+        let engine = DictionaryEngine(base: SplittingEngine(base: heuristic, english: heuristic.english, japanese: heuristic.segmenter),
                                     storeURL: FileManager.default.temporaryDirectory.appendingPathComponent("seamtype-type-\(UUID().uuidString).json"))
         while let keys = readLine() {
             let field = PlainTextField()

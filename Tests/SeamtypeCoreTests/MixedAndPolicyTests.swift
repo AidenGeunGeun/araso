@@ -215,12 +215,12 @@ let splitting = SplittingEngine(base: sharedEngine, english: sharedEngine.englis
 
 @MainActor @Suite struct SessionPolicyTests {
     let field = FakeTextField()
-    let learning: LearningEngine
+    let learning: DictionaryEngine
     let session: InputSession
 
     init() {
         let dir = FileManager.default.temporaryDirectory
-        learning = LearningEngine(base: splitting, storeURL: dir.appendingPathComponent("seamtype-lex-\(UUID().uuidString).json"))
+        learning = DictionaryEngine(base: splitting, storeURL: dir.appendingPathComponent("seamtype-lex-\(UUID().uuidString).json"))
         let policies = AppPolicies(overrides: ["*": .init(switchKeys: [.escape, .shiftEscape]),
                                                "test.strict": .init(conversionThreshold: 0.9999),
                                                "test.off": .init(enabled: false)])

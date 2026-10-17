@@ -219,9 +219,11 @@ next reading, and pressing it again keeps cycling. Deleting the space or punctua
 that chance; any other key ends it. This needs the caret still right after the word, and an app that
 lets Seamtype read the text there.
 
-A correction changes only that word, so a stray switch doesn't stick. Correct the same keys the same
-way a second time and Seamtype remembers it; switching a word back to Seamtype's own guess forgets
-it.
+A word corrected once leans that way from then on: a close call (`so`/`내`) turns, a clear one
+doesn't, so a stray switch doesn't do much. It is forgotten after 30 days unless corrected or typed
+that way again. Correct the same keys the same way a second time and Seamtype always writes them so;
+switching a word back to Seamtype's own guess forgets it. Long tokens (over 20 keys, such as a
+sentence switched as one) aren't remembered.
 
 <details>
 <summary>In apps where that can't work: hold the word after Space or punctuation</summary>
@@ -323,7 +325,7 @@ The settings window has these panes, and changes apply at once.
 The menu and the settings window both write JSON files in `~/Library/Application Support/Seamtype/`.
 You can edit them by hand; missing keys, and values of the wrong type (`"true"` in quotes), keep the
 default. A file that isn't readable JSON is moved aside, such as to `settings.json.unreadable`,
-rather than written over (`apps.json` and `lexicon.json` too). After editing these files by hand,
+rather than written over (`apps.json` and `dictionary.json` too). After editing these files by hand,
 restart the input method: `pkill -x Seamtype`.
 
 <details>
@@ -386,7 +388,8 @@ Locally, in this order. A keystroke's preview takes at most ~3 ms and a word's f
 ~7 ms, even 70 letters into a phrase.
 
 1. **Your corrections**: words corrected twice ([learning](#undo-after-commit-and-learning)) always
-   win (`lexicon.json`).
+   win (`dictionary.json`; 0.1.16's `lexicon.json` moves into it when first read). A word corrected
+   once only nudges the scores.
 2. **Mixed words**: two languages run together, like `github에`, `PDF파일` or `githubで`, are split,
    in an app set to Strict too.
 3. **Rules**: what the keys alone settle, like a capital typed with Shift.
@@ -507,7 +510,7 @@ held-out score. Many remaining misses are genuinely ambiguous keys: `so`/내, `g
 - Undo after commit needs apps that report their caret and text. In a terminal, set
   `"holdSpace": true` to keep the word underlined after Space or punctuation instead.
 - Where Esc is a switch key, Esc right after a word (e.g. to close a popup) changes that word first.
-  It isn't learned unless repeated; leave Esc out for such apps in the per-app settings.
+  Once only leans that way; it isn't always written so unless repeated; leave Esc out for such apps in the per-app settings.
 - Japanese: only the first clause is resized with ←/→ (Return commits it and moves on to the
   rest). Rare words still need the candidate list.
 

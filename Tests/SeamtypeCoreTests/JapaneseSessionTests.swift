@@ -37,7 +37,7 @@ import Testing
 
     init() {
         let lex = FileManager.default.temporaryDirectory.appendingPathComponent("seamtype-ja-\(UUID().uuidString).json")
-        let engine = LearningEngine(base: SplittingEngine(base: trilingual, english: trilingual.english, japanese: trilingual.segmenter), storeURL: lex)
+        let engine = DictionaryEngine(base: SplittingEngine(base: trilingual, english: trilingual.english, japanese: trilingual.segmenter), storeURL: lex)
         session = InputSession(engine: engine, converter: converter, japaneseEnabled: true)
     }
 
@@ -446,7 +446,7 @@ import Testing
 
     init() {
         let lex = FileManager.default.temporaryDirectory.appendingPathComponent("seamtype-cj-\(UUID().uuidString).json")
-        let engine = LearningEngine(base: SplittingEngine(base: trilingual, english: trilingual.english, japanese: trilingual.segmenter), storeURL: lex)
+        let engine = DictionaryEngine(base: SplittingEngine(base: trilingual, english: trilingual.english, japanese: trilingual.segmenter), storeURL: lex)
         session = InputSession(engine: engine, policies: .escSwitches, japaneseEnabled: true)
     }
 
@@ -496,7 +496,7 @@ import Testing
     @Test(arguments: [(true, "すし "), (false, "sushi ")])
     func followsTheJapaneseSetting(japanese: Bool, typed: String) {
         let lex = FileManager.default.temporaryDirectory.appendingPathComponent("seamtype-lj-\(UUID().uuidString).json")
-        let engine = LearningEngine(base: japanese ? SplittingEngine(base: trilingual, english: trilingual.english, japanese: trilingual.segmenter)
+        let engine = DictionaryEngine(base: japanese ? SplittingEngine(base: trilingual, english: trilingual.english, japanese: trilingual.segmenter)
                                                    : splitting, storeURL: lex)
         engine.learn("sushi", as: .japanese, engineChoice: .english)
         engine.learn("sushi", as: .japanese, engineChoice: .english)
@@ -518,7 +518,7 @@ import Testing
     @Test(arguments: [("qud", "병"), ("eho", "돼"), ("ajanf", "머물")])
     func koreanWordShowsWhatItCommits(keys: String, word: String) {
         let lex = FileManager.default.temporaryDirectory.appendingPathComponent("seamtype-sj-\(UUID().uuidString).json")
-        let engine = LearningEngine(base: SplittingEngine(base: trilingual, english: trilingual.english, japanese: trilingual.segmenter), storeURL: lex)
+        let engine = DictionaryEngine(base: SplittingEngine(base: trilingual, english: trilingual.english, japanese: trilingual.segmenter), storeURL: lex)
         let session = InputSession(engine: engine, policies: AppPolicies(overrides: [AppPolicies.defaultKey: .init(conversionThreshold: AppPolicy.strictThreshold)]),
                                    converter: FakeConverter(), japaneseEnabled: true)
         let field = FakeTextField()
@@ -531,7 +531,7 @@ import Testing
     /// A short token the threshold keeps English still converts when its kana are on screen.
     @Test func spaceConvertsAShortTokenShownAsKana() {
         let lex = FileManager.default.temporaryDirectory.appendingPathComponent("seamtype-sj-\(UUID().uuidString).json")
-        let engine = LearningEngine(base: SplittingEngine(base: trilingual, english: trilingual.english, japanese: trilingual.segmenter), storeURL: lex)
+        let engine = DictionaryEngine(base: SplittingEngine(base: trilingual, english: trilingual.english, japanese: trilingual.segmenter), storeURL: lex)
         let session = InputSession(engine: engine, policies: AppPolicies(overrides: [AppPolicies.defaultKey: .init(conversionThreshold: AppPolicy.strictThreshold)]),
                                    converter: FakeConverter(), japaneseEnabled: true)
         let field = FakeTextField()
@@ -549,7 +549,7 @@ import Testing
 
     init() {
         let lex = FileManager.default.temporaryDirectory.appendingPathComponent("seamtype-tr-\(UUID().uuidString).json")
-        let engine = LearningEngine(base: SplittingEngine(base: trilingual, english: trilingual.english, japanese: trilingual.segmenter), storeURL: lex)
+        let engine = DictionaryEngine(base: SplittingEngine(base: trilingual, english: trilingual.english, japanese: trilingual.segmenter), storeURL: lex)
         session = InputSession(engine: engine, policies: AppPolicies(overrides: [AppPolicies.defaultKey: .init(conversionThreshold: AppPolicy.strictThreshold)]),
                                converter: converter, japaneseEnabled: true)
         session.replacements = ["ㅈㅅ": ["죄송합니다"], "주소": ["서울시"], "よろ": ["よろしくお願いします"], "go": ["gone"]]

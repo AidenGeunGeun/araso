@@ -57,7 +57,7 @@ final class FakeTextField: TextClient {
 
     init() {
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("seamtype-session-\(UUID().uuidString).json")
-        session = InputSession(engine: LearningEngine(base: sharedEngine, storeURL: url), policies: .escSwitches)
+        session = InputSession(engine: DictionaryEngine(base: sharedEngine, storeURL: url), policies: .escSwitches)
     }
 
     @discardableResult
@@ -246,7 +246,7 @@ final class FakeTextField: TextClient {
     func session(japanese: Bool = false) -> InputSession {
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("seamtype-mixed-\(UUID().uuidString).json")
         let base = japanese ? SplittingEngine(base: trilingual, english: trilingual.english, japanese: trilingual.segmenter) : splitting
-        return InputSession(engine: LearningEngine(base: base, storeURL: url), policies: .escSwitches, japaneseEnabled: japanese)
+        return InputSession(engine: DictionaryEngine(base: base, storeURL: url), policies: .escSwitches, japaneseEnabled: japanese)
     }
 
     /// The English + Korean word split is what gets typed, not only what the engine decides.
@@ -268,7 +268,7 @@ final class FakeTextField: TextClient {
     /// also right after a commit. The chosen keys (`.cycle`) still switch.
     @Test func escGoesToTheAppUnlessChosen() {
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("seamtype-esc-\(UUID().uuidString).json")
-        let session = InputSession(engine: LearningEngine(base: sharedEngine, storeURL: url))
+        let session = InputSession(engine: DictionaryEngine(base: sharedEngine, storeURL: url))
         #expect(session.policy.switchKeys == [.rightOption, .shiftEscape])
         type(session, "dkssud")
         #expect(!session.handle(.escape, client: field))
@@ -285,7 +285,7 @@ final class FakeTextField: TextClient {
     /// With the setting off, Return confirms the word and the app gets it too.
     @Test func returnGoesOnWhenItDoesntOnlyConfirm() {
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("seamtype-return-\(UUID().uuidString).json")
-        let session = InputSession(engine: LearningEngine(base: sharedEngine, storeURL: url), returnConfirmsOnly: false)
+        let session = InputSession(engine: DictionaryEngine(base: sharedEngine, storeURL: url), returnConfirmsOnly: false)
         type(session, "dkssud")
         #expect(!session.handle(.enter, client: field))
         #expect(field.text == "안녕" && field.marked.location == NSNotFound)

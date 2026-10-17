@@ -9,7 +9,7 @@ final class Runtime {
     static let shared = Runtime()
 
     private(set) var settings: Settings
-    private(set) var engine: LearningEngine
+    private(set) var engine: DictionaryEngine
     private(set) var converter: JapaneseConverter?
     private(set) var generation = 0
     /// The controller of the text field in front, which a vim mode change is about.
@@ -39,12 +39,13 @@ final class Runtime {
         }
     }
 
-    /// Order of authority: words the user changed with Esc (twice), then mixed-word splitting
+    /// Order of authority: the user's dictionary (words added, or corrected the same way twice;
+    /// one correction only nudges), then mixed-word splitting
     /// (github에, x에, hello월드, githubで), then the heuristic.
-    private static func makeEngine(japanese: Bool) -> LearningEngine {
+    private static func makeEngine(japanese: Bool) -> DictionaryEngine {
         let heuristic = HeuristicEngine(japanese: japanese ? JapaneseModel.shared : nil)
-        return LearningEngine(base: SplittingEngine(base: heuristic, english: heuristic.english,
-                                                    japanese: heuristic.segmenter))
+        return DictionaryEngine(base: SplittingEngine(base: heuristic, english: heuristic.english,
+                                                      japanese: heuristic.segmenter))
     }
 
     /// macOS's Japanese engine unless the user chose AzooKey; AzooKey also where macOS's can't be loaded.

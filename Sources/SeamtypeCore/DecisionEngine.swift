@@ -52,10 +52,13 @@ public struct DecisionContext: Sendable {
     public var previousLanguage: Language?
     /// The token is still being typed (used for the live preview).
     public var partial: Bool
+    /// The language the user corrected these keys to once (a weak dictionary entry).
+    public var nudge: Language?
 
-    public init(previousLanguage: Language? = nil, partial: Bool = false) {
+    public init(previousLanguage: Language? = nil, partial: Bool = false, nudge: Language? = nil) {
         self.previousLanguage = previousLanguage
         self.partial = partial
+        self.nudge = nudge
     }
 }
 
@@ -139,6 +142,9 @@ public final class HeuristicEngine: DecisionEngine, @unchecked Sendable {
     /// How far Japanese must lead before a known English word is turned into kana
     /// outside Japanese text.
     public var englishWordProtection = 1.0
+    /// Added to the language the user corrected the keys to once (`DecisionContext.nudge`):
+    /// as much as the previous word's pull, so a close call turns and a clear one doesn't.
+    public var correctionBias = 0.8
 
     public let segmenter: JapaneseSegmenter?
 
@@ -214,11 +220,14 @@ public final class HeuristicEngine: DecisionEngine, @unchecked Sendable {
             }
             scores[i].1 += bias
         }
+        if let nudge = context.nudge, nudge != .mixed, let i = scores.firstIndex(where: { $0.0 == nudge }) {
+            scores[i].1 += correctionBias
+        }
         scores.sort { $0.1 > $1.1 }
 
         // A dictionary English word only becomes kana on a clear win, unless we're already
-        // in Japanese text (where "same", "sake", "kite" are Japanese words).
-        if known, scores[0].0 == .japanese, context.previousLanguage?.sentenceLanguage != .japanese,
+        // in Japanese text or the user corrected it to Japanese once (where "same", "sake", "kite" are Japanese words).
+        if known, scores[0].0 == .japanese, context.previousLanguage?.sentenceLanguage != .japanese, context.nudge != .japanese,
            let englishIndex = scores.firstIndex(where: { $0.0 == .english }),
            scores[0].1 - scores[englishIndex].1 < englishWordProtection {
             scores.swapAt(0, englishIndex)
@@ -241,117 +250,3 @@ public final class HeuristicEngine: DecisionEngine, @unchecked Sendable {
     }
 }
 
-/// Wraps an engine with explicit per-word choices the user has made (by flipping a
-/// word with Esc). Learned choices always win.
-///
-/// One correction only changes that word: a habitual or mistaken Esc shouldn't change
-/// every later occurrence. The same correction a second time is learned.
-public final class LearningEngine: DecisionEngine, @unchecked Sendable {
-    public let base: DecisionEngine
-    private let lock = NSLock()
-    private var store: Store
-    private let storeURL: URL?
-
-    /// lexicon.json: words learned for good, and words corrected once.
-    struct Store: Codable {
-        var learned: [String: Language] = [:]
-        var once: [String: Language] = [:]
-    }
-
-    public init(base: DecisionEngine, storeURL: URL? = LearningEngine.defaultStoreURL) {
-        self.base = base
-        self.storeURL = storeURL
-        store = Self.read(storeURL)
-    }
-
-    private static func read(_ storeURL: URL?) -> Store {
-        let data = storeURL.flatMap { try? Data(contentsOf: $0) }
-        if let data, let saved = try? JSONDecoder().decode(Store.self, from: data) { return saved }
-        // Unreadable (hand-edited, or from a newer version): keep it aside, don't overwrite it.
-        if data != nil, let url = storeURL { SupportDirectory.setAside(url) }
-        return Store()
-    }
-
-    /// Words learned for good (corrected the same way twice).
-    public var learned: [String: Language] { lock.withLock { store.learned } }
-    /// Words corrected once: the same correction again learns them.
-    public var pending: [String: Language] { lock.withLock { store.once } }
-    /// The keys most recently learned for good in this process, while still learned.
-    public var lastLearned: String? {
-        lock.withLock { lastLearnedKeys.flatMap { store.learned[$0] != nil ? $0 : nil } }
-    }
-    private var lastLearnedKeys: String?
-
-    /// Re-reads lexicon.json (after the settings window changed it).
-    public func reload() {
-        let fresh = Self.read(storeURL)
-        lock.withLock { store = fresh }
-    }
-
-    /// Forgets the keys, learned or pending: the engine decides them again.
-    public func forget(_ keys: String) {
-        persist(lock.withLock {
-            guard store.learned[keys] != nil || store.once[keys] != nil else { return nil }
-            store.learned[keys] = nil
-            store.once[keys] = nil
-            return store
-        })
-    }
-
-    /// Forgets every learned and pending word.
-    public func forgetAll() {
-        persist(lock.withLock {
-            store = Store()
-            return store
-        })
-    }
-
-    public static var defaultStoreURL: URL? {
-        SupportDirectory.url?.appendingPathComponent("lexicon.json")
-    }
-
-    public func decide(_ keys: String, context: DecisionContext) -> Decision {
-        if let learned = lock.withLock({ store.learned[keys] }) {
-            // Rendered by the base engine: this engine's own render(.mixed) would ask it to
-            // decide the keys again, find them learned, and so on without end.
-            return Decision(language: learned, confidence: 1, output: base.render(keys, as: learned), explanation: "learned")
-        }
-        return base.decide(keys, context: context)
-    }
-
-    /// Records that `keys` were corrected to `language`. The second time the same
-    /// correction is made it is learned; correcting back to the engine's own choice
-    /// forgets the word.
-    ///
-    /// Pass `engineChoice` when the caller already knows what the engine decided (the
-    /// input method always does: what was on screen, which a fresh decision might not match).
-    public func learn(_ keys: String, as language: Language, engineChoice: Language? = nil) {
-        let baseChoice = engineChoice ?? base.decide(keys, context: DecisionContext()).language
-        let snapshot: Store? = lock.withLock {
-            // Already learned this way (e.g. converting a learned word again): nothing to change.
-            if store.learned[keys] == language { return nil }
-            if language == baseChoice {
-                store.learned[keys] = nil
-                store.once[keys] = nil
-            } else if store.learned[keys] == language || store.once[keys] == language {
-                store.learned[keys] = language
-                store.once[keys] = nil
-                lastLearnedKeys = keys
-            } else {
-                // A different correction than before: it starts over.
-                store.learned[keys] = nil
-                store.once[keys] = language
-            }
-            return store
-        }
-        persist(snapshot)
-    }
-
-    private func persist(_ snapshot: Store?) {
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-        guard let snapshot, let url = storeURL, let data = try? encoder.encode(snapshot) else { return }
-        try? FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
-        try? data.write(to: url, options: .atomic)
-    }
-}

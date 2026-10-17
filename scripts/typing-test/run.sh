@@ -15,7 +15,7 @@
 set -euo pipefail
 here="${0:A:h}"
 support="$HOME/Library/Application Support/Seamtype"
-files=(settings.json apps.json lexicon.json apple-learning.json)
+files=(settings.json apps.json dictionary.json lexicon.json apple-learning.json)
 app=""
 for candidate in "$HOME/Library/Input Methods/Seamtype.app" "/Library/Input Methods/Seamtype.app"; do
   [[ -d "$candidate" ]] && { app=$candidate; break; }

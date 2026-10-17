@@ -194,7 +194,7 @@ import Testing
 
     @Test func forgetAndUndoLearnedWords() {
         let url = dir.appendingPathComponent("lexicon.json")
-        let learning = LearningEngine(base: Fixed(language: .english), storeURL: url)
+        let learning = DictionaryEngine(base: Fixed(language: .english), storeURL: url)
         learning.learn("dlrjs", as: .korean)
         #expect(learning.pending == ["dlrjs": .korean])
         #expect(learning.lastLearned == nil)
@@ -210,13 +210,13 @@ import Testing
         learning.learn("rk", as: .korean)
         learning.learn("rk", as: .korean)
         // Another process (the settings window) edits the file; reload picks it up.
-        let other = LearningEngine(base: Fixed(language: .english), storeURL: url)
+        let other = DictionaryEngine(base: Fixed(language: .english), storeURL: url)
         other.forget("gks")
         learning.reload()
         #expect(learning.pending.isEmpty)
         #expect(learning.learned == ["rk": .korean])
 
         learning.forgetAll()
-        #expect(LearningEngine(base: Fixed(language: .english), storeURL: url).learned.isEmpty)
+        #expect(DictionaryEngine(base: Fixed(language: .english), storeURL: url).learned.isEmpty)
     }
 }

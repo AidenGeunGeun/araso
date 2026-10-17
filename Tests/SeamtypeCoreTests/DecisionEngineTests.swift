@@ -114,14 +114,14 @@ let sharedEngine = HeuristicEngine()
     @Test func learningOverridesBase() throws {
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("seamtype-test-\(UUID().uuidString).json")
         defer { try? FileManager.default.removeItem(at: url) }
-        let learning = LearningEngine(base: sharedEngine, storeURL: url)
+        let learning = DictionaryEngine(base: sharedEngine, storeURL: url)
         #expect(learning.decide("hello", context: DecisionContext()).language == .english)
         learning.learn("hello", as: .korean)
         #expect(learning.decide("hello", context: DecisionContext()).language == .english) // once: not yet
         learning.learn("hello", as: .korean)
         #expect(learning.decide("hello", context: DecisionContext()).output == "ㅗ디ㅣㅐ")
         // Persisted and reloaded.
-        let reloaded = LearningEngine(base: sharedEngine, storeURL: url)
+        let reloaded = DictionaryEngine(base: sharedEngine, storeURL: url)
         #expect(reloaded.decide("hello", context: DecisionContext()).language == .korean)
         // Learning the base choice removes the override.
         reloaded.learn("hello", as: .english)
@@ -134,7 +134,7 @@ let sharedEngine = HeuristicEngine()
         let aside = url.appendingPathExtension("unreadable")
         defer { try? FileManager.default.removeItem(at: url); try? FileManager.default.removeItem(at: aside) }
         try Data(#"{"de": "japanese"}"#.utf8).write(to: url)
-        let learning = LearningEngine(base: sharedEngine, storeURL: url)
+        let learning = DictionaryEngine(base: sharedEngine, storeURL: url)
         #expect(learning.learned.isEmpty && learning.pending.isEmpty)
         #expect(FileManager.default.fileExists(atPath: aside.path))
         // A different correction than before starts over.

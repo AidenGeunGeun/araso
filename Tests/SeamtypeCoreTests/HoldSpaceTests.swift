@@ -7,12 +7,12 @@ import Testing
 /// Delete takes back only the boundary.
 @MainActor @Suite struct HoldSpaceTests {
     let field = FakeTextField()
-    let learning: LearningEngine
+    let learning: DictionaryEngine
     let session: InputSession
 
     init() {
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("seamtype-hold-\(UUID().uuidString).json")
-        learning = LearningEngine(base: splitting, storeURL: url)
+        learning = DictionaryEngine(base: splitting, storeURL: url)
         session = InputSession(engine: learning, policies: AppPolicies(overrides: ["test.hold": .init(holdSpace: true)]))
         session.activate(app: "test.hold")
     }
@@ -105,7 +105,7 @@ import Testing
     /// A holding session with Japanese on, and its field.
     static func japaneseSession(live: Bool = false) -> (InputSession, FakeTextField) {
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("seamtype-hold-ja-\(UUID().uuidString).json")
-        let engine = LearningEngine(base: SplittingEngine(base: trilingual, english: trilingual.english, japanese: trilingual.segmenter), storeURL: url)
+        let engine = DictionaryEngine(base: SplittingEngine(base: trilingual, english: trilingual.english, japanese: trilingual.segmenter), storeURL: url)
         let session = InputSession(engine: engine, policies: AppPolicies(overrides: ["test.hold": .init(holdSpace: true)]),
                                    converter: FakeConverter(), japaneseEnabled: true, liveConversion: live)
         session.activate(app: "test.hold")
@@ -163,7 +163,7 @@ import Testing
     func heldWordReadsAsItWouldCommit(keys: String) {
         let plain = FakeTextField()
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("seamtype-hold-plain-\(UUID().uuidString).json")
-        let standard = InputSession(engine: LearningEngine(base: splitting, storeURL: url))
+        let standard = InputSession(engine: DictionaryEngine(base: splitting, storeURL: url))
         for ch in keys { standard.handle(.letter(ch), client: plain) }
         standard.handle(.printable(" "), client: plain) // the app would type the space
         type(keys + " ")
@@ -227,7 +227,7 @@ import Testing
         func run(hold: Bool) -> String {
             let field = FakeTextField()
             let url = FileManager.default.temporaryDirectory.appendingPathComponent("seamtype-hold-strict-\(UUID().uuidString).json")
-            let session = InputSession(engine: LearningEngine(base: splitting, storeURL: url),
+            let session = InputSession(engine: DictionaryEngine(base: splitting, storeURL: url),
                                        policies: AppPolicies(overrides: ["test.strict": .init(conversionThreshold: AppPolicy.strictThreshold, holdSpace: hold)]))
             session.activate(app: "test.strict")
             for ch in keys {

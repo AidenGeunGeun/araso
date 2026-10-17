@@ -9,7 +9,7 @@ import Testing
 
     init() throws {
         let dir = FileManager.default.temporaryDirectory
-        let engine = LearningEngine(base: SplittingEngine(base: trilingual, english: trilingual.english, japanese: trilingual.segmenter),
+        let engine = DictionaryEngine(base: SplittingEngine(base: trilingual, english: trilingual.english, japanese: trilingual.segmenter),
                                     storeURL: dir.appendingPathComponent("seamtype-live-\(UUID().uuidString).json"))
         let converter = try #require(AzooKeyConverter(memory: dir.appendingPathComponent("seamtype-live-\(UUID().uuidString)")))
         session = InputSession(engine: engine, policies: .escSwitches, converter: converter, japaneseEnabled: true, liveConversion: true)

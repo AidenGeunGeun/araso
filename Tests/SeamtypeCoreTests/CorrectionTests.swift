@@ -6,11 +6,11 @@ import Testing
 @MainActor @Suite struct CorrectionTests {
     let field = FakeTextField()
     let session: InputSession
-    let learning: LearningEngine
+    let learning: DictionaryEngine
 
     init() throws {
         let dir = FileManager.default.temporaryDirectory
-        learning = LearningEngine(base: SplittingEngine(base: trilingual, english: trilingual.english, japanese: trilingual.segmenter),
+        learning = DictionaryEngine(base: SplittingEngine(base: trilingual, english: trilingual.english, japanese: trilingual.segmenter),
                                   storeURL: dir.appendingPathComponent("seamtype-corr-\(UUID().uuidString).json"))
         let converter = try #require(AzooKeyConverter(memory: dir.appendingPathComponent("seamtype-corr-\(UUID().uuidString)")))
         session = InputSession(engine: learning, policies: .escSwitches, converter: converter, japaneseEnabled: true)
@@ -52,6 +52,16 @@ import Testing
         #expect(learning.learned["so"] == .korean)
         type("x so ")
         #expect(field.text.hasSuffix("내 "))
+    }
+
+    /// One correction is weak: it turns a close call ("so" with nothing before it) but isn't
+    /// learned, and typing the word as corrected keeps it.
+    @Test func oneCorrectionTurnsACloseCall() {
+        type("so⎋ ")
+        session.activate(app: "com.apple.TextEdit")
+        type("so ")
+        #expect(field.text == "내 내 ")
+        #expect(learning.pending == ["so": .korean] && learning.learned.isEmpty)
     }
 
     /// Esc after a commit passing through other readings records only where it ended up.
