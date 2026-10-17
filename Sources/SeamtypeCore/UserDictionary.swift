@@ -65,7 +65,8 @@ public struct UserDictionary: Equatable, Sendable {
     /// Records that `keys` were corrected to `language` while `shown` was on screen.
     /// Returns true when the correction made the entry sure.
     ///
-    /// - Back to what the engine showed: the learned entry goes (nothing to remember).
+    /// - Back to what the engine showed, or away from a weak entry's language while it was
+    ///   shown (the nudge turned the word wrongly): the learned entry goes.
     /// - The same correction as the weak entry: sure.
     /// - Otherwise: a weak entry for `language`, replacing any learned one.
     /// Keys the user added by hand aren't changed by corrections.
@@ -75,7 +76,10 @@ public struct UserDictionary: Equatable, Sendable {
         let index = entries.firstIndex { $0.keys == keys && $0.forEveryApp && $0.source == .learned }
         let current = index.map { entries[$0] }
         if current?.language == language, current?.strength == .sure { return false }
-        if language == shown {
+        // Back to what the engine showed, or away from what a weak entry turned it to: the
+        // nudge was wrong, and a weak entry for the reading switched back to isn't a correction.
+        let rejected = current?.strength == .weak && current?.language == shown
+        if language == shown || rejected {
             if let index { entries.remove(at: index) }
             return false
         }

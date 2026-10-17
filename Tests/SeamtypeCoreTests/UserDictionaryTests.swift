@@ -47,6 +47,10 @@ import Testing
         // Back to what was shown without the entry: forgotten.
         dictionary.learn("dlrjs", as: .english, shown: .english, today: day)
         #expect(dictionary.entries.isEmpty)
+        // Turned by a weak entry and switched away from it: forgotten.
+        dictionary.learn("so", as: .korean, shown: .english, today: day)
+        dictionary.learn("so", as: .english, shown: .korean, today: day)
+        #expect(dictionary.entries.isEmpty)
         // A sentence switched as one token isn't learned.
         dictionary.learn("taxidnswjstndkwjTlkonnichiha", as: .korean, shown: .english, today: day)
         #expect(dictionary.entries.isEmpty)

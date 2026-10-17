@@ -62,6 +62,10 @@ import Testing
         type("so ")
         #expect(field.text == "내 내 ")
         #expect(learning.pending == ["so": .korean] && learning.learned.isEmpty)
+        // Switched back where the nudge turned it: forgotten, not a weak entry the other way.
+        type("⎋⎋x ")   // 내 → そ → so
+        #expect(field.text.hasSuffix("내 so x "))
+        #expect(learning.pending.isEmpty && learning.learned.isEmpty)
     }
 
     /// Esc after a commit passing through other readings records only where it ended up.
