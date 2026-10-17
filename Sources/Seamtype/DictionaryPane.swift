@@ -101,10 +101,12 @@ struct DictionaryPane: View {
             .padding(.horizontal, 18).padding(.bottom, 4)
             List(selection: $selection) {
                 ForEach(shown) { entry in
-                    EntryRow(entry: entry, model: model) { editing = .edit(entry) }
+                    // The sheet chooses a reading: an entry of the user's own text isn't one, and
+                    // saving it there would turn the text into a reading. It can only be removed.
+                    EntryRow(entry: entry, model: model) { if entry.language != nil { editing = .edit(entry) } }
                         .tag(entry.id)
                         .contextMenu {
-                            Button(L("Edit…")) { editing = .edit(entry) }
+                            if entry.language != nil { Button(L("Edit…")) { editing = .edit(entry) } }
                             if entry.source == .learned { Button(L("Keep for Good")) { model.pin(entry.id) } }
                             Button(L("Remove"), role: .destructive) { model.remove(entry.id) }
                         }

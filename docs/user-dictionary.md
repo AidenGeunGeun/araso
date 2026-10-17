@@ -124,7 +124,7 @@ CLAUDE.md의 Decision chain과 Key replacements 항목을 함께 고친다.
 main에서 시작한다(2026-10-17). `key-replacements` 브랜치는 main에 들어가지 않았으므로,
 내 글(`text`) 항목은 저장소가 읽고 쓰기만 하고 입력에는 아직 쓰이지 않는다. 입력에 쓰는 일은 따로 한다.
 
-3단계 완료: 사전 탭(`DictionaryPane.swift`, `List`에 고정 폭 열), 필터, 📌 고정, + 시트(`KeyCaptureView`: 텍스트 뷰가 아니라 입력기를 거치지 않는다; 친 글자가 ASCII면 그것, 아니면 US 키 코드), 입력해 보기의 "사전에 추가…". 시트는 영어·한국어·일본어와 앱만 고른다. 내 글은 입력에 쓰는 코드가 없어 목록에 보이기만 한다. 앱 제한 항목은 키 전체가 같을 때만 쓰인다(`DecisionContext.app`). 주의: `List` 위의 설명 `Text`에 `.fixedSize(horizontal: false, vertical: true)`를 주면 창 전체가 그려지지 않았다.
+3단계 완료: 사전 탭(`DictionaryPane.swift`, `List`에 고정 폭 열), 필터, 📌 고정, + 시트(`KeyCaptureView`: 텍스트 뷰가 아니라 입력기를 거치지 않는다; 친 글자가 ASCII면 그것, 아니면 US 키 코드), 입력해 보기의 "사전에 추가…". 시트는 영어·한국어·일본어와 앱만 고른다. 내 글은 입력에 쓰는 코드가 없어 목록에 보이기만 하고, 고치기는 열리지 않는다(지우기만). 학습한 단어를 시트에서 저장하면 등록이 된다(고정과 같음, 일부러 그렇게 둠). 앱 제한 항목은 키 전체가 같을 때만 쓰인다(`DecisionContext.app`). 주의: `List` 위의 설명 `Text`에 `.fixedSize(horizontal: false, vertical: true)`를 주면 창 전체가 그려지지 않았다.
 2단계 완료: 조사가 붙은 형태(위 적용 범위). 1단계 완료: `UserDictionary.swift`(`UserDictionary`, `DictionaryEngine`), `DecisionContext.nudge`와
 `HeuristicEngine.correctionBias`(0.8, 앞 단어가 당기는 힘과 같음), 커밋할 때 `used`로 weak 항목의 날짜 갱신.
 weak `mixed`는 미는 대상이 없어 효과가 없다(예전 `once`와 같음).
