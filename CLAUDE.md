@@ -44,7 +44,7 @@ dictionary.json: a correction made twice or a word added by hand wins; one corre
 passed down as `DecisionContext.nudge` and worth `correctionBias`, and expires after 30 days unless
 corrected or typed again; lexicon.json of 0.1.16 moves in on first read; a winning word with a
 particle after it, `withParticle`, splits too: 촉매를, ghostty에, hogeで, under `ParticleSplitter`'s
-guards) → `SplittingEngine`
+guards; an entry limited to apps applies to the keys as a whole, by `DecisionContext.app`) → `SplittingEngine`
 (`MixedWord.swift`) → `HeuristicEngine`. Plan for the rest of the dictionary: `docs/user-dictionary.md`.
 - `SplittingEngine` handles English + Korean particle (`github에`), a single letter + particle
   (`xdp` → `x에`, not 도/나 after a lowercase letter), English + whole Korean word (`hello월드`,
@@ -132,6 +132,11 @@ the distributed notification `com.aimdevlee.inputmethod.Seamtype.settingsChanged
 on it. About's Uninstall… (`Uninstaller.swift`, shown only in a copy under an Input Methods folder)
 deletes both installed copies and the pkg receipt, so testing it uninstalls the real input method:
 run `scripts/install.sh` again afterwards.
+- The Dictionary tab (`DictionaryPane.swift`, tab id `learning`) takes keys in `KeyCaptureView`, an
+  NSView that isn't a text view, so no input method sees them. To look at a change, run
+  `build/Seamtype.app/Contents/MacOS/Seamtype --settings learning` with `SEAMTYPE_SUPPORT_DIR`
+  set to a scratch folder (never `open` it), then `lsregister -u build/Seamtype.app`. A
+  `.fixedSize(horizontal: false, vertical: true)` text above its `List` left the whole window blank.
 
 **Per-app policy** (`AppPolicy.swift`): in `apps.json`, `"*"` is the user's default and an app
 entry names only the keys that differ; a key ending in `.` matches as a prefix. There is no

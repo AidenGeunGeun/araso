@@ -176,4 +176,38 @@ import Testing
         let ghost = try self.engine([.init(keys: "ghos", language: .english, source: .user)])
         #expect(ghost.decide("ghost", context: DecisionContext()).output == "ghost")
     }
+
+    /// Added from the settings window: one entry per keys and apps, an app's own one first.
+    @Test func addPinRemoveAndApps() throws {
+        let engine = try engine([.init(keys: "dlrjs", language: .korean, source: .learned, strength: .sure)])
+        let slack = "com.tinyspeck.slackmacgap"
+        engine.add(.init(keys: "gst", language: .korean, source: .user))
+        engine.add(.init(keys: "gst", language: .english, source: .user, apps: [slack]))
+        engine.add(.init(keys: "gst", language: .japanese, source: .user, apps: ["com.jetbrains."]))
+        func read(_ keys: String, in app: String?) -> Language {
+            engine.decide(keys, context: DecisionContext(app: app)).language
+        }
+        #expect(read("gst", in: nil) == .korean)
+        #expect(read("gst", in: "com.apple.TextEdit") == .korean)
+        #expect(read("gst", in: slack) == .english)
+        #expect(read("gst", in: "com.jetbrains.intellij") == .japanese)
+        // The app's own entry is for the keys as a whole: no particle split from it.
+        #expect(engine.decide("gstdp", context: DecisionContext(app: slack)).output != "gst에")
+        // Added again with the same keys and apps: changed, not a second entry.
+        engine.add(.init(keys: "gst", language: .english, source: .user))
+        #expect(read("gst", in: nil) == .english)
+        #expect(engine.dictionary.entries.count == 4)
+
+        // Pinned: the learned word is the user's, and corrections leave it alone.
+        let id = try #require(engine.dictionary.languageEntry(for: "dlrjs")?.id)
+        engine.pin(id)
+        #expect(engine.dictionary.languageEntry(for: "dlrjs")?.source == .user)
+        engine.learn("dlrjs", as: .english, engineChoice: .korean)
+        #expect(engine.learned["dlrjs"] == .korean)
+        // forgetAll keeps it; remove takes it.
+        engine.forgetAll()
+        #expect(engine.learned["dlrjs"] == .korean)
+        engine.remove(id)
+        #expect(engine.learned["dlrjs"] == nil)
+    }
 }

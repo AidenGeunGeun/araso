@@ -30,6 +30,7 @@ struct TypingPane: View {
     /// The field shows a word still being composed: it isn't in `text` until it's committed.
     @State private var composing = false
     @State private var seamtypeOn = SeamtypeSource.isCurrent
+    @State private var adding: EntrySheet.Target?
     @FocusState private var focused: Bool
 
     var body: some View {
@@ -83,6 +84,10 @@ struct TypingPane: View {
             Section(L("How it was decided")) {
                 if let current {
                     TraceView(trace: current)
+                    HStack {
+                        Spacer()
+                        Button(L("Add to Dictionary…")) { adding = .new(keys: current.keys) }
+                    }
                 } else {
                     Text(L("Type a word above to see its scores."))
                         .foregroundStyle(.secondary)
@@ -90,6 +95,7 @@ struct TypingPane: View {
             }
         }
         .formStyle(.grouped)
+        .sheet(item: $adding) { EntrySheet(model: model, target: $0) }
         .onAppear { focused = true; seamtypeOn = SeamtypeSource.isCurrent }
         // Marked text moves the selection; a search field's editor is a field editor, not this.
         .onReceive(NotificationCenter.default.publisher(for: NSTextView.didChangeSelectionNotification)) { note in

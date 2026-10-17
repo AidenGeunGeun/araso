@@ -16,7 +16,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         case .keys: return L("Keys")
         case .typing: return L("Try Typing")
         case .apps: return L("Apps")
-        case .learning: return L("Learning")
+        case .learning: return L("Dictionary")
         case .about: return L("About")
         }
     }
@@ -147,20 +147,13 @@ final class SettingsModel: ObservableObject {
         let entry: AppPolicy.Override
     }
 
-    struct Word: Identifiable {
-        var id: String { keys }
-        let keys: String
-        let text: String
-        let language: Language
-    }
-
-    /// Read again on each switch: words learned while trying the typing pane show in Learning.
+    /// Read again on each switch: words learned while trying the typing pane show in Dictionary.
     @Published var tab: SettingsTab { didSet { if tab != oldValue { reload() } } }
     @Published private(set) var settings = SeamtypeCore.Settings.load()
     @Published private(set) var defaultPolicy = AppPolicy.standard
     @Published private(set) var apps: [AppRow] = []
-    @Published private(set) var learned: [Word] = []
-    @Published private(set) var pending: [Word] = []
+    /// dictionary.json: the user's words first, then learned ones, each by keys.
+    @Published private(set) var entries: [UserDictionary.Entry] = []
 
     private let dictionary = DictionaryEngine(base: NoEngine())
 
@@ -173,12 +166,9 @@ final class SettingsModel: ObservableObject {
     func reload() {
         settings = SeamtypeCore.Settings.load()
         dictionary.reload()
-        let words = { (map: [String: Language]) in
-            map.map { Word(keys: $0.key, text: NoEngine().render($0.key, as: $0.value), language: $0.value) }
-                .sorted { $0.keys < $1.keys }
+        entries = dictionary.dictionary.entries.sorted {
+            ($0.source == .user ? 0 : 1, $0.keys) < ($1.source == .user ? 0 : 1, $1.keys)
         }
-        learned = words(dictionary.learned)
-        pending = words(dictionary.pending)
         let policies = AppPolicies.load()
         defaultPolicy = policies.defaultPolicy
         apps = policies.apps
@@ -255,14 +245,28 @@ final class SettingsModel: ObservableObject {
         changed()
     }
 
-    // Learning
+    // Dictionary
 
     // Each starts from dictionary.json as it is now: the input method keeps learning while the
     // window is open, and writing the window's copy back would undo that.
 
-    func forget(_ keys: String) {
+    /// Saves `entry`, in place of `original` when its keys or apps changed.
+    func save(_ entry: UserDictionary.Entry, replacing original: UserDictionary.Entry? = nil) {
         dictionary.reload()
-        dictionary.forget(keys)
+        if let original, original.id != entry.id { dictionary.remove(original.id) }
+        dictionary.add(entry)
+        changed()
+    }
+
+    func remove(_ id: UserDictionary.Entry.ID) {
+        dictionary.reload()
+        dictionary.remove(id)
+        changed()
+    }
+
+    func pin(_ id: UserDictionary.Entry.ID) {
+        dictionary.reload()
+        dictionary.pin(id)
         changed()
     }
 
@@ -438,7 +442,7 @@ struct SettingsView: View {
                 case .keys: KeysPane(model: model)
                 case .typing: TypingPane(model: model)
                 case .apps: AppsPane(model: model)
-                case .learning: LearningPane(model: model)
+                case .learning: DictionaryPane(model: model)
                 case .about: AboutPane(model: model)
                 }
             }
@@ -452,7 +456,6 @@ struct SettingsView: View {
 
 private struct GeneralPane: View {
     @ObservedObject var model: SettingsModel
-    @State private var confirmKanji = false
 
     private func binding(_ key: WritableKeyPath<SeamtypeCore.Settings, Bool>) -> Binding<Bool> {
         Binding(get: { model.settings[keyPath: key] }, set: { model.set(key, $0) })
@@ -483,21 +486,10 @@ private struct GeneralPane: View {
                     Text(L("Full-width space"))
                     Text(L("A full-width space after Japanese; ⇧Space types the other width."))
                 }
-                LabeledContent {
-                    Button(L("Reset…")) { confirmKanji = true }
-                } label: {
-                    Text(L("Kanji candidate order"))
-                    Text(L("Kanji you pick come first next time."))
-                }
             }
             }
         }
         .formStyle(.grouped)
-        .confirmationDialog(L("Reset the kanji candidate order?"), isPresented: $confirmKanji) {
-            Button(L("Reset"), role: .destructive) { model.resetKanji() }
-        } message: {
-            Text(L("Kanji you picked before won't come first anymore. Remembered words stay."))
-        }
     }
 }
 
@@ -984,63 +976,8 @@ private struct SwitchKeysMenu: View {
     }
 }
 
-// MARK: - Learning
-
-private struct LearningPane: View {
-    @ObservedObject var model: SettingsModel
-    @State private var showPending = false
-    @State private var search = ""
-    @State private var confirmForgetAll = false
-
-    private var words: [SettingsModel.Word] {
-        (showPending ? model.pending : model.learned).filter {
-            search.isEmpty || $0.keys.localizedCaseInsensitiveContains(search) || $0.text.contains(search)
-        }
-    }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 12) {
-                Picker(L("List"), selection: $showPending) {
-                    Text(L("Remembered %ld", model.learned.count)).tag(false)
-                    Text(L("Corrected once %ld", model.pending.count)).tag(true)
-                }
-                .pickerStyle(.segmented).labelsHidden().fixedSize()
-                Spacer()
-                TextField(L("Search keys or words"), text: $search)
-                    .textFieldStyle(.roundedBorder).frame(width: 210)
-            }
-            Text(showPending ? L("Correct one of these the same way once more and Seamtype keeps it.")
-                             : L("Seamtype writes these keys this way. Forget one and it decides again."))
-                .font(.callout).foregroundStyle(.secondary)
-            if words.isEmpty {
-                EmptyList(symbol: search.isEmpty ? "text.book.closed" : "magnifyingglass",
-                          title: search.isEmpty ? (showPending ? L("No words corrected once") : L("No remembered words yet"))
-                                                : L("No matches"),
-                          detail: search.isEmpty ? L("Switch a word that came out wrong with the language switch key; correct it the same way twice and it's remembered here.") : nil)
-            } else {
-                List {
-                    ForEach(words) { WordRow(word: $0, model: model) }
-                }
-                .listStyle(.inset(alternatesRowBackgrounds: true))
-            }
-            HStack {
-                Spacer()
-                Button(L("Forget All…"), role: .destructive) { confirmForgetAll = true }
-                    .disabled(model.learned.isEmpty && model.pending.isEmpty)
-            }
-        }
-        .padding(20)
-        .confirmationDialog(L("Forget every remembered word?"), isPresented: $confirmForgetAll) {
-            Button(L("Forget All"), role: .destructive) { model.forgetAll() }
-        } message: {
-            Text(L("Words corrected once are forgotten too. This can't be undone."))
-        }
-    }
-}
-
 /// In place of an empty list: what would be there, and how it fills up.
-private struct EmptyList: View {
+struct EmptyList: View {
     let symbol: String
     let title: String
     let detail: String?
@@ -1056,28 +993,6 @@ private struct EmptyList: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(.quaternary.opacity(0.3), in: RoundedRectangle(cornerRadius: 8))
-    }
-}
-
-private struct WordRow: View {
-    let word: SettingsModel.Word
-    @ObservedObject var model: SettingsModel
-
-    var body: some View {
-        HStack(spacing: 8) {
-            Text(verbatim: word.keys).font(.system(.body, design: .monospaced)).foregroundStyle(.secondary)
-                .lineLimit(1).truncationMode(.middle).frame(width: 170, alignment: .leading).help(word.keys)
-            Image(systemName: "arrow.right").font(.caption).foregroundStyle(.tertiary)
-            Text(verbatim: word.text).lineLimit(1).truncationMode(.middle)
-            Spacer()
-            Text(word.language.displayName).font(.caption)
-                .padding(.horizontal, 6).padding(.vertical, 1)
-                .background(word.language.tint.opacity(0.15), in: RoundedRectangle(cornerRadius: 4))
-            Button { model.forget(word.keys) } label: { Image(systemName: "xmark.circle.fill") }
-                .buttonStyle(.borderless).foregroundStyle(.tertiary)
-                .help(L("Forget"))
-                .accessibilityLabel(L("Forget %@", word.keys))
-        }
     }
 }
 

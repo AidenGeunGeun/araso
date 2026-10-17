@@ -11,7 +11,7 @@ import Foundation
 /// decision (and are dropped after `weakLifetime` days unused), corrected the same way again
 /// they are `sure` and win.
 public struct UserDictionary: Equatable, Sendable {
-    public struct Entry: Codable, Equatable, Sendable {
+    public struct Entry: Codable, Equatable, Sendable, Identifiable {
         public enum Source: String, Codable, Sendable { case user, learned }
         public enum Strength: String, Codable, Sendable { case weak, sure }
 
@@ -21,7 +21,8 @@ public struct UserDictionary: Equatable, Sendable {
         public var source: Source
         /// Learned entries only.
         public var strength: Strength?
-        /// Nil: every app. Language entries limited to apps aren't used yet.
+        /// Nil: every app. Else bundle identifiers, or prefixes ending in `.` as in apps.json.
+        /// An app's own entry wins over the one for every app, for the keys as a whole only.
         public var apps: [String]?
         /// The day a learned entry was last corrected or typed (`yyyy-MM-dd`).
         public var last: String?
@@ -44,6 +45,15 @@ public struct UserDictionary: Equatable, Sendable {
         /// A language entry that wins the decision: added by hand, or corrected twice.
         public var wins: Bool { language != nil && strength != .weak }
         var forEveryApp: Bool { apps == nil }
+
+        /// One entry per keys and apps: adding the same pair again changes it.
+        public var id: String { keys + "\u{1F}" + (apps ?? []).sorted().joined(separator: ",") }
+
+        func applies(to app: String?) -> Bool {
+            guard let apps else { return true }
+            guard let app else { return false }
+            return apps.contains { $0 == app || ($0.hasSuffix(".") && app.hasPrefix($0)) }
+        }
     }
 
     /// Days a weak entry lasts without being corrected or typed again.
@@ -57,9 +67,38 @@ public struct UserDictionary: Equatable, Sendable {
         self.entries = entries
     }
 
-    /// The language entry for keys typed anywhere.
-    public func languageEntry(for keys: String) -> Entry? {
-        entries.first { $0.keys == keys && $0.language != nil && $0.forEveryApp }
+    /// The language entry for keys typed in `app`: the app's own one, else the one for every app.
+    public func languageEntry(for keys: String, app: String? = nil) -> Entry? {
+        let matching = entries.filter { $0.keys == keys && $0.language != nil && $0.applies(to: app) }
+        return matching.first { !$0.forEveryApp } ?? matching.first
+    }
+
+    /// Adds the entry, or replaces the one with the same keys and apps (a word learned for every
+    /// app becomes the user's).
+    public mutating func add(_ entry: Entry) {
+        guard !entry.keys.isEmpty, entry.language != nil || entry.text?.isEmpty == false else { return }
+        if let index = entries.firstIndex(where: { $0.id == entry.id }) {
+            entries[index] = entry
+        } else {
+            entries.append(entry)
+        }
+    }
+
+    @discardableResult
+    public mutating func remove(_ id: Entry.ID) -> Bool {
+        let before = entries.count
+        entries.removeAll { $0.id == id }
+        return entries.count != before
+    }
+
+    /// A learned word becomes one the user added: it stays, and corrections no longer change it.
+    @discardableResult
+    public mutating func pin(_ id: Entry.ID) -> Bool {
+        guard let index = entries.firstIndex(where: { $0.id == id && $0.source == .learned }) else { return false }
+        entries[index].source = .user
+        entries[index].strength = nil
+        entries[index].last = nil
+        return true
     }
 
     /// Records that `keys` were corrected to `language` while `shown` was on screen.
@@ -113,6 +152,23 @@ public struct UserDictionary: Equatable, Sendable {
     /// Removes every learned entry; the user's own stay.
     public mutating func forgetLearned() {
         entries.removeAll { $0.source == .learned }
+    }
+
+    /// Days until a weak entry is dropped unless corrected or typed again; nil for others.
+    public static func daysLeft(_ entry: Entry, today: Date) -> Int? {
+        guard entry.strength == .weak, let last = entry.last.flatMap(date(_:)) else { return nil }
+        let days = Calendar.current.dateComponents([.day], from: last, to: today).day ?? 0
+        return max(0, weakLifetime - days)
+    }
+
+    /// What the entry writes: the user's text, or the keys in its language.
+    public static func reading(_ keys: String, as language: Language) -> String {
+        switch language {
+        case .english: return keys
+        case .korean: return HangulComposer.compose(keys: keys)?.text ?? keys
+        case .mixed: return MixedWord.split(keys)?.text ?? keys
+        case .japanese: return RomajiComposer.compose(keys).text
+        }
     }
 
     /// Drops weak entries not corrected or typed for `weakLifetime` days.
@@ -270,6 +326,23 @@ public final class DictionaryEngine: DecisionEngine, @unchecked Sendable {
         persist(lock.withLock { store.forget(keys) ? store : nil })
     }
 
+    /// Adds a word, or changes the one with the same keys and apps.
+    public func add(_ entry: UserDictionary.Entry) {
+        persist(lock.withLock {
+            store.add(entry)
+            return store
+        })
+    }
+
+    public func remove(_ id: UserDictionary.Entry.ID) {
+        persist(lock.withLock { store.remove(id) ? store : nil })
+    }
+
+    /// Keeps a learned word for good, as if the user had added it.
+    public func pin(_ id: UserDictionary.Entry.ID) {
+        persist(lock.withLock { store.pin(id) ? store : nil })
+    }
+
     /// Forgets every learned word; words the user added stay.
     public func forgetAll() {
         persist(lock.withLock {
@@ -279,7 +352,7 @@ public final class DictionaryEngine: DecisionEngine, @unchecked Sendable {
     }
 
     public func decide(_ keys: String, context: DecisionContext) -> Decision {
-        let entry = lock.withLock { store.languageEntry(for: keys) }
+        let entry = lock.withLock { store.languageEntry(for: keys, app: context.app) }
         if let entry, entry.wins, let language = entry.language {
             // Rendered by the base engine: this engine's own render(.mixed) would ask it to
             // decide the keys again, find them in the dictionary, and so on without end.

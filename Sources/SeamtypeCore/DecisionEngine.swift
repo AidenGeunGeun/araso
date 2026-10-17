@@ -54,11 +54,14 @@ public struct DecisionContext: Sendable {
     public var partial: Bool
     /// The language the user corrected these keys to once (a weak dictionary entry).
     public var nudge: Language?
+    /// The app typed into, for the user's dictionary entries limited to apps.
+    public var app: String?
 
-    public init(previousLanguage: Language? = nil, partial: Bool = false, nudge: Language? = nil) {
+    public init(previousLanguage: Language? = nil, partial: Bool = false, nudge: Language? = nil, app: String? = nil) {
         self.previousLanguage = previousLanguage
         self.partial = partial
         self.nudge = nudge
+        self.app = app
     }
 }
 

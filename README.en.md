@@ -308,17 +308,17 @@ From the input menu (the menu bar, while Seamtype is selected) you can:
   (Normal/Strict), whether Esc switches languages and whether the word is held after Space or
   punctuation, or drop its settings. Those are greyed while conversion is off
 - turn Japanese Input and Live Conversion on or off
-- undo the last learned word, and open Try Typing, the remembered words or the settings window
+- undo the last learned word, and open Try Typing, the dictionary or the settings window
 
 The settings window has these panes, and changes apply at once.
 
 | Pane | What's there |
 | --- | --- |
-| Languages | Japanese input and its options, resetting the kanji candidate order (under Japanese input) |
+| Languages | Japanese input and its options |
 | Keys | the language switch keys, Return, the pause key |
 | Apps | per-app behavior (`apps.json`) |
-| Try Typing | how each word was decided, with scores |
-| Learning | the learned words, to forget one or all |
+| Try Typing | how each word was decided, with scores, and adding its keys to the dictionary |
+| Dictionary | words you added and words learned, in one list (`dictionary.json`): **+** to type keys and pick their reading (English, Korean, Japanese) and app; pin a learned word to keep it, or remove it. Resetting the kanji candidate order is here too |
 | About | version, what changed, updates, uninstall |
 
 ### Settings files

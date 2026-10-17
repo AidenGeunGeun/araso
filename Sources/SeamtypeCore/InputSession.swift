@@ -586,7 +586,7 @@ public final class InputSession {
         guard forced == nil, ch == "-" || ch == "'", previewLanguage == .english,
               !EnglishModel.shared.isKnownWord(keys),
               RomajiComposer.compose(keys, partial: true).strayLetters == 0 else { return false }
-        let context = DecisionContext(previousLanguage: previousLanguage, partial: true)
+        let context = DecisionContext(previousLanguage: previousLanguage, partial: true, app: app)
         return engine.decide(keys + String(ch), context: context).language == .japanese
     }
 
@@ -935,18 +935,18 @@ public final class InputSession {
             lastTrace = Trace(keys: keys, previous: previousLanguage, decision: decision, partial: partial)
             return decision
         }
-        var d = engine.decide(keys, context: DecisionContext(previousLanguage: previousLanguage, partial: partial))
+        var d = engine.decide(keys, context: DecisionContext(previousLanguage: previousLanguage, partial: partial, app: app))
         // A word learned as Japanese while Japanese was on: with it off, the engine without what
         // was learned decides it (sushi stays sushi, not すし). Turned on again, it is learned again.
         if d.language == .japanese, !japaneseEnabled {
-            d = engine.base.decide(keys, context: DecisionContext(previousLanguage: previousLanguage, partial: partial))
+            d = engine.base.decide(keys, context: DecisionContext(previousLanguage: previousLanguage, partial: partial, app: app))
         }
         // While typing, a consonant at the end may still be waiting for its vowel, which keeps
         // Japanese close and a Korean word under a Strict app's threshold until the word ends
         // (qud: 0.60 while typed, 0.98 at Space). The word as it would go in now decides, so the
         // preview shows what Space commits (병), not English that turns Korean on Space.
         if partial, d.language == .korean, d.confidence < policy.conversionThreshold {
-            let now = engine.decide(keys, context: DecisionContext(previousLanguage: previousLanguage, partial: false))
+            let now = engine.decide(keys, context: DecisionContext(previousLanguage: previousLanguage, partial: false, app: app))
             if now.language == .korean, now.confidence >= policy.conversionThreshold { d = now }
         }
         let kept = d.language != .english && d.confidence < policy.conversionThreshold
@@ -1054,7 +1054,7 @@ public final class InputSession {
               // Only what reads as Korean on its own: a Japanese phrase whose start happens to
               // spell Hangul (chanwo…, 초무をころした) stays whole. Judged without context, since
               // right after Japanese everything leans Japanese.
-              engine.decide(keys, context: DecisionContext(partial: true)).language == .korean else { return }
+              engine.decide(keys, context: DecisionContext(partial: true, app: app)).language == .korean else { return }
         let chars = Array(keys)
         for cut in 4...(chars.count - 3) {
             let front = String(chars[..<cut]), back = String(chars[cut...])
@@ -1075,7 +1075,7 @@ public final class InputSession {
     /// A known English word, one with a Korean particle (google에서), or romaji the engine is
     /// sure is Japanese (no word starts with っ or ん: that cut takes a letter from the Korean).
     private func isOtherLanguageWord(_ keys: String) -> Bool {
-        let decision = engine.decide(keys, context: DecisionContext(previousLanguage: .korean, partial: true))
+        let decision = engine.decide(keys, context: DecisionContext(previousLanguage: .korean, partial: true, app: app))
         switch decision.language {
         case .english: return keys.count >= 3 && EnglishModel.shared.isKnownWord(keys)
         case .mixed: return true
@@ -1108,7 +1108,7 @@ public final class InputSession {
                   RomajiComposer.compose(front).isClean,
                   // Not an English word with a particle (linderman isn't linで그무).
                   segmenter?.englishWithParticle(front) == nil,
-                  case let decision = engine.decide(front, context: DecisionContext(previousLanguage: previousLanguage)),
+                  case let decision = engine.decide(front, context: DecisionContext(previousLanguage: previousLanguage, app: app)),
                   decision.language == .japanese, decision.confidence >= 0.9 else { continue }
             keys = front
             client.insertText(committedJapanese(), replacing: nil)

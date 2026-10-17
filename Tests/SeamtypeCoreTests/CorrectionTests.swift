@@ -78,6 +78,15 @@ import Testing
         #expect(field.text == "ghost쇼에 ghostty에 ")
     }
 
+    /// A word added for one app is typed so there only.
+    @Test func wordAddedForAnApp() {
+        learning.add(.init(keys: "rt", language: .english, source: .user, apps: ["com.apple.TextEdit"]))
+        type("rt ")
+        session.activate(app: "com.apple.Notes")
+        type("rt ")
+        #expect(field.text == "rt ㄱㅅ ")
+    }
+
     /// Esc after a commit passing through other readings records only where it ended up.
     @Test func undoDetourIsOneCorrection() {
         // ozzy: English → Korean (ㅐㅋ쿄) → Japanese.

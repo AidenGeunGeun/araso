@@ -370,7 +370,7 @@ final class InputController: IMKInputController {
                 add(L("Update to Seamtype %@…", release.version), #selector(openUpdate(_:)))
             }
             add(L("Try Typing…"), #selector(openTyping(_:)))
-            add(L("Remembered Words…"), #selector(openLearned(_:)))
+            add(L("Dictionary…"), #selector(openLearned(_:)))
             add(L("Seamtype Settings…"), #selector(openSettings(_:)))
             return menu
         }
