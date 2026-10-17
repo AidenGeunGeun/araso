@@ -45,7 +45,9 @@ final class Runtime {
     private static func makeEngine(japanese: Bool) -> DictionaryEngine {
         let heuristic = HeuristicEngine(japanese: japanese ? JapaneseModel.shared : nil)
         return DictionaryEngine(base: SplittingEngine(base: heuristic, english: heuristic.english,
-                                                      japanese: heuristic.segmenter))
+                                                      japanese: heuristic.segmenter),
+                                english: heuristic.english, korean: heuristic.korean,
+                                japaneseParticles: heuristic.segmenter != nil)
     }
 
     /// macOS's Japanese engine unless the user chose AzooKey; AzooKey also where macOS's can't be loaded.

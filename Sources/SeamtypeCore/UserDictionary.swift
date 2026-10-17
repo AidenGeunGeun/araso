@@ -2,7 +2,7 @@ import Foundation
 
 /// The user's dictionary, `dictionary.json`: keys typed as a whole word, and what they become.
 ///
-///     [{ "keys": "cjrao", "as": "korean", "from": "learned", "strength": "weak", "last": "2026-10-17" },
+///     [{ "keys": "chrao", "as": "korean", "from": "learned", "strength": "weak", "last": "2026-10-17" },
 ///      { "keys": "hoge", "as": "japanese", "from": "user" }]
 ///
 /// An entry is a language (`as`) or the user's own text (`text`, kept but not yet typed).
@@ -170,18 +170,29 @@ public struct UserDictionary: Equatable, Sendable {
 }
 
 /// Wraps an engine with the user's dictionary: a language entry that wins (added by hand,
-/// or corrected the same way twice) decides the keys; a weak one (corrected once) passes
-/// the base engine a nudge toward its language, so only a close call turns.
+/// or corrected the same way twice) decides the keys, and also the keys with a particle
+/// typed straight after them (촉매를, github에, githubで, hogeで); a weak one (corrected once)
+/// passes the base engine a nudge toward its language, so only a close call turns.
 public final class DictionaryEngine: DecisionEngine, @unchecked Sendable {
     public let base: DecisionEngine
+    /// For keys that are an English word as a whole: no particle split there.
+    public let english: EnglishModel
+    /// Whether Japanese particles split off (Japanese on).
+    public let japaneseParticles: Bool
+    /// For keys that read as a Korean word, or one with a particle, as a whole (놈들을, not sha들을).
+    private let splitter: ParticleSplitter
     private let lock = NSLock()
     private var store: UserDictionary
     private let storeURL: URL?
     private let today: @Sendable () -> Date
 
-    public init(base: DecisionEngine, storeURL: URL? = DictionaryEngine.defaultStoreURL,
+    public init(base: DecisionEngine, english: EnglishModel = .shared, korean: KoreanModel = KoreanModel(),
+                japaneseParticles: Bool = false, storeURL: URL? = DictionaryEngine.defaultStoreURL,
                 today: @escaping @Sendable () -> Date = { Date() }) {
         self.base = base
+        self.english = english
+        self.japaneseParticles = japaneseParticles
+        splitter = ParticleSplitter(english: english, korean: korean)
         self.storeURL = storeURL
         self.today = today
         store = Self.read(storeURL, today: today())
@@ -275,9 +286,73 @@ public final class DictionaryEngine: DecisionEngine, @unchecked Sendable {
             return Decision(language: language, confidence: 1, output: base.render(keys, as: language),
                             explanation: entry.source == .user ? "added" : "learned")
         }
+        if let split = withParticle(keys) { return split }
         var context = context
         if let entry, entry.strength == .weak { context.nudge = entry.language }
         return base.decide(keys, context: context)
+    }
+
+    /// A word that wins, with a particle or ending typed straight after it: Korean as a whole
+    /// (촉매를, the particle in the form the word takes), English + Korean particle as mixed
+    /// (github에), English or Japanese + Japanese particle as Japanese (githubで, hogeで). The
+    /// longest word first; never keys that are an English word as a whole, and not after a
+    /// one-key word. An English word, as in `ParticleSplitter`, needs 3 letters unless it has
+    /// capitals (so + が is そが), and doesn't split keys that read as a Korean word or one with
+    /// a particle (sha + 들을 is 놈들을) or as clean romaji (toki + は is ときは). The same
+    /// confidence as the engine's own splits, so a Strict app splits too.
+    func withParticle(_ keys: String) -> Decision? {
+        guard keys.count >= 3, !english.isKnownWord(keys) else { return nil }
+        let words = lock.withLock {
+            store.entries.filter { $0.wins && $0.apps == nil && $0.keys.count >= 2 && $0.keys.count < keys.count && keys.hasPrefix($0.keys) }
+        }
+        for word in words.sorted(by: { $0.keys.count > $1.keys.count }) {
+            guard let language = word.language else { continue }
+            let tail = String(keys.dropFirst(word.keys.count))
+            let how = (word.source == .user ? "added " : "learned ") + word.keys + "+particle"
+            switch language {
+            case .korean:
+                guard let front = HangulComposer.compose(keys: word.keys), front.strayJamo.isEmpty,
+                      let particle = Self.koreanParticle(tail), let last = front.text.last,
+                      MixedWord.finalSound(of: last).flatMap({ MixedWord.particleAgrees(particle, final: $0) }) != false
+                else { continue }
+                return Decision(language: .korean, confidence: SplittingEngine.confidence, output: front.text + particle, explanation: how)
+            case .english:
+                guard word.keys.count >= 3 || word.keys.contains(where: \.isUppercase) else { continue }
+                if let particle = Self.koreanParticle(tail), !readsAsKoreanWord(keys) {
+                    let mixed = MixedWord(english: word.keys, koreanKeys: tail, korean: particle)
+                    return Decision(language: .mixed, confidence: SplittingEngine.confidence, output: mixed.text, explanation: how)
+                }
+                if japaneseParticles, !RomajiComposer.compose(keys).isClean, let particle = Self.japaneseParticle(tail) {
+                    return Decision(language: .japanese, confidence: SplittingEngine.confidence, output: word.keys + particle, explanation: how)
+                }
+            case .japanese:
+                let front = RomajiComposer.compose(word.keys)
+                guard japaneseParticles, front.isClean, let particle = Self.japaneseParticle(tail) else { continue }
+                return Decision(language: .japanese, confidence: SplittingEngine.confidence, output: front.text + particle, explanation: how)
+            case .mixed:
+                continue
+            }
+        }
+        return nil
+    }
+
+    private func readsAsKoreanWord(_ keys: String) -> Bool {
+        guard let composed = HangulComposer.compose(keys: keys), composed.strayJamo.isEmpty else { return false }
+        return splitter.isKoreanWordOrWordWithParticle(composed.text)
+    }
+
+    /// The tail as one of the particles and endings that attach to a word (에, 를, 에서, 했어).
+    private static func koreanParticle(_ tail: String) -> String? {
+        guard let first = tail.first, DubeolsikLayout.startsSyllable(first),
+              let composed = HangulComposer.compose(keys: tail), composed.strayJamo.isEmpty,
+              MixedWord.suffixes.contains(composed.text) else { return nil }
+        return composed.text
+    }
+
+    /// The tail as a Japanese particle (で, に, から).
+    private static func japaneseParticle(_ tail: String) -> String? {
+        let composed = RomajiComposer.compose(tail)
+        return composed.isClean && JapaneseSegmenter.trailingParticles.contains(composed.text) ? composed.text : nil
     }
 
     /// Records that `keys` were corrected to `language`: once is weak, the same again sure,

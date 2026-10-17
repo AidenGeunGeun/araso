@@ -42,7 +42,9 @@ is a thin IMK layer over it. `seamtype-cli` is for tuning and evaluation.
 **Decision chain** (built in `Runtime.makeEngine`): `DictionaryEngine` (`UserDictionary.swift`,
 dictionary.json: a correction made twice or a word added by hand wins; one correction is `weak`,
 passed down as `DecisionContext.nudge` and worth `correctionBias`, and expires after 30 days unless
-corrected or typed again; lexicon.json of 0.1.16 moves in on first read) → `SplittingEngine`
+corrected or typed again; lexicon.json of 0.1.16 moves in on first read; a winning word with a
+particle after it, `withParticle`, splits too: 촉매를, ghostty에, hogeで, under `ParticleSplitter`'s
+guards) → `SplittingEngine`
 (`MixedWord.swift`) → `HeuristicEngine`. Plan for the rest of the dictionary: `docs/user-dictionary.md`.
 - `SplittingEngine` handles English + Korean particle (`github에`), a single letter + particle
   (`xdp` → `x에`, not 도/나 after a lowercase letter), English + whole Korean word (`hello월드`,

@@ -221,7 +221,8 @@ lets Seamtype read the text there.
 
 A word corrected once leans that way from then on: a close call (`so`/`내`) turns, a clear one
 doesn't, so a stray switch doesn't do much. It is forgotten after 30 days unless corrected or typed
-that way again. Correct the same keys the same way a second time and Seamtype always writes them so;
+that way again. Correct the same keys the same way a second time and Seamtype always writes them so, also with a
+particle after them (remember `ghostty` and you get `ghostty에`);
 switching a word back to Seamtype's own guess forgets it. Long tokens (over 20 keys, such as a
 sentence switched as one) aren't remembered.
 

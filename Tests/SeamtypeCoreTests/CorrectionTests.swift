@@ -68,6 +68,16 @@ import Testing
         #expect(learning.pending.isEmpty && learning.learned.isEmpty)
     }
 
+    /// A word learned as English splits off a particle typed after it: ghostty에, not ghost쇼에.
+    @Test func learnedWordWithParticle() {
+        type("ghosttydp ")
+        #expect(field.text == "ghost쇼에 ")
+        learning.learn("ghostty", as: .english, engineChoice: .korean)
+        learning.learn("ghostty", as: .english, engineChoice: .korean)
+        type("ghosttydp ")
+        #expect(field.text == "ghost쇼에 ghostty에 ")
+    }
+
     /// Esc after a commit passing through other readings records only where it ended up.
     @Test func undoDetourIsOneCorrection() {
         // ozzy: English → Korean (ㅐㅋ쿄) → Japanese.

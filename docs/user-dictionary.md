@@ -17,8 +17,8 @@
 
 ```json
 [
-  { "keys": "cjrao", "as": "korean", "from": "learned", "strength": "weak", "last": "2026-10-17" },
-  { "keys": "cjrao", "as": "korean", "from": "learned", "strength": "sure", "last": "2026-10-17" },
+  { "keys": "chrao", "as": "korean", "from": "learned", "strength": "weak", "last": "2026-10-17" },
+  { "keys": "chrao", "as": "korean", "from": "learned", "strength": "sure", "last": "2026-10-17" },
   { "keys": "hoge",  "as": "japanese", "from": "user" },
   { "keys": "rt",    "text": "감사합니다", "from": "user", "apps": ["com.tinyspeck.slackmacgap"] }
 ]
@@ -54,11 +54,17 @@
 
 - 내 글 항목은 지금처럼 키 전체가 같을 때만 적용하고, 맨 앞 읽기로 보인다.
 - 언어 항목(`user`, `sure`)은 키 전체가 같으면 confidence 1로 이긴다. 이건 지금과 같다.
-- 언어 항목은 분리기의 어휘로도 들어간다.
-  - 한국어: `KoreanModel`의 어휘 바닥(floor)에 더한다. `촉매를`, `촉매가` = 단어 + 조사.
-  - 영어: `ParticleSplitter`가 아는 영어 단어(약어·이름과 같은 `switchCost`)로 본다.
-    `github에`, `githubで`에 쓰인다. 영어 단어 + 한국어 단어(`hello월드`)는 넓히지 않는다.
-  - 일본어: 그 가나를 아는 단어로 보아 일본어 조사(`hogeで`)와 나눈다.
+- 언어 항목은 뒤에 조사가 붙어도 적용된다. 모델의 어휘에 넣는 대신 `DictionaryEngine.withParticle`이
+  직접 나눈다. 점수를 다시 맞출 필요가 없고, 사전이 비어 있으면 동작이 전과 같다.
+  - 한국어: `촉매를`, `촉매가` = 단어 + 조사. 조사는 단어 끝소리에 맞는 꼴이어야 한다(사람은, 사람는 아님).
+  - 영어: `ghostty에`(mixed), 일본어가 켜져 있으면 `ghosttyで`. 영어 단어 + 한국어 단어(`hello월드`)는
+    넓히지 않는다.
+  - 일본어: `hogeで`, `hogeから`.
+  - 막는 것(`ParticleSplitter`와 같은 기준): 토큰 전체가 영어 단어일 때, 한 키짜리 단어, 대문자 없는
+    3글자 미만 영어 단어(`to`+는은 새는), 토큰 전체가 한국어 단어(+조사)로 읽힐 때(`sha`+들을은 놈들을),
+    영어 단어 + 일본어 조사인데 토큰 전체가 깨끗한 로마자일 때(`toki`+は는 ときは).
+  - 점검: eval.tsv 6천 단어 전부를 항목으로 넣어도, en_50k 상위 2만 단어를 영어 항목으로 넣어도
+    eval.tsv의 어떤 행도 나뉘지 않는다(막기 전에는 en_50k 쪽에서 28행).
 - `weak` 항목은 어휘에 넣지 않는다. 분리는 확실한 것만 한다.
 - 문맥(앞 단어 언어)별로 따로 기억하지는 않는다.
 
@@ -118,6 +124,6 @@ CLAUDE.md의 Decision chain과 Key replacements 항목을 함께 고친다.
 main에서 시작한다(2026-10-17). `key-replacements` 브랜치는 main에 들어가지 않았으므로,
 내 글(`text`) 항목은 저장소가 읽고 쓰기만 하고 입력에는 아직 쓰이지 않는다. 입력에 쓰는 일은 따로 한다.
 
-1단계 완료: `UserDictionary.swift`(`UserDictionary`, `DictionaryEngine`), `DecisionContext.nudge`와
+2단계 완료: 조사가 붙은 형태(위 적용 범위). 1단계 완료: `UserDictionary.swift`(`UserDictionary`, `DictionaryEngine`), `DecisionContext.nudge`와
 `HeuristicEngine.correctionBias`(0.8, 앞 단어가 당기는 힘과 같음), 커밋할 때 `used`로 weak 항목의 날짜 갱신.
 weak `mixed`는 미는 대상이 없어 효과가 없다(예전 `once`와 같음).

@@ -122,4 +122,58 @@ import Testing
         let engine = DictionaryEngine(base: sharedEngine, storeURL: url)
         #expect(engine.learned == ["hoge": .japanese])
     }
+
+    struct English: DecisionEngine {
+        func decide(_ keys: String, context: DecisionContext) -> Decision {
+            Decision(language: .english, confidence: 0.6, output: keys, explanation: "fixed")
+        }
+    }
+
+    private func engine(_ entries: [UserDictionary.Entry], japanese: Bool = false) throws -> DictionaryEngine {
+        let url = dir.appendingPathComponent("p-\(UUID().uuidString).json")
+        try #require(UserDictionary(entries).encoded()).write(to: url)
+        return DictionaryEngine(base: English(), japaneseParticles: japanese, storeURL: url)
+    }
+
+    /// A word that wins carries over to the word with a particle after it.
+    @Test func wordWithParticle() throws {
+        let engine = try engine([
+            .init(keys: "chrao", language: .korean, source: .user),
+            .init(keys: "tkfka", language: .korean, source: .learned, strength: .sure),
+            .init(keys: "ghostty", language: .english, source: .user),
+            .init(keys: "hoge", language: .japanese, source: .user),
+            .init(keys: "zig", language: .english, source: .learned, strength: .weak),
+        ], japanese: true)
+        func read(_ keys: String) -> String {
+            let d = engine.decide(keys, context: DecisionContext())
+            return "\(d.language.rawValue) \(d.output)"
+        }
+        #expect(read("chraofmf") == "korean 촉매를")
+        #expect(read("chraork") == "korean 촉매가")
+        #expect(read("tkfkadms") == "korean 사람은")
+        // The form the word doesn't take (사람는) isn't the word with a particle.
+        #expect(read("tkfkasms") == "english tkfkasms")
+        #expect(read("ghosttydp") == "mixed ghostty에")
+        #expect(read("ghosttydptj") == "mixed ghostty에서")
+        #expect(read("ghosttyde") == "japanese ghosttyで")
+        #expect(read("hogede") == "japanese ほげで")
+        #expect(read("hogekara") == "japanese ほげから")
+        // Not a particle, a weak word, or keys that are an English word as a whole.
+        #expect(read("ghosttyx") == "english ghosttyx")
+        #expect(read("zigdp") == "english zigdp")
+        // Keys that read as a Korean word with a particle, or as clean romaji, stay whole;
+        // a lowercase English word needs 3 letters (found by giving every en_50k word an entry).
+        let short = try self.engine([.init(keys: "sha", language: .english, source: .user),
+                                     .init(keys: "toki", language: .english, source: .user),
+                                     .init(keys: "to", language: .english, source: .user),
+                                     .init(keys: "PC", language: .english, source: .user)], japanese: true)
+        #expect(short.decide("shaemfdmf", context: DecisionContext()).language == .english)  // 놈들을
+        #expect(short.decide("tokiha", context: DecisionContext()).language == .english)     // ときは
+        #expect(short.decide("tosms", context: DecisionContext()).language == .english)      // 새는
+        #expect(short.decide("PCdp", context: DecisionContext()).output == "PC에")
+        let off = try self.engine([.init(keys: "hoge", language: .japanese, source: .user)])
+        #expect(off.decide("hogede", context: DecisionContext()).language == .english)
+        let ghost = try self.engine([.init(keys: "ghos", language: .english, source: .user)])
+        #expect(ghost.decide("ghost", context: DecisionContext()).output == "ghost")
+    }
 }
