@@ -161,6 +161,10 @@ runtime.
   - Run every keys row of `tools/data/eval.tsv` (English, Korean, Japanese) through an
     `InputSession` with Japanese on, and count Hangul next to kana.
   - For English, also run `tools/data/en_50k.txt` through `seamtype-cli -v`.
+  - For a remembered word + particle (`DictionaryEngine.withParticle`), `DictionarySplitCheckTests`
+    fills the dictionary with every eval.tsv word, and with en_50k's top 20k as English, and
+    requires no eval.tsv row to split (skipped without tools/data; `SEAMTYPE_TOOLS_DATA=<main
+    checkout>/tools/data` from a worktree).
   - For English + particle, `tools/eval_particles.py` types word × particle through a session
     (`seamtype-cli --type`) and reports accuracy per kind, plus words that must stay English.
   - The CLI only shows the engine's decision, so also test through a session: an earlier split

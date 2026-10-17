@@ -238,7 +238,10 @@ public final class DictionaryEngine: DecisionEngine, @unchecked Sendable {
     /// For keys that read as a Korean word, or one with a particle, as a whole (놈들을, not sha들을).
     private let splitter: ParticleSplitter
     private let lock = NSLock()
-    private var store: UserDictionary
+    private var store: UserDictionary { didSet { byKeys = Self.index(store) } }
+    /// The language entries by keys, so each key typed looks its keys (and the fronts a particle
+    /// may follow) up instead of going through every entry.
+    private var byKeys: [String: [UserDictionary.Entry]] = [:]
     private let storeURL: URL?
     private let today: @Sendable () -> Date
 
@@ -252,10 +255,21 @@ public final class DictionaryEngine: DecisionEngine, @unchecked Sendable {
         self.storeURL = storeURL
         self.today = today
         store = Self.read(storeURL, today: today())
+        byKeys = Self.index(store) // didSet doesn't run in init
     }
 
     public static var defaultStoreURL: URL? {
         SupportDirectory.url?.appendingPathComponent("dictionary.json")
+    }
+
+    private static func index(_ store: UserDictionary) -> [String: [UserDictionary.Entry]] {
+        Dictionary(grouping: store.entries.filter { $0.language != nil }, by: \.keys)
+    }
+
+    /// `UserDictionary.languageEntry`, from the index: the app's own entry, else the one for every app.
+    private func entry(for keys: String, app: String?) -> UserDictionary.Entry? {
+        let matching = (byKeys[keys] ?? []).filter { $0.applies(to: app) }
+        return matching.first { $0.apps != nil } ?? matching.first
     }
 
     /// lexicon.json of 0.1.16 and earlier, moved into dictionary.json the first time.
@@ -352,7 +366,7 @@ public final class DictionaryEngine: DecisionEngine, @unchecked Sendable {
     }
 
     public func decide(_ keys: String, context: DecisionContext) -> Decision {
-        let entry = lock.withLock { store.languageEntry(for: keys, app: context.app) }
+        let entry = lock.withLock { self.entry(for: keys, app: context.app) }
         if let entry, entry.wins, let language = entry.language {
             // Rendered by the base engine: this engine's own render(.mixed) would ask it to
             // decide the keys again, find them in the dictionary, and so on without end.
@@ -375,10 +389,13 @@ public final class DictionaryEngine: DecisionEngine, @unchecked Sendable {
     /// confidence as the engine's own splits, so a Strict app splits too.
     func withParticle(_ keys: String) -> Decision? {
         guard keys.count >= 3, !english.isKnownWord(keys) else { return nil }
-        let words = lock.withLock {
-            store.entries.filter { $0.wins && $0.apps == nil && $0.keys.count >= 2 && $0.keys.count < keys.count && keys.hasPrefix($0.keys) }
+        let chars = Array(keys)
+        let fronts = lock.withLock {
+            stride(from: chars.count - 1, through: 2, by: -1).compactMap { length in
+                byKeys[String(chars[..<length])]?.first { $0.wins && $0.apps == nil }
+            }
         }
-        for word in words.sorted(by: { $0.keys.count > $1.keys.count }) {
+        for word in fronts {
             guard let language = word.language else { continue }
             let tail = String(keys.dropFirst(word.keys.count))
             let how = (word.source == .user ? "added " : "learned ") + word.keys + "+particle"
