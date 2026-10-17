@@ -182,6 +182,18 @@ final class FakeTextField: TextClient {
         #expect(field.text == "dkssud ")
     }
 
+    /// A consonant that joins the syllable before as its final is the next one's first on its
+    /// way: 소개 + ㅎ shows 소갷, not throg, while 소개하는 is typed.
+    @Test func previewKeepsKoreanThroughAPendingFinal() {
+        var shown: [String] = []
+        for ch in "throgksms" {
+            type(String(ch))
+            shown.append(field.text)
+        }
+        #expect(shown.dropFirst(3).allSatisfy { $0.unicodeScalars.allSatisfy { !$0.isASCII } }, "\(shown)")
+        #expect(shown.last == "소개하는")
+    }
+
     @Test func deleteRemovesKeystrokes() {
         type("dkssud")
         session.handle(.delete, client: field)

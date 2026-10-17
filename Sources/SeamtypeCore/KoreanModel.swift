@@ -20,6 +20,10 @@ public struct KoreanModel: Sendable {
     static let strayJamoLogP = -13.0
     /// Typing the first consonant of the next syllable is normal mid-word.
     static let pendingConsonantLogP = -3.5
+    /// The same for a consonant that joined the syllable before as its final (갷 of 소개ㅎ),
+    /// a little less sure: alr is 미국 on its way and also already (tuned on preview traces of
+    /// the top 10,000 English and Korean words).
+    static let pendingFinalPenalty = 1.0
     /// ㅋㅋ, ㅎㅎ, ㅠㅠ and friends.
     static let chatJamoLogP = -4.0
     static let chatJamo: Set<Character> = Set("ㅋㅎㅠㅜㄷㅇㄱㅅㅂㄴ")
@@ -148,6 +152,19 @@ public struct KoreanModel: Sendable {
     ///   consonant is expected rather than penalized.
     public func score(keys: String, partial: Bool = false) -> Score? {
         guard let composition = HangulComposer.compose(keys: keys), !keys.isEmpty else { return nil }
+        var total = logProbability(composition, partial: partial)
+        // The consonant typed last may have joined the syllable before as its final (개 + ㅎ
+        // shows 갷) while it is the next syllable's first (소개하는): score that reading too.
+        if partial, !composition.isChat, let last = keys.last, DubeolsikLayout.jamo(for: last).map(Jamo.isConsonant) == true,
+           case .syllable = composition.units.last,
+           let before = HangulComposer.compose(keys: String(keys.dropLast())), before.units.count == composition.units.count,
+           case .syllable = before.units.last {
+            total = max(total, logProbability(before, partial: false) + Self.pendingConsonantLogP - Self.pendingFinalPenalty)
+        }
+        return Score(averageLogProbability: total / Double(keys.count), composition: composition)
+    }
+
+    private func logProbability(_ composition: HangulComposer.Result, partial: Bool) -> Double {
         let units = composition.units
         let allChat = composition.isChat
         var total = 0.0
@@ -165,7 +182,7 @@ public struct KoreanModel: Sendable {
                 }
             }
         }
-        return Score(averageLogProbability: total / Double(keys.count), composition: composition)
+        return total
     }
 }
 
