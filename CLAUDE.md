@@ -189,6 +189,10 @@ runtime.
   does the same with the certificates and notary credentials from the repo secrets and leaves
   a draft release with the four assets and `.github/release-notes.md` as its notes; fill them in
   and publish it by hand.
+- **Versions** go up in the last place (0.1.16 → 0.1.17), features included. 0.2.0 when a user has
+  to redo or relearn something: a settings or learning file older versions can't read, a changed
+  default (switch keys, Return), a change in what's supported or how it installs, or a finished
+  set of features worth announcing together (the dictionary once its own text entries type).
 - **Release notes** are in Korean, and About shows their first section in the app
   (`Release.changes`, `Release.headline`), so write them to these rules:
   - `## 바뀐 것` first, as a list of `- **제목**: 설명`, then the fixed `## 설치·업데이트` text
