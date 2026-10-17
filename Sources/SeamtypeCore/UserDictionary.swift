@@ -449,9 +449,14 @@ public final class DictionaryEngine: DecisionEngine, @unchecked Sendable {
         persist(lock.withLock { store.used(keys, as: language, today: day) ? store : nil })
     }
 
+    /// Called after a change is written (a correction learned, a word typed again), so an open
+    /// settings window can show it. Not after `reload`, which writes nothing of its own.
+    public var saved: (@Sendable () -> Void)?
+
     private func persist(_ snapshot: UserDictionary?) {
         guard let snapshot, let url = storeURL else { return }
         Self.write(snapshot, to: url)
+        saved?()
     }
 
     private static func write(_ dictionary: UserDictionary, to url: URL) {

@@ -44,10 +44,13 @@ final class Runtime {
     /// (github에, x에, hello월드, githubで), then the heuristic.
     private static func makeEngine(japanese: Bool) -> DictionaryEngine {
         let heuristic = HeuristicEngine(japanese: japanese ? JapaneseModel.shared : nil)
-        return DictionaryEngine(base: SplittingEngine(base: heuristic, english: heuristic.english,
-                                                      japanese: heuristic.segmenter),
-                                english: heuristic.english, korean: heuristic.korean,
-                                japaneseParticles: heuristic.segmenter != nil)
+        let engine = DictionaryEngine(base: SplittingEngine(base: heuristic, english: heuristic.english,
+                                                            japanese: heuristic.segmenter),
+                                      english: heuristic.english, korean: heuristic.korean,
+                                      japaneseParticles: heuristic.segmenter != nil)
+        // An open settings window shows a word learned while typing at once, not on its next activation.
+        engine.saved = { SettingsNotice.postFromInputMethod() }
+        return engine
     }
 
     /// macOS's Japanese engine unless the user chose AzooKey; AzooKey also where macOS's can't be loaded.

@@ -210,4 +210,18 @@ import Testing
         engine.remove(id)
         #expect(engine.learned["dlrjs"] == nil)
     }
+
+    /// The input method tells an open settings window when it saved a change, and only then.
+    @Test func savedIsCalledAfterWrites() throws {
+        final class Count: @unchecked Sendable { var value = 0 }
+        let count = Count()
+        let engine = try engine([])
+        engine.saved = { count.value += 1 }
+        engine.learn("so", as: .korean, engineChoice: .english)
+        #expect(count.value == 1)
+        engine.learn("so", as: .korean, engineChoice: .english)
+        engine.reload()
+        engine.used("xx", as: .korean)   // nothing to change: nothing written
+        #expect(count.value == 2)
+    }
 }
