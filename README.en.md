@@ -9,11 +9,23 @@
 
 <p align="center"><b>흐름대로 써진다 · 流れるままに · Type as it flows</b></p>
 
+<p align="center">
+  <a href="https://github.com/aimdevlee/seamtype/releases/latest"><img src="https://img.shields.io/github/v/release/aimdevlee/seamtype?style=flat-square&label=release" alt="Latest release"></a>
+  <a href="https://github.com/aimdevlee/seamtype/releases"><img src="https://img.shields.io/github/downloads/aimdevlee/seamtype/total?style=flat-square" alt="Downloads"></a>
+  <img src="https://img.shields.io/badge/macOS-13%2B-555?style=flat-square&logo=apple" alt="macOS 13 or later">
+  <img src="https://img.shields.io/badge/Apple%20Silicon%20%7C%20Intel-555?style=flat-square" alt="Apple silicon and Intel">
+  <a href="https://github.com/aimdevlee/seamtype/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/aimdevlee/seamtype/ci.yml?branch=main&style=flat-square&label=tests" alt="Tests"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/aimdevlee/seamtype?style=flat-square" alt="MIT license"></a>
+</p>
+
 <p align="center"><a href="https://nyttastudio.com/seamtype/">Website (Korean)</a> · <a href="README.md">한국어</a> · English</p>
 
-Type everything on the English (QWERTY) layout and stop pressing the language-switch key.
-Seamtype is a macOS input method that decides **per word** whether you meant English,
-Korean (2-set / 두벌식) or — if you turn it on — Japanese (romaji), and commits the right one.
+<h3 align="center">Stop pressing the language-switch key.</h3>
+
+<p align="center">
+Type everything on the English (QWERTY) layout.<br>
+Seamtype decides <b>per word</b> whether you meant English, Korean (2-set / 두벌식) or, if you turn it on, Japanese (romaji), and commits the right one.
+</p>
 
 ```
 Stay hungry, stay foolishsms wkqtmdml akfdlek.   →  Stay hungry, stay foolish는 잡스의 말이다.
@@ -22,8 +34,34 @@ Hello, worldhasaishonopuroguramudesu␣.           →  Hello, worldは最初の
 ```
 
 <p align="center">
+  <a href="https://github.com/aimdevlee/seamtype/releases/latest/download/Seamtype.pkg"><img src="https://img.shields.io/badge/Download%20Seamtype.pkg-0071e3?style=for-the-badge&logo=apple&logoColor=white" width="292" alt="Download Seamtype.pkg"></a>
+</p>
+
+<p align="center">
   <img src="docs/media/demo.gif" width="720" alt="Choosing Seamtype once from the input menu, then typing on QWERTY into Safari without switching the input source again: Stay hungry, stay foolish는 잡스의 말이다. / 吾輩は猫である는 소세키의 소설이다. / Hello, worldは最初のプログラムです。">
 </p>
+
+## At a glance
+
+- **Decided per word**: English, Korean or Japanese, whichever each word is. No input source to switch.
+- **Mixed words too**: `githubdp` → `github에`, `PDFvkdlf` → `PDF파일`, `githubde` → `githubで`
+- **One key to fix it**: tap right ⌥ to cycle English → English+particle → Korean → Japanese, even right after a word is committed.
+- **Remembers your fixes**: correct the same word the same way twice and it sticks.
+- **Kanji conversion**: clause by clause, with live conversion, through the engine of macOS's own Japanese input.
+- **Per app**: Strict in a terminal, off in a game. It follows vim's modes, and a pause key passes keys straight through.
+- **On this Mac only**: keystrokes never leave the input method. A keystroke's preview takes at most ~3 ms.
+- **99.5% accurate**: on about 6,000 held-out words and phrases (Japanese on, [held-out results](#held-out-results)).
+
+## Contents
+
+- [Why](#why)
+- [Install](#install) · [Updates](#updates) · [Uninstall](#uninstall)
+- [Keys](#keys) · [Language switch keys](#language-switch-keys) · [Undo after commit, and learning](#undo-after-commit-and-learning) · [Text replacements](#text-replacements) · [Pause](#pause) · [vim](#vim)
+- [Settings](#settings) · [Settings files](#settings-files)
+- [How it decides](#how-it-decides) · [Held-out results](#held-out-results)
+- [Known limits](#known-limits)
+- [Develop](#develop)
+- [License and data](#license-and-data)
 
 ## Why
 
@@ -34,29 +72,48 @@ inspired me to build one input method for all three.
 
 ## Install
 
-Download [`Seamtype.pkg`](https://github.com/aimdevlee/seamtype/releases/latest/download/Seamtype.pkg),
-open it and follow the steps. It runs on Apple silicon and Intel and is notarized by Apple. It
-installs into `/Library/Input Methods` and registers the input source, so you only need to pick
-Seamtype in the input menu in the menu bar.
+1. Download [`Seamtype.pkg`](https://github.com/aimdevlee/seamtype/releases/latest/download/Seamtype.pkg),
+   open it and follow the steps. It installs into `/Library/Input Methods` and registers the input source.
+2. Pick **Seamtype** in the input menu in the menu bar.
+3. To mix in Japanese as in the examples above, turn on **Japanese Input** in the input menu.
+   **Japanese is off by default.**
 
-**Japanese is off by default.** To mix in Japanese as in the examples above, turn on **Japanese
-Input** in the input menu.
+It runs on macOS 13 or later, on Apple silicon and Intel, and is notarized by Apple. It takes ~50 MB of
+memory (plus the ~35 MB Japanese dictionary when Japanese is on) and ~47 MB on disk, with nothing
+else running.
 
-If Seamtype isn't in the input menu, add it in **System Settings → Keyboard → Input Sources →
-Edit… → + → Korean → Seamtype**. If it isn't listed there either, log out and back in once.
+> [!TIP]
+> If Seamtype isn't in the input menu, add it in **System Settings → Keyboard → Input Sources →
+> Edit… → + → Korean → Seamtype**. If it isn't listed there either, log out and back in once.
 
-When a new version is out, the input menu shows **Update to Seamtype …** and **About** in the
-settings window lists what changed and installs it (**Check Now** checks by hand). It downloads the installer, checks its
-signature and opens it, so you only enter your password. Checks happen once a day and when the
-settings window opens; they ask GitHub only for the latest version number, and nothing you type
-is sent. Turn them off with **Check for updates automatically** in About.
+<details>
+<summary>Install from Terminal</summary>
 
-To update by hand, download the new `Seamtype.pkg` and install it the same way. It replaces the app and
-keeps your settings and learned words, with no logout or restart. For a clean reinstall, tick
-**Reset settings and learned words** under **Customize** in the installer.
+Instead of the pkg, this installs the latest release into `~/Library/Input Methods` and registers it.
+If Seamtype is already installed, it asks what to do.
 
-Seamtype takes ~50 MB of memory (plus the ~35 MB Japanese dictionary when Japanese is on) and
-~47 MB on disk, with nothing else running. Keystrokes never leave the input method.
+```sh
+curl -fsSL https://raw.githubusercontent.com/aimdevlee/seamtype/main/scripts/get.sh | sh
+```
+
+To choose without the question, add `| sh -s -- --reinstall` (keeps settings and learned words),
+`--clean` (removes everything, then installs) or `--uninstall [--delete-data]`. Use either this or the
+pkg, not both.
+
+</details>
+
+### Updates
+
+When a new version is out, the input menu shows **Update to Seamtype …**, and **About** in the
+settings window lists what changed and installs it (**Check Now** checks by hand). It downloads the
+installer, checks its signature and opens it, so you only enter your password.
+
+- Checks happen once a day and when the settings window opens. They ask GitHub only for the latest
+  version number, and nothing you type is sent. Turn them off with **Check for updates
+  automatically** in About.
+- You can also download the new `Seamtype.pkg` and install it the same way. It replaces the app and
+  keeps your settings and learned words, with no logout or restart.
+- For a clean reinstall, tick **Reset settings and learned words** under **Customize** in the installer.
 
 ### Uninstall
 
@@ -64,14 +121,13 @@ In the settings window, click **About → Uninstall Seamtype → Uninstall…**.
 from both Input Methods folders (macOS asks for your password if you used the pkg) and switches to
 another input source. Settings and learned words go only if you tick that in the confirmation.
 
-If Seamtype still shows in the input source list in System Settings after uninstalling, log
-out and back in once. If you reinstall and it isn't in the input menu, remove it from that list
-with − and add it again with +.
+- If Seamtype still shows in the input source list in System Settings afterwards, log out and back in once.
+- If you reinstall and it isn't in the input menu, remove it from that list with − and add it again with +.
 
 <details>
 <summary>Uninstall in Terminal</summary>
 
-Does what the settings window does (`--delete-data` only to drop settings and learned words too):
+Does what the settings window does. Add `--delete-data` only to drop settings and learned words too.
 
 ```sh
 "/Library/Input Methods/Seamtype.app/Contents/MacOS/Seamtype" --uninstall --delete-data
@@ -95,13 +151,10 @@ While a word is being typed it is underlined and shows the language Seamtype exp
 | Return | commit only (press again for a newline or to send; a setting) | commit as shown, kana or live-converted kanji (no newline) |
 | ⌃K / F7, ⌃J / F6 | (the app's shortcut) | katakana / hiragana (Space flips, Return commits) |
 | Tab, arrows, ⌘/⌃/⌥ | commit, the app gets the key | same |
-| **Right ⌘** (tapped on its own; a setting) | pause / resume Seamtype in this text field | same |
+| **Right ⌘** (tapped on its own; a setting) | [pause](#pause) / resume Seamtype in this text field | same |
 
-A symbol typed on its own after Japanese is full-width and stays underlined, as in a Japanese IME (`！`, `＿`, `「`): Return confirms it (no newline), Space offers its other forms (`!`, `‼︎`, `『`…), and a letter confirms it and starts a new word. Inside numbers (`3.5`, `10:30`) it stays half-width, and a bracket opened full-width closes full-width even after an English word (`日本語（English）`).
-
-With Japanese on, numbers and symbols can be Japanese too. Typed on their own at the start of a sentence or after Korean or English they go in half-width, but a language switch key right after them turns them into their Japanese form, underlined (`123` → `１２３`, `[` → `「`, `?` → `？`). In Japanese text, a word typed straight after a number reads as a counter, and Space converts it together with the number (`3ji` → `3時`, `5fun` → `5分`). Units that aren't romaji, like `5km` or `3pm`, stay English.
-
-While converting (candidate window open):
+<details>
+<summary>While converting (candidate window open)</summary>
 
 | Key | Effect |
 | --- | --- |
@@ -115,20 +168,44 @@ While converting (candidate window open):
 Conversion goes clause by clause: a candidate that covers only the start of the reading (`今日は`
 for きょうはいいてんきですね) commits that part and keeps converting the rest.
 
+</details>
+
+<details>
+<summary>Symbols and numbers after Japanese</summary>
+
+A symbol typed on its own after Japanese is full-width and stays underlined, as in a Japanese IME
+(`！`, `＿`, `「`).
+
+- Return confirms it (no newline), Space offers its other forms (`!`, `‼︎`, `『`…), and a letter
+  confirms it and starts a new word.
+- Inside numbers (`3.5`, `10:30`) it stays half-width, and a bracket opened full-width closes
+  full-width even after an English word (`日本語（English）`).
+
+With Japanese on, numbers and symbols can be Japanese too.
+
+- Typed on their own at the start of a sentence or after Korean or English, they go in half-width,
+  but a language switch key right after them turns them into their Japanese form, underlined
+  (`123` → `１２３`, `[` → `「`, `?` → `？`).
+- In Japanese text, a word typed straight after a number reads as a counter, and Space converts it
+  together with the number (`3ji` → `3時`, `5fun` → `5分`). Units that aren't romaji, like `5km` or
+  `3pm`, stay English.
+
+</details>
+
 ### Language switch keys
 
-Choose the keys that switch readings in the settings window's Keys pane, keycaps you click: right ⌥
-tapped alone, ⌥Space, right ⇧ tapped alone, Esc and ⇧Esc, as many as you like. By default they are
-**right ⌥ tapped alone** and **⇧Esc**. A key not chosen goes to the app.
+Choose the keys that switch readings in the settings window's **Keys** pane, keycaps you click:
+right ⌥ tapped alone, ⌥Space, right ⇧ tapped alone, Esc and ⇧Esc, as many as you like. By default
+they are **right ⌥ tapped alone** and **⇧Esc**. A key not chosen goes to the app.
 
 - **Right ⌥ or right ⇧ tapped alone**: apps don't react to a lone modifier, so it never closes a
   window or clears input. A tap with other modifiers isn't taken, so a key remapped as a Hyper key
   (⌃⌥⇧⌘ at once, by Raycast or Karabiner) keeps doing what it's bound to; choose another key then.
 - **⌥Space**: it otherwise types a no-break space, which it no longer does once chosen.
-- **Esc**: quick if you're used to it, but Chromium-based apps such as Claude's desktop app or Slack
+- **Esc**: quick if you're used to it. But Chromium-based apps such as Claude's desktop app or Slack
   also see an Esc the input method took, so they may close their window or cancel the input while
   the word changes. With nothing to change, Esc goes to the app.
-- **⇧Esc**: with nothing to change it does nothing and never reaches the app.
+- **⇧Esc**: with nothing to change, it does nothing and never reaches the app.
 
 The per-app settings can choose other keys for one app: switch with Esc by default, say, and leave
 Esc out where it has to reach the app, as in an editor. The input menu's "Esc Switches Language"
@@ -139,32 +216,44 @@ conversion, Esc goes back to the kana first whatever keys are chosen.
 
 Right after a word is committed with Space or punctuation, a language switch key switches it to its
 next reading, and pressing it again keeps cycling. Deleting the space or punctuation first keeps
-that chance; any other key ends it. This needs the caret still right after the word and an app that
+that chance; any other key ends it. This needs the caret still right after the word, and an app that
 lets Seamtype read the text there.
-
-In an app that doesn't, such as a terminal, turn on **Hold the word after Space or punctuation** for
-that app (the input menu, or Apps in the settings window; `holdSpace` in `apps.json`). Space or a
-punctuation mark (any symbol such as `. , ? !`, not digits) then doesn't end the word but goes inside
-the underline too. While underlined it is the word being typed: a language switch key changes it
-(`dkssud.` → `안녕.`, the mark stays as typed), Delete deletes (the space or mark first), and
-starting the next word puts it in with that character. Only one character is held: after `안녕.` a
-Space or a second mark ends the word and is handled as with holding off (to the app, usually; after
-a word that went in as Japanese, by the rules for symbols after Japanese text). Return only confirms it, as on any
-underlined word, so press it again for a new line or to run a command; the app never gets the Space
-key, so its text replacements don't fire.
 
 A correction changes only that word, so a stray switch doesn't stick. Correct the same keys the same
 way a second time and Seamtype remembers it; switching a word back to Seamtype's own guess forgets
 it.
 
+<details>
+<summary>In apps where that can't work: hold the word after Space or punctuation</summary>
+
+In an app that doesn't let Seamtype read the text, such as a terminal, turn on **Hold the word after
+Space or punctuation** for that app (the input menu, or Apps in the settings window; `holdSpace` in
+`apps.json`). Space or a punctuation mark (any symbol such as `. , ? !`, not digits) then doesn't
+end the word but goes inside the underline too.
+
+- While underlined it is the word being typed: a language switch key changes it (`dkssud.` →
+  `안녕.`, the mark stays as typed), and Delete deletes (the space or mark first).
+- Starting the next word puts it in with that character.
+- Only one character is held: after `안녕.` a Space or a second mark ends the word and is handled as
+  with holding off (to the app, usually; after a word that went in as Japanese, by the rules for
+  symbols after Japanese text).
+- Return only confirms it, as on any underlined word, so press it again for a new line or to run a
+  command.
+- The app never gets the Space key, so its text replacements don't fire.
+
+</details>
+
 ### Text replacements
 
 A shortcut in System Settings → Keyboard → Text Replacements that reads as Korean or Japanese
 (`주소`, `ㅈㅅ`, `よろ`) shows in that language whatever the guess, so the app replaces it on Space as
-it does with the system's input. English shortcuts are decided as usual. A Japanese shortcut's
-phrase is the first candidate on Space, and a shortcut entered more than once offers every phrase in turn. The app does the replacing, so apps without text
-replacement (terminals, Chrome…) only get the Japanese candidate. Edits to the list apply the next
-time a text field becomes active. Enter a Japanese shortcut as its hiragana reading (`よろ`, `ぐー`).
+it does with the system's input. English shortcuts are decided as usual.
+
+- A Japanese shortcut's phrase is the first candidate on Space, and a shortcut entered more than
+  once offers every phrase in turn. Enter a Japanese shortcut as its hiragana reading (`よろ`, `ぐー`).
+- The app does the replacing, so apps without text replacement (terminals, Chrome…) only get the
+  Japanese candidate.
+- Edits to the list apply the next time a text field becomes active.
 
 ### Pause
 
@@ -176,7 +265,7 @@ Each tap shows Seamtype's icon under the caret for a moment, like the input sour
 struck through when paused. The menu bar icon doesn't change, so to check later, look for the tick
 in the input menu.
 
-Change the pause key under Keys in the settings window: right ⌘, ⌥, ⇧ or ⌃ tapped on its own, a
+Change the pause key under **Keys** in the settings window: right ⌘, ⌥, ⇧ or ⌃ tapped on its own, a
 recorded shortcut (one with ⌘, ⌃ or ⌥, like ⌃⌥P, or a function key alone), or none. A key that
 switches languages (right ⌥ or ⇧, ⌥Space) or types kana (⌃J, ⌃K, F6, F7) can't be chosen. A
 shortcut the app also has in its menus may reach the app first.
@@ -185,10 +274,12 @@ shortcut the app also has in its menus may reach the app first.
 
 For neovim put [`scripts/vim/seamtype.lua`](scripts/vim/seamtype.lua) in `~/.config/nvim/plugin/`;
 for Vim (8.2 or later, `+job`) put [`scripts/vim/seamtype.vim`](scripts/vim/seamtype.vim) in
-`~/.vim/plugin/`. Vim then tells Seamtype on every mode change, so words are decided only in insert
-mode, and in normal, visual and command-line mode keys go straight to vim: `s`, `dd`, `ciw` and
-`:wq⏎` run key by key. Inside vim, Esc always goes to vim, so no per-app setting is needed. Once vim
-quits, words are decided again at the shell.
+`~/.vim/plugin/`.
+
+Vim then tells Seamtype on every mode change, so words are decided only in insert mode, and in
+normal, visual and command-line mode keys go straight to vim: `s`, `dd`, `ciw` and `:wq⏎` run key
+by key. Inside vim, Esc always goes to vim, so no per-app setting is needed. Once vim quits, words
+are decided again at the shell.
 
 <details>
 <summary>How it works, and caveats</summary>
@@ -208,6 +299,7 @@ quits, words are decided again at the shell.
 ## Settings
 
 From the input menu (the menu bar, while Seamtype is selected) you can:
+
 - pause Seamtype in this text field (like the pause key)
 - turn word conversion on or off for the app in front, set its conversion threshold
   (Normal/Strict), whether Esc switches languages and whether the word is held after Space or
@@ -215,17 +307,27 @@ From the input menu (the menu bar, while Seamtype is selected) you can:
 - turn Japanese Input and Live Conversion on or off
 - undo the last learned word, and open Try Typing, the remembered words or the settings window
 
-The settings window has Languages (Japanese and its options), Keys (the language switch keys,
-Return, the pause key), per-app behavior, Try Typing (how each word was decided, with scores), the learned
-words (forget one or all) and About. The kanji candidate order resets under Japanese input in
-Languages. Changes apply at once.
+The settings window has these panes, and changes apply at once.
+
+| Pane | What's there |
+| --- | --- |
+| Languages | Japanese input and its options, resetting the kanji candidate order (under Japanese input) |
+| Keys | the language switch keys, Return, the pause key |
+| Apps | per-app behavior (`apps.json`) |
+| Try Typing | how each word was decided, with scores |
+| Learning | the learned words, to forget one or all |
+| About | version, what changed, updates, uninstall |
 
 ### Settings files
 
-The menu and the settings window both write `~/Library/Application Support/Seamtype/settings.json`.
-You can edit it by hand; missing keys, and values of the wrong type (`"true"` in quotes), keep the
-default. A file that isn't readable JSON is moved to `settings.json.unreadable` rather than written
-over (`apps.json` and `lexicon.json` too).
+The menu and the settings window both write JSON files in `~/Library/Application Support/Seamtype/`.
+You can edit them by hand; missing keys, and values of the wrong type (`"true"` in quotes), keep the
+default. A file that isn't readable JSON is moved aside, such as to `settings.json.unreadable`,
+rather than written over (`apps.json` and `lexicon.json` too). After editing these files by hand,
+restart the input method: `pkill -x Seamtype`.
+
+<details>
+<summary><code>settings.json</code>: global settings</summary>
 
 ```json
 { "japanese": true, "liveConversion": true }
@@ -242,16 +344,24 @@ over (`apps.json` and `lexicon.json` too).
 | `japaneseEngine` | `"apple"` | Kanji conversion: `"apple"` uses the engine of macOS's Japanese input, `"azooKey"` the AzooKey converter in the app. |
 | `checkForUpdates` | on | Once a day, ask GitHub for the latest release's version (nothing else is sent), and say so in the input menu and About when it is newer. |
 
-With live conversion, Space opens the candidate window at the next candidate, and Esc shows the
-kana (Esc again switches language where Esc is a switch key, else commits the kana and goes to the
-app). Short readings only change into kanji (`と` stays `と`, `私`
-converts). The top candidate is right for about 4 in 5 short phrases and 3 in 4 whole sentences
-([held-out results](#held-out-results)), so glance before Return. Conversion takes 8–21 ms a
-keystroke.
+With live conversion:
 
-Per-app behavior lives in `apps.json` in the same folder. `"*"` is your default for every app; an
-app (by bundle identifier, a key ending in `.` matches as a prefix, the longest one when several
-do) names only the keys that differ from it. No app is listed unless you list it.
+- Space opens the candidate window at the next candidate.
+- Esc shows the kana. Esc again switches language where Esc is a switch key, else commits the kana
+  and goes to the app.
+- Short readings only change into kanji (`と` stays `と`, `私` converts).
+- The top candidate is right for about 4 in 5 short phrases and 3 in 4 whole sentences
+  ([held-out results](#held-out-results)), so glance before Return. Conversion takes 8–21 ms a
+  keystroke.
+
+</details>
+
+<details>
+<summary><code>apps.json</code>: per-app behavior</summary>
+
+`"*"` is your default for every app; an app (by bundle identifier) names only the keys that differ
+from it. A key ending in `.` matches as a prefix, the longest one when several do. No app is listed
+unless you list it.
 
 ```json
 { "*":                     { "switchKeys": ["escape", "shiftEscape"] },
@@ -268,64 +378,83 @@ do) names only the keys that differ from it. No app is listed unless you list it
 | `holdSpace` | `false` | Space or a punctuation mark (not a digit) goes inside the underline instead of ending the word. Like a word being typed, a switch key changes it and Delete deletes; the next word puts it in with that character. For terminals, which can't change a committed word, so set per app only (not in `"*"`); Return only confirms it, and text replacements don't fire. |
 | `fullWidth` | `true` | `false` keeps numbers and spaces half-width in this app whatever the full-width settings say (terminals, code editors). |
 
-After editing these files by hand, restart the input method: `pkill -x Seamtype`.
+</details>
 
 ## How it decides
 
 Locally, in this order. A keystroke's preview takes at most ~3 ms and a word's final decision
 ~7 ms, even 70 letters into a phrase.
 
-1. **Your corrections** (made twice, see [learning](#undo-after-commit-and-learning)) always win
-   (`lexicon.json`).
-2. **Mixed words** are split, in an app set to Strict too.
-   - English + particle, when the end is a Korean particle or ending and reading it that way beats
-     reading the whole token as Hangul or as English. The more common the English word (or an
-     acronym or name typed in capitals) and the less the whole reads as a Korean word, the likelier
-     the split: `githubdp` → `github에`, `UIrkxdmsrjs` → `UI같은건`, `formdptj` → `form에서` (래그 is
-     no word). `gosemfdmf` stays `핸들을`. Of 은/는, 을/를 and 이/가, the form that fits the end of the
-     word before counts as likelier: an acronym ends as its last letter is said (`TMdms` → `TM은`,
-     티엠), and whole Hangul with the wrong form (`씨을`) isn't taken as a word + particle. An acronym
-     shaped like a double consonant with a lingering Shift stays Hangul when that reading is right
-     too: `TMsms` → `쓰는` (TM takes `은`), `TLdp` → `씨에` (`에` has one form).
-   - A single English letter + particle, as in a variable name: `xdp` → `x에`, `Xfmf` → `X를`. Not
-     `도`/`나` after a lowercase letter, which are common English endings (`heh`, `tsk`); a capital
-     gives `X도`.
-   - English + Korean word, by the same score comparison as English + particle: when the split
-     reading leads reading the token whole. After an acronym or a name typed with its capitals it
-     splits readily (`PDFvkdlf` → `PDF파일`, `PCzkxhr` → `PC카톡`, `iPhonevkdlf` → `iPhone파일`). After
-     an ordinary English word, a rarer pair, only when the whole token spells nothing like English:
-     `hellodnjfem` → `hello월드`, `githubtjqj` → `github서버`; `cartman` isn't `car스무`. One shaped like
-     a double consonant with a lingering Shift (`EU` is `뗘`) splits only when that syllable doesn't
-     exist in Korean and a word from the list follows: `EUwjdcor` → `EU정책`. `TMwjdcor` is `쓰정책` (쓰
-     is a common syllable) and `EUdlswmd` is `뗘인증` (인증 isn't in the list); type such acronyms as
-     `TM 정책`, with a space.
-   - Korean, then an English word: `dhsmfdmsgoogledptj` → `오늘은google에서`. The Korean goes in
-     and the rest keeps composing.
-   - With Japanese on:
-     - English + one case particle, compared the same way with reading the whole as kana:
-       `githubde` → `githubで`, `APIwo` → `APIを`, `redde` → `redで`. What reads naturally as
-       Japanese stays kana (`sitede` → `してで`).
-     - Japanese after Korean: `dlfurrireki` → `이력りれき` (Space for `履歴`)
-     - a Korean particle or word after Japanese: `rirekifmf` → `りれき를`,
-       `kyouhaehtlfkrdms` → `きょうは도시락은`. The Japanese part is committed on the spot, so with
-       live conversion it goes in as `履歴를`, `今日は도시락은`.
-     - These split only when the Korean side breaks, so ordinary Japanese phrases stay whole.
-3. **Rules:** shift on a letter with no shifted jamo (`Hello`, `API`) is English, except when it
-   lingers from a double consonant or ㅒ/ㅖ onto the one key right after (`djEJs` → `어떤`,
-   `dlTDj` → `있어`, `dPFmf` → `예를`): those go by the scores. An acronym typed in capitals
-   throughout (`TM`, `RN`) or a word starting on O or P (`PDFvkdlf` → `PDF파일`, `OAuth`) stays English.
-   A word with a capital in it is never read as Japanese: as in macOS's Japanese input method, a
-   letter typed with ⇧ stays a letter (`O` is `O`, not `お`; `Kyouha` stays as typed).
-4. **Heuristic:** the keys are scored per keystroke in all three languages, plus a nudge toward the
+1. **Your corrections**: words corrected twice ([learning](#undo-after-commit-and-learning)) always
+   win (`lexicon.json`).
+2. **Mixed words**: two languages run together, like `github에`, `PDF파일` or `githubで`, are split,
+   in an app set to Strict too.
+3. **Rules**: what the keys alone settle, like a capital typed with Shift.
+4. **Heuristic**: the keys are scored per keystroke in all three languages, plus a nudge toward the
    previous word's language.
-   - English: character trigrams, and a floor for words in the SCOWL list, by how common they are
-   - Korean: 2-set syllable frequencies, and a floor for words seen in Korean text
-   - Japanese: romaji → kana trigrams, with English words inside the phrase split out
-   - The nudge is weaker when the keys are a word of another language and not of the previous one,
-     which is someone switching language.
-   - A known English word needs a clear Japanese win before it turns into kana.
 
-Kanji come from the conversion engine of macOS's Japanese input (libmecabra), with the top
+<details>
+<summary>Each step in detail</summary>
+
+**2. Mixed words**
+
+- **English + particle**, when the end is a Korean particle or ending and reading it that way beats
+  reading the whole token as Hangul or as English. The more common the English word (or an acronym
+  or name typed in capitals) and the less the whole reads as a Korean word, the likelier the split.
+  - `githubdp` → `github에`, `UIrkxdmsrjs` → `UI같은건`, `formdptj` → `form에서` (래그 is no word).
+    `gosemfdmf` stays `핸들을`.
+  - Of 은/는, 을/를 and 이/가, the form that fits the end of the word before counts as likelier. An
+    acronym ends as its last letter is said (`TMdms` → `TM은`, 티엠), and whole Hangul with the wrong
+    form (`씨을`) isn't taken as a word + particle.
+  - An acronym shaped like a double consonant with a lingering Shift stays Hangul when that reading
+    is right too: `TMsms` → `쓰는` (TM takes `은`), `TLdp` → `씨에` (`에` has one form).
+- **A single English letter + particle**, as in a variable name: `xdp` → `x에`, `Xfmf` → `X를`. Not
+  `도`/`나` after a lowercase letter, which are common English endings (`heh`, `tsk`); a capital gives
+  `X도`.
+- **English + Korean word**, by the same score comparison as English + particle: when the split
+  reading leads reading the token whole.
+  - After an acronym or a name typed with its capitals it splits readily: `PDFvkdlf` → `PDF파일`,
+    `PCzkxhr` → `PC카톡`, `iPhonevkdlf` → `iPhone파일`.
+  - After an ordinary English word, a rarer pair, only when the whole token spells nothing like
+    English: `hellodnjfem` → `hello월드`, `githubtjqj` → `github서버`; `cartman` isn't `car스무`.
+  - One shaped like a double consonant with a lingering Shift (`EU` is `뗘`) splits only when that
+    syllable doesn't exist in Korean and a word from the list follows: `EUwjdcor` → `EU정책`.
+    `TMwjdcor` is `쓰정책` (쓰 is a common syllable) and `EUdlswmd` is `뗘인증` (인증 isn't in the
+    list); type such acronyms as `TM 정책`, with a space.
+- **Korean, then an English word**: `dhsmfdmsgoogledptj` → `오늘은google에서`. The Korean goes in and
+  the rest keeps composing.
+- **With Japanese on**:
+  - English + one case particle, compared the same way with reading the whole as kana:
+    `githubde` → `githubで`, `APIwo` → `APIを`, `redde` → `redで`. What reads naturally as Japanese
+    stays kana (`sitede` → `してで`).
+  - Japanese after Korean: `dlfurrireki` → `이력りれき` (Space for `履歴`)
+  - A Korean particle or word after Japanese: `rirekifmf` → `りれき를`, `kyouhaehtlfkrdms` →
+    `きょうは도시락은`. The Japanese part is committed on the spot, so with live conversion it goes in
+    as `履歴를`, `今日は도시락은`.
+  - These split only when the Korean side breaks, so ordinary Japanese phrases stay whole.
+
+**3. Rules**
+
+- Shift on a letter with no shifted jamo (`Hello`, `API`) is English.
+- The exception is a Shift that lingers from a double consonant or ㅒ/ㅖ onto the one key right after
+  (`djEJs` → `어떤`, `dlTDj` → `있어`, `dPFmf` → `예를`): those go by the scores.
+- An acronym typed in capitals throughout (`TM`, `RN`) or a word starting on O or P (`PDFvkdlf` →
+  `PDF파일`, `OAuth`) stays English.
+- A word with a capital in it is never read as Japanese: as in macOS's Japanese input method, a
+  letter typed with ⇧ stays a letter (`O` is `O`, not `お`; `Kyouha` stays as typed).
+
+**4. Heuristic**
+
+- English: character trigrams, and a floor for words in the SCOWL list, by how common they are
+- Korean: 2-set syllable frequencies, and a floor for words seen in Korean text
+- Japanese: romaji → kana trigrams, with English words inside the phrase split out
+- The nudge is weaker when the keys are a word of another language and not of the previous one,
+  which is someone switching language.
+- A known English word needs a clear Japanese win before it turns into kana.
+
+</details>
+
+**Kanji** come from the conversion engine of macOS's Japanese input (libmecabra), with the top
 candidate re-picked by a character trigram model of written Japanese. So variant kanji like `髙`
 (`たか`, `たかはし` → `髙橋`), English spellings of names (`とぅいっち` → `Twitch`) and completions
 of a partial reading (`ゆーちゅ` → `YouTube`, after the top candidate) come up as in the system's
@@ -342,7 +471,19 @@ never used to build the models (`tools/prepare.sh`):
 | --- | --- | --- |
 | Accuracy | 99.82% | 99.50% |
 
-That set counts every word once and seldom puts it after the other language. But real text is
+Kanji conversion, top candidate exactly matching the original text (held-out Tatoeba):
+
+| | macOS engine | + reranking | correct one in the list | AzooKey + reranking |
+| --- | --- | --- | --- | --- |
+| 2–3 word phrases | 74.5% | **81.0%** | 96.2% | 81.0% |
+| whole sentences | 71.2% | **74.0%** | 91.5% | 67.2% |
+
+Exact match counts kana/kanji style differences (ひとまとめ vs 一まとめ) as misses.
+
+<details>
+<summary>Common words in context: after another language</summary>
+
+The set above counts every word once and seldom puts it after the other language. But real text is
 mostly its most frequent words, and switching language mid-sentence is the point, so the 10,000
 most frequent English and Korean words are also scored after each kind of word
 (`tools/eval_context.py`, Japanese on). Wrong among the top 1,000 / top 10,000:
@@ -356,21 +497,15 @@ Before the SCOWL and Korean word lists and the switch-aware nudge, that was 94 /
 it is 46 / 370. These lists were used while tuning those rules, so they're a guide, not a
 held-out score. Many remaining misses are genuinely ambiguous keys: `so`/내, `go`/해, `did`/양.
 
-Kanji conversion, top candidate exactly matching the original text (held-out Tatoeba):
-
-| | macOS engine | + reranking | correct one in the list | AzooKey + reranking |
-| --- | --- | --- | --- | --- |
-| 2–3 word phrases | 74.5% | **81.0%** | 96.2% | 81.0% |
-| whole sentences | 71.2% | **74.0%** | 91.5% | 67.2% |
-
-Exact match counts kana/kanji style differences (ひとまとめ vs 一まとめ) as misses.
+</details>
 
 ## Known limits
 
-- Never tested end to end in every app. Secure fields (passwords) bypass input methods; a masked
-  field that still reaches it (KakaoTalk's login, App Store's password sheet) gets the keys as
-  typed, with no word decided. Undo after commit needs apps that report their caret and text; in a
-  terminal, set `"holdSpace": true` to keep the word underlined after Space or punctuation instead.
+- Never tested end to end in every app.
+- Secure fields (passwords) bypass input methods. A masked field that still reaches it (KakaoTalk's
+  login, App Store's password sheet) gets the keys as typed, with no word decided.
+- Undo after commit needs apps that report their caret and text. In a terminal, set
+  `"holdSpace": true` to keep the word underlined after Space or punctuation instead.
 - Where Esc is a switch key, Esc right after a word (e.g. to close a popup) changes that word first.
   It isn't learned unless repeated; leave Esc out for such apps in the per-app settings.
 - Japanese: only the first clause is resized with ←/→ (Return commits it and moves on to the
@@ -413,6 +548,6 @@ or copied into it in `Contents/Resources/ThirdPartyNotices.txt`, collected by
   notice in the app). macOS's `/usr/share/dict/words` trains the letter trigrams at runtime.
 - English/Korean frequency lists:
   [hermitdave/FrequencyWords](https://github.com/hermitdave/FrequencyWords), CC-BY-SA 4.0. Used
-  for evaluation; the full Korean list (words seen at least twice) also ships as `korean_vocabulary.txt` (for splitting an English
-  word from a Korean one, and for Korean words Tatoeba's sentences lack: 혜택, 닥터, 촉매), under the
-  same license, with its notice in the app.
+  for evaluation; the full Korean list (words seen at least twice) also ships as
+  `korean_vocabulary.txt` (for splitting an English word from a Korean one, and for Korean words
+  Tatoeba's sentences lack: 혜택, 닥터, 촉매), under the same license, with its notice in the app.
