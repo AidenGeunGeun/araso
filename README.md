@@ -388,5 +388,6 @@ Seamtype은 MIT 라이선스입니다([LICENSE](LICENSE)). 앱에 컴파일되�
   macOS의 `/usr/share/dict/words`로 실행할 때 글자 3-그램을 학습합니다.
 - 영어·한국어 빈도 목록:
   [hermitdave/FrequencyWords](https://github.com/hermitdave/FrequencyWords), CC-BY-SA 4.0.
-  평가에 쓰고, 한국어 목록은 `korean_vocabulary.txt`로도 같은 라이선스로 앱에 들어갑니다(고지는 앱에
-  포함). 영어 + 한국어 단어 나누기와, Tatoeba 문장에 없는 한국어 단어(혜택, 닥터)를 알아보는 데 씁니다.
+  평가에 쓰고, 한국어 전체 목록(두 번 이상 나온 단어)은 `korean_vocabulary.txt`로도 같은 라이선스로
+  앱에 들어갑니다(고지는 앱에 포함). 영어 + 한국어 단어 나누기와, Tatoeba 문장에 없는 한국어
+  단어(혜택, 닥터, 촉매)를 알아보는 데 씁니다.

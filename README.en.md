@@ -413,6 +413,6 @@ or copied into it in `Contents/Resources/ThirdPartyNotices.txt`, collected by
   notice in the app). macOS's `/usr/share/dict/words` trains the letter trigrams at runtime.
 - English/Korean frequency lists:
   [hermitdave/FrequencyWords](https://github.com/hermitdave/FrequencyWords), CC-BY-SA 4.0. Used
-  for evaluation; the Korean list also ships as `korean_vocabulary.txt` (for splitting an English
-  word from a Korean one, and for Korean words Tatoeba's sentences lack: 혜택, 닥터), under the
+  for evaluation; the full Korean list (words seen at least twice) also ships as `korean_vocabulary.txt` (for splitting an English
+  word from a Korean one, and for Korean words Tatoeba's sentences lack: 혜택, 닥터, 촉매), under the
   same license, with its notice in the app.

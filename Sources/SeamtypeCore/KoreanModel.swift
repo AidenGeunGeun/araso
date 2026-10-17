@@ -66,9 +66,17 @@ public struct KoreanModel: Sendable {
         words.contains(hangul) || Self.vocabulary.contains(hangul)
     }
 
+    /// A word the subtitles have fewer than `commonCount` times (촉매, twice): for the heuristic's
+    /// Korean word floor only. The tail holds dialect and typos too (어뗘, 쓔벌, 꺼이), so it
+    /// stays out of the splits and of `knowsSyllable`, which `EU정책` and `RJ이` rely on.
+    public func isRareVocabularyWord(_ hangul: String) -> Bool { Self.rareVocabulary.contains(hangul) }
+
     /// A noun the lists only have with a case particle (혜택 from 혜택을, 혜택으로): they
     /// count words with their particles, so a bare noun can be missing from both.
     public func isKnownStem(_ hangul: String) -> Bool { Self.stems.contains(hangul) }
+
+    /// Where `korean_vocabulary.txt` stops being `vocabulary`: the old 50k list's last count.
+    static let commonCount = 10
 
     /// Case particles, by what the noun must end in: a final consonant (을), none (를), or either.
     private static let particles: [(String, Bool?)] = [
@@ -79,7 +87,7 @@ public struct KoreanModel: Sendable {
 
     private static let stems: Set<String> = {
         var stems = Set<String>()
-        for word in corpusWords.union(vocabulary) {
+        for word in corpusWords.union(vocabulary).union(rareVocabulary) {
             for (particle, final) in particles where word.hasSuffix(particle) {
                 let stem = word.dropLast(particle.count)
                 guard stem.count >= 2, let last = stem.last?.unicodeScalars.first?.value,
@@ -91,9 +99,16 @@ public struct KoreanModel: Sendable {
         return stems
     }()
 
-    private static let vocabulary: Set<String> = {
+    private static let vocabulary = Set(vocabularyCounts.filter { $0.count >= commonCount }.map(\.word))
+    private static let rareVocabulary = Set(vocabularyCounts.filter { $0.count < commonCount }.map(\.word))
+
+    private static let vocabularyCounts: [(word: String, count: Int)] = {
         guard let url = Resources.koreanVocabulary, let text = try? String(contentsOf: url, encoding: .utf8) else { return [] }
-        return Set(text.split(whereSeparator: \.isNewline).map(String.init))
+        return text.split(whereSeparator: \.isNewline).compactMap {
+            let parts = $0.split(separator: "\t")
+            guard parts.count == 2, let n = Int(parts[1]) else { return nil }
+            return (String(parts[0]), n)
+        }
     }()
 
     private static let corpusWords: Set<String> = {

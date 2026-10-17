@@ -96,6 +96,13 @@ let sharedEngine = HeuristicEngine()
         #expect(d.confidence >= AppPolicy.strictThreshold, "\(keys) \(d.explanation)")
     }
 
+    /// A noun too rare for the syllable counts (촉 is seen twice) is Korean once the subtitles
+    /// list it, even with no previous word to lean on.
+    @Test func rareNounFromTheFullList() {
+        let d = sharedEngine.decide("chrao", context: DecisionContext())
+        #expect(d.language == .korean && d.output == "촉매", "\(d.output) \(d.explanation)")
+    }
+
     @Test(arguments: ["work", "ahem", "claus"])
     func englishWordsSpellingVocabularyStayEnglish(word: String) {
         for previous in [nil, Language.korean] {

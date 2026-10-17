@@ -41,7 +41,7 @@ public enum Resources {
     }
 
     /// Korean words of two or more syllables, loanwords included (FrequencyWords;
-    /// build_korean_vocabulary.py). Only for splitting `hello월드`.
+    /// build_korean_vocabulary.py): splitting `hello월드`, and the heuristic's Korean word floor.
     public static var koreanVocabulary: URL? {
         url("korean_vocabulary.txt", development: packageRoot.appendingPathComponent("Sources/SeamtypeCore/Data/korean_vocabulary.txt"))
     }

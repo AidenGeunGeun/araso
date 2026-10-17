@@ -176,7 +176,8 @@ public final class HeuristicEngine: DecisionEngine, @unchecked Sendable {
         var k = korean.score(keys: keys, partial: context.partial)
         let knownKorean = k.map {
             $0.composition.strayJamo.isEmpty && (korean.isKnownWord($0.composition.text)
-                || (!known && (korean.isVocabularyWord($0.composition.text) || korean.isKnownStem($0.composition.text))))
+                || (!known && (korean.isVocabularyWord($0.composition.text) || korean.isRareVocabularyWord($0.composition.text)
+                    || korean.isKnownStem($0.composition.text))))
         } ?? false
         if let score = k, knownKorean {
             let floor = score.composition.syllables.count >= 2 ? koreanKnownFloor.long : koreanKnownFloor.short

@@ -15,6 +15,7 @@ mkdir -p data
 fetch() { curl -sSfL -o "$2.part" "$1" && mv "$2.part" "$2"; }
 words=https://raw.githubusercontent.com/hermitdave/FrequencyWords/master/content/2018
 [[ -f data/ko_50k.txt ]] || fetch $words/ko/ko_50k.txt data/ko_50k.txt
+[[ -f data/ko_full.txt ]] || fetch $words/ko/ko_full.txt data/ko_full.txt   # korean_vocabulary.txt
 [[ -f data/en_50k.txt ]] || fetch $words/en/en_50k.txt data/en_50k.txt
 for lang in jpn kor; do
   if [[ ! -f data/${lang}_sentences.tsv ]]; then
