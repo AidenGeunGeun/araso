@@ -111,6 +111,22 @@ let sharedEngine = HeuristicEngine()
         }
     }
 
+    /// SCOWL lists its words' inflections, so a guessed one counts only for a stem the list
+    /// ranks above its rarest level: thru (50, 35 as a `commonWords` slang word) + s and ahem
+    /// (50) + s are no words, and their keys are 소견 and 모든. travelling and maths, from
+    /// commoner stems the list lacks the form of, still are.
+    @Test(arguments: [("thrus", "소견"), ("ahems", "모든")])
+    func noGuessedInflectionOfARareStem(keys: String, expected: String) {
+        #expect(!EnglishModel.shared.isKnownWord(keys))
+        let d = sharedEngine.decide(keys, context: DecisionContext())
+        #expect(d.language == .korean && d.output == expected, "\(keys) → \(d.output) \(d.explanation)")
+    }
+
+    @Test(arguments: ["travelling", "cancelled", "maths", "onwards"])
+    func guessedInflectionOfACommonStemIsAWord(word: String) {
+        #expect(EnglishModel.shared.isKnownWord(word))
+    }
+
     @Test func learningOverridesBase() throws {
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("seamtype-test-\(UUID().uuidString).json")
         defer { try? FileManager.default.removeItem(at: url) }
