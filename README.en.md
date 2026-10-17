@@ -15,7 +15,7 @@
   <img src="https://img.shields.io/badge/macOS-13%2B-555?style=flat-square&logo=apple" alt="macOS 13 or later">
   <img src="https://img.shields.io/badge/Apple%20Silicon%20%7C%20Intel-555?style=flat-square" alt="Apple silicon and Intel">
   <a href="https://github.com/aimdevlee/seamtype/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/aimdevlee/seamtype/ci.yml?branch=main&style=flat-square&label=tests" alt="Tests"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/github/license/aimdevlee/seamtype?style=flat-square" alt="MIT license"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" alt="MIT license"></a>
 </p>
 
 <p align="center"><a href="https://nyttastudio.com/seamtype/">Website (Korean)</a> · <a href="README.md">한국어</a> · English</p>
