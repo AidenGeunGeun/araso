@@ -143,7 +143,7 @@ While a word is being typed it is underlined and shows the language Seamtype exp
 | --- | --- | --- |
 | letters | extend the word | extend the phrase (kana preview) |
 | **[Language switch keys](#language-switch-keys)** (by default right ⌥ tapped on its own, and ⇧Esc) | switch reading: English → English+particle → Korean → Japanese | same (with live conversion, the kana first) |
-| Esc | commit; the app gets the Esc (when chosen as a switch key, as above) | with live conversion, the kana first |
+| Esc | commit; the app gets the Esc (when chosen as a switch key, as above) | with live conversion, the kana first; on the kana, cancel the phrase (the app doesn't get it) |
 | Delete | English: the last letter. Korean: the syllable being typed jamo by jamo, earlier ones whole (한국 → 한구 → 한ㄱ → 한 → gone, as the system's 2-set does) | one kana at a time (かんこく → かんこ) |
 | **Space** | commit, then a space | **convert to kanji** (candidate window) |
 | `, . ? !` and other symbols | commit, then the key | join the phrase, full-width: 、。？！ （）＿ 「」(`[ ]`) ・(`/`) 〜(`~`) |
@@ -166,7 +166,8 @@ While a word is being typed it is underlined and shows the language Seamtype exp
 | letters, punctuation | commit, then keep typing |
 
 Conversion goes clause by clause: a candidate that covers only the start of the reading (`今日は`
-for きょうはいいてんきですね) commits that part and keeps converting the rest.
+for きょうはいいてんきですね) commits that part and keeps converting the rest. The candidate window lists
+every homophone the engine has, rare kanji toward the end (`硝` for しょう).
 
 </details>
 
@@ -349,9 +350,10 @@ restart the input method: `pkill -x Seamtype`.
 
 With live conversion:
 
-- Space opens the candidate window at the next candidate.
-- Esc shows the kana. Esc again switches language where Esc is a switch key, else commits the kana
-  and goes to the app.
+- Space opens the candidate window at the next candidate. With the kana still on screen (`しょう`),
+  it opens at the first conversion (`翔`).
+- Esc shows the kana. Esc again switches language where Esc is a switch key, else cancels the phrase,
+  as macOS's Japanese input does (the app doesn't get it).
 - Short readings only change into kanji (`と` stays `と`, `私` converts).
 - The top candidate is right for about 4 in 5 short phrases and 3 in 4 whole sentences
   ([held-out results](#held-out-results)), so glance before Return. Conversion takes 8–21 ms a

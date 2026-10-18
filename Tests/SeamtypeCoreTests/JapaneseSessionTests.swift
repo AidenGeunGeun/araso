@@ -15,6 +15,8 @@ import Testing
             return [.init(text: "いい天気ですね", kanaCount: 8), .init(text: kana, kanaCount: 8)]
         case "へんかん":
             return [.init(text: "変換", kanaCount: 4), .init(text: "返還", kanaCount: 4), .init(text: "編纂", kanaCount: 4)]
+        case "しょう": // the engine puts the reading first
+            return [.init(text: kana, kanaCount: 3), .init(text: "翔", kanaCount: 3), .init(text: "小", kanaCount: 3)]
         case "３がつ":
             return [.init(text: "三月", kanaCount: 3), .init(text: "３月", kanaCount: 3), .init(text: "3月", kanaCount: 3)]
         case "3じ":
@@ -28,6 +30,9 @@ import Testing
     }
     func learn(_ candidate: ConversionCandidate, for kana: String) { learned.append(candidate.text) }
     func save() {}
+    func moreCandidates(for kana: String) -> [ConversionCandidate] {
+        kana == "しょう" ? [.init(text: "小", kanaCount: 3), .init(text: "硝", kanaCount: 3)] : []
+    }
 }
 
 @MainActor @Suite struct JapaneseSessionTests {
@@ -122,6 +127,32 @@ import Testing
         session.handle(.enter, client: field)
         #expect(session.conversion == nil)
         #expect(field.text == "今日はいい天気ですね")
+    }
+
+    /// The homophones past the converter's list follow it in the candidate window, once each.
+    @Test func candidateWindowListsEveryHomophone() {
+        type("shou ")
+        #expect(session.conversion?.candidates.map(\.text) == ["しょう", "翔", "小", "硝"])
+    }
+
+    /// Esc on kana cancels the phrase where Esc isn't a switch key, as in macOS's Japanese input:
+    /// nothing goes in and the app doesn't get the key.
+    @Test func escapeOnKanaCancelsThePhrase() {
+        type("hello henkan")
+        #expect(session.handle(.escape, client: field))
+        #expect(field.text == "hello " && session.keys.isEmpty)
+        type("dkssud ")
+        #expect(field.text == "hello 안녕 ")
+    }
+
+    /// With live conversion a short reading stays kana on screen (しょう); Space shows a
+    /// conversion, 翔, rather than the kana the engine put first.
+    @Test func spaceOnAShortReadingShowsAConversion() {
+        let session = InputSession(engine: session.engine, converter: converter, japaneseEnabled: true, liveConversion: true)
+        for ch in "shou" { _ = session.handle(.letter(ch), client: field) }
+        #expect(field.text == "しょう")
+        _ = session.handle(.printable(" "), client: field)
+        #expect(field.text == "翔")
     }
 
     @Test func escapeReturnsToKana() {

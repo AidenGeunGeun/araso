@@ -280,6 +280,9 @@ final class InputController: IMKInputController {
         if let shown = candidatesShown, shown.texts == texts, window.isVisible() {
             line = shown.selected
         } else {
+            // A new list in the open window (a first clause made shorter): the panel kept its
+            // height with the rows gone, so it is hidden first and sized afresh.
+            if window.isVisible() { window.hide() }
             window.update() // reloads the list and highlights the first line
             window.show(kIMKLocateCandidatesBelowHint)
         }

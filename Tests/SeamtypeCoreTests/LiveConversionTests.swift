@@ -76,16 +76,17 @@ import Testing
         type("⎋⎋⎋")
     }
 
-    /// Where Esc isn't a switch key, it still shows the kana first; the next one goes to the app.
-    @Test func escapeShowsKanaEvenWhereItGoesToTheApp() throws {
+    /// Where Esc isn't a switch key, it still shows the kana first; the next one cancels the
+    /// phrase, as in macOS's Japanese input, and doesn't reach the app.
+    @Test func escapeShowsKanaThenCancelsWhereItIsNoSwitchKey() throws {
         let dir = FileManager.default.temporaryDirectory
         let converter = try #require(AzooKeyConverter(memory: dir.appendingPathComponent("seamtype-live-\(UUID().uuidString)")))
         let session = InputSession(engine: session.engine, converter: converter, japaneseEnabled: true, liveConversion: true)
         for ch in "kyouhaiitenkidesune" { _ = session.handle(.letter(ch), client: field) }
         #expect(session.handle(.escape, client: field))
         #expect(field.text == "きょうはいいてんきですね")
-        #expect(!session.handle(.escape, client: field))
-        #expect(field.text == "きょうはいいてんきですね" && field.marked.location == NSNotFound)
+        #expect(session.handle(.escape, client: field))
+        #expect(field.text.isEmpty && session.keys.isEmpty)
     }
 
     @Test func kanaCommitAfterEscape() {

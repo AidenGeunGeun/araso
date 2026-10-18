@@ -23,6 +23,16 @@ import Testing
         #expect(converter.candidates(for: "かんじ").prefix(3).contains { $0.text == "漢字" })
     }
 
+    /// しょう has some 300 homophones; 硝 comes past the list's 60, as one more candidate for the
+    /// whole reading.
+    @Test func everyHomophoneForTheCandidateWindow() throws {
+        guard let converter = AppleJapaneseConverter(learning: learning) else { return }
+        #expect(!converter.candidates(for: "しょう").contains { $0.text == "硝" })
+        let more = converter.moreCandidates(for: "しょう")
+        #expect(more.contains { $0.text == "硝" })
+        #expect(more.allSatisfy { $0.kanaCount == 3 && !$0.isPrediction })
+    }
+
     @Test func englishInsideAPhraseStaysAsTyped() throws {
         #expect(AppleJapaneseConverter.keepingEnglish(of: "きょうはgoogleで", in: "今日はGoogleで") == "今日はgoogleで")
         #expect(AppleJapaneseConverter.keepingEnglish(of: "ゆーちゅ", in: "YouTube") == "YouTube")

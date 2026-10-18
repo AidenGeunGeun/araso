@@ -335,6 +335,12 @@ public final class InputSession {
                 updatePreview(client)
                 return true
             }
+            // Kana on screen: the app's Esc cancels the phrase, as in macOS's Japanese input,
+            // rather than committing it and closing a window in the app.
+            if !switchesLanguage, vimMode == nil, (forced ?? previewLanguage) == .japanese {
+                cancelComposition(client)
+                return true
+            }
             guard switchesLanguage else {
                 // The app's Esc: the word goes in as shown, then the app gets the key.
                 commit(client: client)
@@ -472,6 +478,19 @@ public final class InputSession {
         heldBoundary = nil
         let word = finishWord()
         client?.insertText(word.text + boundary, replacing: nil)
+    }
+
+    /// Drops the word being typed: nothing goes in, as when Delete takes its last key.
+    private func cancelComposition(_ client: TextClient) {
+        keys = ""
+        heldBoundary = nil
+        forced = nil
+        forcedByUser = false
+        pinned = nil
+        syllableStart = nil
+        addedNMarker = false
+        liveSuppressed = false
+        updatePreview(client)
     }
 
     /// Commits what's in progress after the caret was moved elsewhere (a click; the app asks):
@@ -714,6 +733,9 @@ public final class InputSession {
             candidates = Array(candidates[..<at]).filter { !phrases.contains($0.text) } + added
                 + candidates[at...].filter { !phrases.contains($0.text) }
         }
+        // Every other homophone the engine has follows, for the candidate window (しょう → 硝).
+        let listed = Set(candidates.map(\.text))
+        candidates += (converter?.moreCandidates(for: kana) ?? []).filter { !listed.contains($0.text) }
         guard !candidates.isEmpty else {
             commit(client: client)
             return
@@ -722,6 +744,10 @@ public final class InputSession {
         var selected = 0
         if let live, let i = candidates.firstIndex(of: live), candidates.count > 1 {
             selected = (i + 1) % candidates.count
+        } else if liveConversion, numberPrefix.isEmpty, candidates.count > 1, candidates[0].text == kana {
+            // The kana is on screen (a short reading kept as kana, or brought back with Esc) and the
+            // engine put it first (しょう): Space shows a conversion, 翔, as macOS does, not the kana again.
+            selected = 1
         }
         liveSuppressed = false
         conversion = Conversion(kana: kana, keys: keys, candidates: candidates, selected: selected, userForced: userForced,
