@@ -34,67 +34,72 @@ struct TypingPane: View {
     @FocusState private var focused: Bool
 
     var body: some View {
-        Form {
-            Section {
-                if !seamtypeOn {
+        Pane(tab: .typing) {
+            SeamCard {
+                VStack(alignment: .leading, spacing: 10) {
+                    if !seamtypeOn {
+                        HStack {
+                            Label(L("Seamtype isn't the input source in use."), systemImage: "exclamationmark.triangle")
+                                .font(.system(size: 12)).foregroundStyle(Seam.warning)
+                            Spacer()
+                            Button(L("Switch to Seamtype")) {
+                                SeamtypeSource.select()
+                                seamtypeOn = SeamtypeSource.isCurrent
+                                focused = true
+                            }
+                        }
+                    }
+                    TextEditor(text: $text)
+                        .font(.system(size: 17, weight: .medium))
+                        .foregroundStyle(Seam.ink)
+                        .frame(minHeight: 96)
+                        .focused($focused)
+                        .scrollContentBackground(.hidden)
+                        .scrollIndicators(.never)
+                        .overlay(alignment: .topLeading) {
+                            if text.isEmpty && !composing {
+                                Text(L("Type here on the English layout, e.g. dkssud hello"))
+                                    .font(.system(size: 17, weight: .medium)).foregroundStyle(Seam.ink3)
+                                    .padding(.leading, 5).allowsHitTesting(false)
+                            }
+                        }
                     HStack {
-                        Label(L("Seamtype isn't the input source in use."), systemImage: "exclamationmark.triangle")
-                            .foregroundStyle(.secondary)
+                        Text(L("The language switch key changes the word's reading, also right after the word."))
+                            .font(.system(size: 12)).foregroundStyle(Seam.ink2)
                         Spacer()
-                        Button(L("Switch to Seamtype")) {
-                            SeamtypeSource.select()
-                            seamtypeOn = SeamtypeSource.isCurrent
+                        Button(L("Clear")) {
+                            text = ""
+                            composing = false
+                            current = nil
                             focused = true
                         }
+                        .disabled(text.isEmpty && current == nil)
                     }
                 }
-                TextEditor(text: $text)
-                    .font(.system(size: 15))
-                    .frame(minHeight: 96)
-                    .focused($focused)
-                    .scrollContentBackground(.hidden)
-                    .overlay(alignment: .topLeading) {
-                        if text.isEmpty && !composing {
-                            Text(L("Type here on the English layout, e.g. dkssud hello"))
-                                .font(.system(size: 15)).foregroundStyle(.tertiary)
-                                .padding(.leading, 5).allowsHitTesting(false)
-                        }
-                    }
-                HStack {
-                    Text(L("The language switch key changes the word's reading, also right after the word."))
-                        .font(.caption).foregroundStyle(.secondary)
-                    Spacer()
-                    Button(L("Clear")) {
-                        text = ""
-                        composing = false
-                        current = nil
-                        focused = true
-                    }
-                    .disabled(text.isEmpty && current == nil)
-                }
-            } footer: {
-                HStack(spacing: 8) {
-                    Example(keys: "dkssud githubdp", output: "안녕 github에")
-                    Example(keys: "hello TextEditdptj", output: "hello TextEdit에서")
-                    Example(keys: "kyouha ␣", output: "今日は")
-                }
-                .padding(.top, 4)
+                .padding(16)
             }
-
-            Section(L("How it was decided")) {
-                if let current {
-                    TraceView(trace: current)
-                    HStack {
-                        Spacer()
-                        Button(L("Add to Dictionary…")) { adding = .new(keys: current.keys) }
+            HStack(spacing: 8) {
+                Example(keys: "dkssud githubdp", output: "안녕 github에")
+                Example(keys: "hello TextEditdptj", output: "hello TextEdit에서")
+                Example(keys: "kyouha ␣", output: "今日は")
+            }
+            SeamCard(title: L("How it was decided")) {
+                VStack(alignment: .leading, spacing: 10) {
+                    if let current {
+                        TraceView(trace: current)
+                        HStack {
+                            Spacer()
+                            Button(L("Add to Dictionary…")) { adding = .new(keys: current.keys) }
+                        }
+                    } else {
+                        Text(L("Type a word above to see its scores."))
+                            .font(.system(size: 13)).foregroundStyle(Seam.ink3)
                     }
-                } else {
-                    Text(L("Type a word above to see its scores."))
-                        .foregroundStyle(.secondary)
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(16)
             }
         }
-        .formStyle(.grouped)
         .sheet(item: $adding) { EntrySheet(model: model, target: $0) }
         .onAppear { focused = true; seamtypeOn = SeamtypeSource.isCurrent }
         // Marked text moves the selection; a search field's editor is a field editor, not this.
@@ -139,9 +144,9 @@ private struct TraceView: View {
                             .font(.caption).frame(width: 64, alignment: .leading)
                         // A fixed track, no GeometryReader: inside a Form row that made the row too short.
                         ZStack(alignment: .leading) {
-                            RoundedRectangle(cornerRadius: 3).fill(.quaternary.opacity(0.4))
+                            RoundedRectangle(cornerRadius: 3).fill(Seam.bg2)
                             RoundedRectangle(cornerRadius: 3)
-                                .fill((Language(rawValue: Self.language(item.language))?.tint ?? .gray).opacity(0.8))
+                                .fill(Language(rawValue: Self.language(item.language))?.tint ?? Seam.ink3)
                                 .frame(width: Self.track * Self.fraction(item.score))
                         }
                         .frame(width: Self.track, height: 8)
@@ -177,9 +182,7 @@ private struct LanguageTag: View {
 
     var body: some View {
         let language = Language(rawValue: code)
-        Text(language?.displayName ?? code)
-            .font(.caption)
-            .padding(.horizontal, 6).padding(.vertical, 2)
-            .background((language?.tint ?? .gray).opacity(0.15), in: RoundedRectangle(cornerRadius: 4))
+        Badge(title: language?.displayName ?? code, fill: (language?.tint ?? Seam.ink3).opacity(0.18),
+              ink: language?.ink ?? Seam.ink2)
     }
 }

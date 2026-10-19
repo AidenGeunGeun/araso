@@ -315,11 +315,11 @@ The settings window has these panes, and changes apply at once.
 
 | Pane | What's there |
 | --- | --- |
-| Languages | Japanese input and its options |
+| Languages | converting words on or off, Japanese input and its options, resetting the kanji candidate order |
 | Keys | the language switch keys, Return, the pause key |
-| Apps | per-app behavior (`apps.json`) |
+| Apps | how sure a word must be to convert (Normal, Strict) and per-app behavior (`apps.json`) |
+| Dictionary | words you added and words learned, in one list (`dictionary.json`): **+** to type keys and pick their reading (English, Korean, Japanese) and app; from a row's ⋯, keep a learned word for good or remove it. A word corrected once shows how long until it's forgotten |
 | Try Typing | how each word was decided, with scores, and adding its keys to the dictionary |
-| Dictionary | words you added and words learned, in one list (`dictionary.json`): **+** to type keys and pick their reading (English, Korean, Japanese) and app; pin a learned word to keep it, or remove it. Resetting the kanji candidate order is here too |
 | About | version, what changed, updates, uninstall |
 
 ### Settings files

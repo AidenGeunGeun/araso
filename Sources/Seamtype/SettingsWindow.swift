@@ -6,7 +6,8 @@ import SwiftUI
 /// itself is a background-only app that can't take keyboard focus for a window. It edits the
 /// files in the support folder and tells the input method to read them again.
 enum SettingsTab: String, CaseIterable, Identifiable {
-    case general, keys, apps, typing, learning, about
+    // The settings first, then trying them out and the app itself.
+    case general, keys, apps, learning, typing, about
 
     var id: String { rawValue }
 
@@ -21,16 +22,21 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         }
     }
 
-    var symbol: String {
+    /// One line under the pane's title: what it's for.
+    var subtitle: String {
         switch self {
-        case .general: return "globe"
-        case .keys: return "command"
-        case .typing: return "character.cursor.ibeam"
-        case .apps: return "macwindow"
-        case .learning: return "book.closed"
-        case .about: return "info.circle"
+        case .general: return L("Which languages each word is decided between, and how Japanese types.")
+        case .keys: return L("The keys that change a word's language, and a few more.")
+        case .apps: return L("How sure a word must be to convert, and apps that work differently.")
+        case .learning: return L("Keys that always come out one way.")
+        case .typing: return L("Type here to see how each word is decided.")
+        case .about: return L("Version, updates and files.")
         }
     }
+
+    /// Where the sidebar draws a line: after the settings.
+    static let settings: [SettingsTab] = [.general, .keys, .apps, .learning]
+    static let more: [SettingsTab] = [.typing, .about]
 }
 
 enum SettingsLauncher {
@@ -81,7 +87,10 @@ func runSettingsApp(tab: SettingsTab) -> Never {
     let window = NSWindow(contentViewController: NSHostingController(rootView: SettingsView(model: model)))
     window.title = L("Seamtype Settings")
     window.styleMask = [.titled, .closable, .miniaturizable, .fullSizeContentView]
-    window.setContentSize(NSSize(width: 960, height: 640))
+    // The sidebar and panes paint the whole window; the title bar is just the traffic lights.
+    window.titlebarAppearsTransparent = true
+    window.titleVisibility = .hidden
+    window.setContentSize(SettingsView.size)
     window.center()
     let delegate = SettingsAppDelegate()
     app.delegate = delegate
@@ -311,15 +320,6 @@ extension Language {
         case .japanese: return L("Japanese")
         }
     }
-
-    var tint: Color {
-        switch self {
-        case .english: return .gray
-        case .korean: return .blue
-        case .mixed: return .orange
-        case .japanese: return .red
-        }
-    }
 }
 
 /// A → 아 → あ (all read "a") one after another in place, then all of them at once, cut into
@@ -429,13 +429,13 @@ struct SeamMark: View {
 struct SettingsView: View {
     @ObservedObject var model: SettingsModel
 
+    /// Wide enough for the Apps pane's four menus on a row.
+    static let size = NSSize(width: 920, height: 640)
+
     var body: some View {
-        NavigationSplitView {
-            List(SettingsTab.allCases, selection: Binding(get: { model.tab }, set: { if let tab = $0 { model.tab = tab } })) { tab in
-                Label(tab.title, systemImage: tab.symbol).tag(tab)
-            }
-            .navigationSplitViewColumnWidth(190)
-        } detail: {
+        HStack(spacing: 0) {
+            Sidebar(model: model)
+            Rectangle().fill(Seam.line).frame(width: 1)
             Group {
                 switch model.tab {
                 case .general: GeneralPane(model: model)
@@ -446,9 +446,68 @@ struct SettingsView: View {
                 case .about: AboutPane(model: model)
                 }
             }
-            .navigationTitle(model.tab.title)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .frame(width: 960, height: 640) // wide enough for the Apps pane's four columns
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Seam.bg)
+        .tint(Seam.blue)
+        // Under the transparent title bar too; the window stays the size below.
+        .ignoresSafeArea()
+        .frame(width: Self.size.width, height: Self.size.height)
+    }
+}
+
+/// The tabs as words under the mark, the settings first; the chosen one sits on a card with
+/// the website's yellow dot.
+private struct Sidebar: View {
+    @ObservedObject var model: SettingsModel
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            HStack(spacing: 8) {
+                SeamMark(height: 20, still: true, plateColor: Seam.ink, letterColor: Seam.bg)
+                Text(verbatim: "Seamtype").font(.system(size: 15, weight: .bold)).tracking(-0.2)
+                    .foregroundStyle(Seam.ink)
+            }
+            .padding(.leading, 10).padding(.bottom, 18)
+            .accessibilityHidden(true)
+            ForEach(SettingsTab.settings) { item($0) }
+            Rectangle().fill(Seam.line).frame(height: 1).padding(.horizontal, 10).padding(.vertical, 10)
+            ForEach(SettingsTab.more) { item($0) }
+            Spacer()
+        }
+        .padding(.horizontal, 12).padding(.top, 54)
+        .frame(width: 184)
+        .background(Seam.bg2)
+    }
+
+    private func item(_ tab: SettingsTab) -> some View {
+        let chosen = model.tab == tab
+        return Button { model.tab = tab } label: {
+            HStack(spacing: 9) {
+                Circle().fill(chosen ? Seam.yellow : .clear).frame(width: 7, height: 7)
+                Text(tab.title)
+                    .font(.system(size: 14, weight: chosen ? .semibold : .medium))
+                    .foregroundStyle(chosen ? Seam.ink : Seam.ink2)
+                Spacer(minLength: 0)
+            }
+            .padding(.horizontal, 10).padding(.vertical, 7)
+            .background(chosen ? Seam.card : .clear, in: RoundedRectangle(cornerRadius: 9, style: .continuous))
+            .overlay {
+                if chosen { RoundedRectangle(cornerRadius: 9, style: .continuous).strokeBorder(Seam.line) }
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .noFocusRing()
+        .accessibilityAddTraits(chosen ? [.isSelected] : [])
+    }
+}
+
+private extension View {
+    /// The chosen tab already shows where you are; the first one took the focus ring on open.
+    @ViewBuilder func noFocusRing() -> some View {
+        if #available(macOS 14, *) { focusEffectDisabled() } else { self }
     }
 }
 
@@ -456,40 +515,47 @@ struct SettingsView: View {
 
 private struct GeneralPane: View {
     @ObservedObject var model: SettingsModel
+    @State private var confirmKanji = false
 
     private func binding(_ key: WritableKeyPath<SeamtypeCore.Settings, Bool>) -> Binding<Bool> {
         Binding(get: { model.settings[keyPath: key] }, set: { model.set(key, $0) })
     }
 
     var body: some View {
-        Form {
-            Section(L("Languages")) {
-                LabeledContent(L("Korean · English")) {
-                    Text(L("Always on")).foregroundStyle(.secondary)
+        Pane(tab: .general) {
+            SeamCard(title: L("Languages")) {
+                // The whole input method's on/off: it is the "*" policy, which apps can override.
+                SeamToggleRow(title: L("Convert words"),
+                              detail: L("Off: keys go to the app as typed, as with the ABC layout. Apps can differ, under Apps."),
+                              isOn: Binding(get: { model.defaultPolicy.enabled },
+                                            set: { value in model.setDefault { $0.enabled = value } }))
+                SeamRow(title: L("Korean · English")) {
+                    Text(L("Always on")).font(.system(size: 13)).foregroundStyle(Seam.ink3)
                 }
-                Toggle(isOn: binding(\.japanese)) {
-                    Text(L("Japanese"))
-                    Text(L("Off by default. Turn on to type Japanese with romaji; Space converts to kanji."))
-                }
+                SeamToggleRow(title: L("Japanese"),
+                              detail: L("Type Japanese with romaji; Space converts to kanji."),
+                              isOn: binding(\.japanese))
             }
             if model.settings.japanese {
-            Section(L("Japanese input")) {
-                Toggle(isOn: binding(\.liveConversion)) {
-                    Text(L("Live conversion"))
-                    Text(L("Shows the top kanji candidate as you type."))
+                SeamCard(title: L("Japanese input")) {
+                    SeamToggleRow(title: L("Live conversion"), detail: L("Shows the top kanji candidate as you type."),
+                                  isOn: binding(\.liveConversion))
+                    SeamToggleRow(title: L("Full-width numbers"), detail: L("１２３ after Japanese; Space offers 123."),
+                                  isOn: binding(\.fullWidthDigits))
+                    SeamToggleRow(title: L("Full-width space"), detail: L("A full-width space after Japanese; ⇧Space types the other width."),
+                                  isOn: binding(\.fullWidthSpace))
+                    SeamRow(title: L("Kanji candidate order"),
+                            detail: L("Kanji you pick come first next time.")) {
+                        Button(L("Reset…")) { confirmKanji = true }
+                    }
                 }
-                Toggle(isOn: binding(\.fullWidthDigits)) {
-                    Text(L("Full-width numbers"))
-                    Text(L("１２３ after Japanese; Space offers 123."))
-                }
-                Toggle(isOn: binding(\.fullWidthSpace)) {
-                    Text(L("Full-width space"))
-                    Text(L("A full-width space after Japanese; ⇧Space types the other width."))
-                }
-            }
             }
         }
-        .formStyle(.grouped)
+        .confirmationDialog(L("Reset the kanji candidate order?"), isPresented: $confirmKanji) {
+            Button(L("Reset"), role: .destructive) { model.resetKanji() }
+        } message: {
+            Text(L("Kanji you picked before won't come first anymore. Remembered words stay."))
+        }
     }
 }
 
@@ -511,57 +577,56 @@ private struct KeysPane: View {
     }
 
     var body: some View {
-        Form {
-            Section {
-                LabeledContent {
-                    HStack(spacing: 4) {
-                        KeycapToggles(selection: model.defaultPolicy.switchKeys, taken: model.settings.pauseKey.switchKey) { key, on in
-                            model.setDefault { if on { $0.switchKeys.insert(key) } else { $0.switchKeys.remove(key) } }
-                        }
+        Pane(tab: .keys) {
+            SeamCard(title: L("Language switch keys")) {
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack(alignment: .firstTextBaseline) {
+                        RowLabel(title: L("Switch a word's language"),
+                                 detail: L("Turns the word being typed, or the one just typed, into the next reading. Choose one or more."))
+                        Spacer(minLength: 8)
                         Button { showInfo.toggle() } label: { Image(systemName: "info.circle") }
                             .buttonStyle(.borderless)
-                            .padding(.leading, 4)
+                            .foregroundStyle(Seam.ink2)
                             .help(L("Which key to choose"))
                             .accessibilityLabel(L("Which key to choose"))
                             .popover(isPresented: $showInfo, arrowEdge: .trailing) { SwitchKeysInfo() }
                     }
-                } label: {
-                    Text(L("Switch a word's language"))
+                    KeycapToggles(selection: model.defaultPolicy.switchKeys, taken: model.settings.pauseKey.switchKey) { key, on in
+                        model.setDefault { if on { $0.switchKeys.insert(key) } else { $0.switchKeys.remove(key) } }
+                    }
                     SwitchKeysStatus(keys: model.defaultPolicy.switchKeys)
                 }
-                LabeledContent {
-                    Button(L("Apps…")) { model.tab = .apps }
-                } label: {
-                    Text(L("In some apps only"))
-                    Text(appsWithOwnKeys == 0 ? L("Every app uses these keys.")
-                         : appsWithOwnKeys == 1 ? L("One app uses its own keys.")
-                         : L("%ld apps use their own keys.", appsWithOwnKeys))
+                .padding(.horizontal, 16).padding(.vertical, 14)
+                SeamRow(title: L("Apps with their own keys"),
+                        detail: appsWithOwnKeys == 0 ? L("Every app uses these keys.")
+                            : appsWithOwnKeys == 1 ? L("One app uses its own keys.")
+                            : L("%ld apps use their own keys.", appsWithOwnKeys)) {
+                    Button(L("Set in Apps…")) { model.tab = .apps }
                 }
-            } header: {
-                Text(L("Language switch keys"))
             }
-            Section(L("Other keys")) {
-                Toggle(isOn: binding(\.returnConfirmsOnly)) {
-                    Text(L("Return only confirms"))
-                    Text(L("Return on an underlined word confirms it; press it again for a new line. Japanese is always only confirmed."))
-                }
-                LabeledContent {
-                    PauseKeyPicker(selection: model.settings.pauseKey, switchKeys: model.defaultPolicy.switchKeys,
-                                   problem: $pauseProblem) {
-                        model.set(\.pauseKey, $0)
+            SeamCard(title: L("Other keys")) {
+                SeamToggleRow(title: L("Return only confirms"),
+                              detail: L("Return on an underlined word confirms it; press it again for a new line. Japanese is always only confirmed."),
+                              isOn: binding(\.returnConfirmsOnly))
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack(alignment: .center, spacing: 16) {
+                        RowLabel(title: L("Pause"),
+                                 detail: L("Keys go through as typed in that text field, for hjkl in terminal programs. Press it again to resume."))
+                        Spacer(minLength: 8)
+                        PauseKeyPicker(selection: model.settings.pauseKey, switchKeys: model.defaultPolicy.switchKeys,
+                                       problem: $pauseProblem) {
+                            model.set(\.pauseKey, $0)
+                        }
                     }
-                } label: {
-                    Text(L("Pause"))
-                    Text(L("Keys go through as typed in that text field, for hjkl in terminal programs. Press it again to resume."))
                     if let pauseProblem {
                         Label(pauseProblem, systemImage: "exclamationmark.triangle.fill")
-                            .foregroundStyle(.orange)
+                            .font(.system(size: 12)).foregroundStyle(Seam.warning)
                     }
                 }
+                .padding(.horizontal, 16).padding(.vertical, 12)
                 .animation(.snappy(duration: 0.2), value: pauseProblem)
             }
         }
-        .formStyle(.grouped)
     }
 }
 
@@ -676,25 +741,26 @@ private struct PauseKeyPicker: View {
     }
 }
 
-/// Under the keycaps: what happens to the keys not chosen, or that none is.
+/// Under the keycaps: the keys chosen, by the names the rest of the window uses, and that the
+/// others go to the app; or that none is chosen.
 private struct SwitchKeysStatus: View {
     let keys: Set<SwitchKey>
 
     var body: some View {
-        let others = SwitchKey.allCases.filter { !keys.contains($0) }
         Group {
             if keys.isEmpty {
                 Label(L("Nothing switches a word's language."), systemImage: "exclamationmark.triangle.fill")
-                    .foregroundStyle(.orange)
-            } else if others.isEmpty {
+                    .foregroundStyle(Seam.warning)
+            } else if keys.count == SwitchKey.allCases.count {
                 Text(L("All of these switch languages."))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Seam.ink2)
             } else {
-                Text(L("Go to the app as usual: %@", others.map(\.displayName).joined(separator: ", ")))
-                    .foregroundStyle(.secondary)
+                Text(L("Switching: %@. The others go to the app as usual.",
+                       SwitchKey.sorted(keys).map(\.displayName).joined(separator: ", ")))
+                    .foregroundStyle(Seam.ink2)
             }
         }
-        .font(.subheadline)
+        .font(.system(size: 12))
     }
 }
 
@@ -727,12 +793,12 @@ struct Example: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(verbatim: keys).font(.system(.caption, design: .monospaced)).foregroundStyle(.secondary)
-            Text(verbatim: output).font(.body.weight(.medium))
+            Text(verbatim: keys).font(.system(size: 11, design: .monospaced)).foregroundStyle(Seam.ink3)
+            Text(verbatim: output).font(.system(size: 13, weight: .semibold)).foregroundStyle(Seam.ink)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 10).padding(.vertical, 7)
-        .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 7))
+        .padding(.horizontal, 12).padding(.vertical, 8)
+        .background(Seam.bg2, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
     }
 }
 
@@ -740,133 +806,131 @@ struct Example: View {
 
 private struct AppsPane: View {
     @ObservedObject var model: SettingsModel
-    @State private var selection = Set<String>()
 
     var body: some View {
-        Form {
-            Section(L("Default — every app")) {
-                Toggle(isOn: Binding(
-                    get: { model.defaultPolicy.enabled },
-                    set: { value in model.setDefault { $0.enabled = value } })) {
-                    Text(L("Convert words"))
-                    Text(L("Off: keys go to the app as typed, as with the ABC layout."))
-                }
-                Group {
-                    LabeledContent {
-                        HStack(spacing: 10) {
-                            MiniKeycaps(keys: model.defaultPolicy.switchKeys)
-                            Button(L("Change…")) { model.tab = .keys }
-                        }
-                    } label: {
-                        Text(L("Language switch keys"))
-                    }
+        Pane(tab: .apps) {
+            SeamCard(title: L("Default — every app")) {
+                VStack(alignment: .leading, spacing: 0) {
                     ChoiceRow(title: L("Conversion"),
-                              explanation: strictnessExplanation(model.defaultPolicy.conversionThreshold)) {
+                              explanation: model.defaultPolicy.enabled
+                                ? strictnessExplanation(model.defaultPolicy.conversionThreshold)
+                                : L("Convert words is off under Languages, so nothing converts.")) {
                         Picker(L("Conversion"), selection: Binding(
                             get: { model.defaultPolicy.conversionThreshold },
                             set: { value in model.setDefault { $0.conversionThreshold = value } })) {
                             Text(L("Normal")).tag(AppPolicy.standard.conversionThreshold)
                             Text(L("Strict")).tag(AppPolicy.strictThreshold)
                         }
+                        // Only matters while words are converted.
+                        .disabled(!model.defaultPolicy.enabled)
                     }
+                    .padding(.horizontal, 16).padding(.vertical, 12)
                 }
-                // Only matter while words are converted.
-                .padding(.leading, 18)
-                .disabled(!model.defaultPolicy.enabled)
             }
-            Section {
-                if model.apps.isEmpty {
-                    Text(L("None. Add an app that should work differently."))
-                        .foregroundStyle(.secondary)
-                } else {
-                    AppColumnsHeader()
+            VStack(alignment: .leading, spacing: 8) {
+                SeamCard(title: L("Exceptions — only apps that differ")) {
+                    if model.apps.isEmpty {
+                        Text(L("None. Add an app that should work differently."))
+                            .font(.system(size: 13)).foregroundStyle(Seam.ink3)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, 16).padding(.vertical, 14)
+                    }
                     ForEach(model.apps) { row in
-                        AppRowView(row: row, defaultPolicy: model.defaultPolicy, model: model,
-                                   selected: selection.contains(row.id)) {
-                            if selection.contains(row.id) { selection.remove(row.id) } else { selection = [row.id] }
-                        }
+                        AppRowView(row: row, defaultPolicy: model.defaultPolicy, model: model)
                     }
-                }
-            } header: {
-                Text(L("Exceptions — only apps that differ"))
-            } footer: {
-                HStack(spacing: 10) {
-                    ControlGroup {
-                        Button { model.addApp() } label: { Image(systemName: "plus") }
-                            .accessibilityLabel(L("Add App"))
-                        Button { model.remove(selection); selection = [] } label: { Image(systemName: "minus") }
-                            .accessibilityLabel(L("Remove App"))
-                            .disabled(selection.isEmpty)
+                    Button { model.addApp() } label: {
+                        Label(L("Add App…"), systemImage: "plus")
+                            .font(.system(size: 13, weight: .medium)).foregroundStyle(Seam.blue)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, 16).padding(.vertical, 11)
+                            .contentShape(Rectangle())
                     }
-                    .fixedSize()
-                    Text(L("“Default” follows the setting above; anything else applies to this app only."))
-                        .font(.caption).foregroundStyle(.secondary)
-                    Spacer()
+                    .buttonStyle(.plain)
                 }
+                Text(L("Grey values follow the default; anything else applies to this app only."))
+                    .font(.system(size: 12)).foregroundStyle(Seam.ink3)
+                    .padding(.leading, 4)
             }
         }
-        .formStyle(.grouped)
     }
-
 }
 
+/// One app: its icon and full name, then each setting as a small labeled menu.
 private struct AppRowView: View {
     let row: SettingsModel.AppRow
     let defaultPolicy: AppPolicy
     @ObservedObject var model: SettingsModel
-    let selected: Bool
-    let select: () -> Void
 
     var body: some View {
-        HStack(spacing: 10) {
-            Button(action: select) {
-                HStack(spacing: 8) {
-                    if let icon = AppName.icon(row.id) {
-                        Image(nsImage: icon).resizable().frame(width: 22, height: 22)
-                    } else {
-                        Image(systemName: "app.dashed").frame(width: 22, height: 22)
+        let converts = row.entry.enabled ?? defaultPolicy.enabled
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 10) {
+                if let icon = AppName.icon(row.id) {
+                    Image(nsImage: icon).resizable().frame(width: 24, height: 24)
+                } else {
+                    Image(systemName: "app.dashed").frame(width: 24, height: 24)
+                }
+                Text(row.name).font(.system(size: 13, weight: .semibold)).foregroundStyle(Seam.ink)
+                    .lineLimit(1).truncationMode(.middle).help(row.id)
+                Spacer()
+                Button { model.remove([row.id]) } label: { Image(systemName: "xmark.circle.fill") }
+                    .buttonStyle(.borderless).foregroundStyle(Seam.ink3)
+                    .help(L("Remove: the app follows the default again"))
+                    .accessibilityLabel(L("Remove %@", row.name))
+            }
+            HStack(alignment: .top, spacing: 18) {
+                Field(title: L("Convert words"), inherited: row.entry.enabled == nil) {
+                    FieldMenu(own: row.entry.enabled.map { $0 ? L("On") : L("Off") },
+                              inherited: defaultPolicy.enabled ? L("On") : L("Off"),
+                              choices: [(L("On"), true), (L("Off"), false)]) { value in
+                        model.setEntry(for: row.id) { $0.enabled = value }
                     }
-                    Text(row.name).lineLimit(1).truncationMode(.middle).help(row.name)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .contentShape(Rectangle())
+                Group {
+                    Field(title: L("Conversion"), inherited: row.entry.conversionThreshold == nil) {
+                        FieldMenu(own: row.entry.conversionThreshold.map(Strictness.name),
+                                  inherited: Strictness.name(defaultPolicy.conversionThreshold),
+                                  choices: [(L("Normal"), AppPolicy.standard.conversionThreshold), (L("Strict"), AppPolicy.strictThreshold)]) { value in
+                            model.setEntry(for: row.id) { $0.conversionThreshold = value }
+                        }
+                    }
+                    Field(title: L("Switch keys"), inherited: row.entry.switchKeys == nil) {
+                        SwitchKeysMenu(own: row.entry.switchKeys, taken: model.settings.pauseKey.switchKey,
+                                       effective: row.entry.applied(to: defaultPolicy).switchKeys,
+                                       inherited: defaultPolicy.switchKeys) { value in
+                            model.setEntry(for: row.id) { $0.switchKeys = value }
+                        }
+                    }
+                    // Per app only, for terminals: in "*" it would turn off text replacements everywhere.
+                    Field(title: L("After Space / punctuation"), inherited: row.entry.holdSpace == nil) {
+                        FieldMenu(own: row.entry.holdSpace.map(holdSpaceName),
+                                  inherited: holdSpaceName(defaultPolicy.holdSpace),
+                                  choices: [(holdSpaceName(false), false), (holdSpaceName(true), true)]) { value in
+                            model.setEntry(for: row.id) { $0.holdSpace = value }
+                        }
+                    }
+                    .help(L("Hold: Space or punctuation goes inside the underline, so the word can still be changed until the next word starts. For terminals."))
+                }
+                .disabled(!converts)
+                Spacer(minLength: 0)
             }
-            .buttonStyle(.plain)
-            .accessibilityAddTraits(selected ? .isSelected : [])
-            FieldMenu(own: row.entry.enabled.map { $0 ? L("On") : L("Off") },
-                      inherited: defaultPolicy.enabled ? L("On") : L("Off"),
-                      choices: [(L("On"), true), (L("Off"), false)]) { value in
-                model.setEntry(for: row.id) { $0.enabled = value }
-            }
-            .frame(width: AppColumns.enabled, alignment: .leading)
-            Group {
-                FieldMenu(own: row.entry.conversionThreshold.map(Strictness.name),
-                          inherited: Strictness.name(defaultPolicy.conversionThreshold),
-                          choices: [(L("Normal"), AppPolicy.standard.conversionThreshold), (L("Strict"), AppPolicy.strictThreshold)]) { value in
-                    model.setEntry(for: row.id) { $0.conversionThreshold = value }
-                }
-                .frame(width: AppColumns.conversion, alignment: .leading)
-                SwitchKeysMenu(own: row.entry.switchKeys, taken: model.settings.pauseKey.switchKey,
-                               effective: row.entry.applied(to: defaultPolicy).switchKeys,
-                               inherited: defaultPolicy.switchKeys) { value in
-                    model.setEntry(for: row.id) { $0.switchKeys = value }
-                }
-                .frame(width: AppColumns.switchKeys, alignment: .leading)
-                // Per app only, for terminals: in "*" it would turn off text replacements everywhere.
-                FieldMenu(own: row.entry.holdSpace.map(holdSpaceName),
-                          inherited: holdSpaceName(defaultPolicy.holdSpace),
-                          choices: [(holdSpaceName(false), false), (holdSpaceName(true), true)]) { value in
-                    model.setEntry(for: row.id) { $0.holdSpace = value }
-                }
-                .help(L("Hold: Space or punctuation goes inside the underline, so the word can still be changed until the next word starts. For terminals."))
-                .frame(width: AppColumns.hold, alignment: .leading)
-            }
-            .disabled(!(row.entry.enabled ?? defaultPolicy.enabled))
+            .padding(.leading, 34)
         }
-        .padding(.vertical, 4).padding(.horizontal, 6)
-        // A grouped form ignores listRowBackground, so the selection is drawn on the row itself.
-        .background(selected ? Color.accentColor.opacity(0.22) : .clear, in: RoundedRectangle(cornerRadius: 6))
-        .padding(.horizontal, -6)
+        .padding(.horizontal, 16).padding(.vertical, 12)
+    }
+
+    /// A setting's name over its menu; a menu that follows the default is drawn lighter.
+    private struct Field<Menu: View>: View {
+        let title: String
+        let inherited: Bool
+        @ViewBuilder let menu: Menu
+
+        var body: some View {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title).font(.system(size: 11)).foregroundStyle(Seam.ink3).lineLimit(1)
+                menu.opacity(inherited ? 0.55 : 1)
+            }
+        }
     }
 }
 
@@ -880,42 +944,19 @@ private struct ChoiceRow<Choice: View>: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
-                Text(title)
+                Text(title).font(.system(size: 13, weight: .medium)).foregroundStyle(Seam.ink)
                 Spacer(minLength: 12)
                 choice.pickerStyle(.segmented).labelsHidden().fixedSize()
             }
             Text(explanation)
-                .font(.subheadline).foregroundStyle(.secondary)
+                .font(.system(size: 12)).foregroundStyle(Seam.ink2)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
 }
 
-/// Column widths shared by the exceptions' header and rows.
-private enum AppColumns {
-    static let conversion: CGFloat = 130
-    static let switchKeys: CGFloat = 190
-    static let hold: CGFloat = 150
-    static let enabled: CGFloat = 100
-}
-
 /// What Space or punctuation does to the word in an app (`AppPolicy.holdSpace`), as the Apps column shows it.
 private func holdSpaceName(_ holds: Bool) -> String { holds ? L("Hold") : L("Finish") }
-
-/// Names the exceptions' columns after the default settings above them.
-private struct AppColumnsHeader: View {
-    var body: some View {
-        HStack(spacing: 10) {
-            Text(L("App")).frame(maxWidth: .infinity, alignment: .leading)
-            Text(L("Convert words")).frame(width: AppColumns.enabled, alignment: .leading)
-            Text(L("Conversion")).frame(width: AppColumns.conversion, alignment: .leading)
-            Text(L("Switch keys")).frame(width: AppColumns.switchKeys, alignment: .leading)
-            Text(L("After Space / punctuation")).frame(width: AppColumns.hold, alignment: .leading)
-        }
-        .font(.caption).foregroundStyle(.secondary).lineLimit(1)
-        .accessibilityHidden(true)
-    }
-}
 
 /// One per-app value: the app's own, or "Default · <value>" while it follows the default. The
 /// difference is in the words: a borderless menu's label shows no color or weight.
@@ -984,15 +1025,16 @@ struct EmptyList: View {
 
     var body: some View {
         VStack(spacing: 8) {
-            Image(systemName: symbol).font(.system(size: 30)).foregroundStyle(.tertiary)
-            Text(title).font(.headline).foregroundStyle(.secondary)
+            Image(systemName: symbol).font(.system(size: 30)).foregroundStyle(Seam.ink3)
+            Text(title).font(.headline).foregroundStyle(Seam.ink2)
             if let detail {
-                Text(detail).font(.callout).foregroundStyle(.secondary)
+                Text(detail).font(.callout).foregroundStyle(Seam.ink2)
                     .multilineTextAlignment(.center).frame(maxWidth: 360)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(.quaternary.opacity(0.3), in: RoundedRectangle(cornerRadius: 8))
+        .background(Seam.card, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(Seam.line))
     }
 }
 
@@ -1003,93 +1045,89 @@ private struct AboutPane: View {
     @ObservedObject private var updater = Updater.shared
 
     var body: some View {
-        Form {
-            Section {
-                VStack(spacing: 10) {
-                    SeamMark(height: 84)
-                    Text(verbatim: "Seamtype").font(.title2.weight(.bold))
-                    Text(verbatim: "흐름대로 써진다 · 流れるままに · Type as it flows")
-                        .font(.callout).foregroundStyle(.secondary)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 14)
-            }
-            Section {
-                LabeledContent(L("Version"), value: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "")
-                LabeledContent(L("License"), value: "MIT")
-                LabeledContent(L("Settings and learning files")) {
-                    Button(L("Show in Finder")) {
-                        if let url = SupportDirectory.url { NSWorkspace.shared.open(url) }
+        Pane(tab: .about) {
+            HStack(spacing: 18) {
+                SeamMark(height: 64, plateColor: Seam.ink, letterColor: Seam.bg)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(verbatim: "Seamtype").font(.system(size: 24, weight: .heavy)).tracking(-0.6)
+                        .foregroundStyle(Seam.ink)
+                    HStack(spacing: 0) {
+                        Text(verbatim: "흐름대로 써진다").foregroundStyle(Seam.korean)
+                        Text(verbatim: " · ").foregroundStyle(Seam.ink3)
+                        Text(verbatim: "流れるままに").foregroundStyle(Seam.japaneseInk)
+                        Text(verbatim: " · ").foregroundStyle(Seam.ink3)
+                        Text(verbatim: "Type as it flows").foregroundStyle(Seam.ink2)
                     }
+                    .font(.system(size: 13, weight: .semibold))
+                    Text(L("Version %@", Updater.currentVersion))
+                        .font(.system(size: 12).monospacedDigit()).foregroundStyle(Seam.ink3)
+                        .textSelection(.enabled)
                 }
-                LabeledContent(L("Open source notices")) {
-                    Button(L("Open")) {
-                        if let url = Bundle.main.url(forResource: "ThirdPartyNotices", withExtension: "txt") {
-                            NSWorkspace.shared.open(url)
-                        }
-                    }
-                }
-            } footer: {
-                Text(L("What you type never leaves this Mac: deciding words and converting kanji both happen here."))
-                    .font(.caption).foregroundStyle(.secondary)
             }
-            Section(L("Updates")) {
-                LabeledContent {
+            .padding(.leading, 4)
+            SeamCard(title: L("Updates")) {
+                SeamRow(title: updateTitle, detail: updateDetail) {
                     if let release = updater.available {
                         Button(L("Install %@…", release.version)) { updater.install() }
+                            .buttonStyle(.borderedProminent)
                             .disabled(updater.state == .downloading)
                     } else {
                         Button(L("Check Now")) { updater.check() }
                             .disabled(updater.state == .checking)
                     }
-                } label: {
-                    Text(updateTitle)
-                    if let detail = updateDetail { Text(detail) }
                 }
                 if let release = updater.available, !release.notes.isEmpty || release.page != nil {
                     VStack(alignment: .leading, spacing: 8) {
                         if !release.notes.isEmpty {
-                            Text(L("What's changed")).font(.caption).foregroundStyle(.secondary)
+                            Text(L("What's changed")).font(.system(size: 11, weight: .medium)).foregroundStyle(Seam.ink3)
                         }
-                        VStack(alignment: .leading, spacing: 8) {
-                            ForEach(Array(release.notes.enumerated()), id: \.offset) { _, note in
-                                let line = Release.headline(of: note)
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(Self.markdown(line.title))
-                                    if let detail = line.detail {
-                                        Text(Self.markdown(detail))
-                                            .font(.callout).foregroundStyle(.secondary)
-                                            .lineLimit(2).truncationMode(.tail)
-                                            .fixedSize(horizontal: false, vertical: true)
-                                    }
+                        ForEach(Array(release.notes.enumerated()), id: \.offset) { _, note in
+                            let line = Release.headline(of: note)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(Self.markdown(line.title)).font(.system(size: 13, weight: .medium)).foregroundStyle(Seam.ink)
+                                if let detail = line.detail {
+                                    Text(Self.markdown(detail))
+                                        .font(.system(size: 12)).foregroundStyle(Seam.ink2)
+                                        .lineLimit(2).truncationMode(.tail)
+                                        .fixedSize(horizontal: false, vertical: true)
                                 }
                             }
-                            if let page = release.page {
-                                Link(L("Full Release Notes"), destination: page)
-                            }
                         }
-                        .padding(.leading, 16)
+                        if let page = release.page {
+                            Link(L("Full Release Notes"), destination: page).font(.system(size: 12))
+                        }
                     }
                     .textSelection(.enabled)
+                    .padding(.horizontal, 16).padding(.vertical, 12)
                 }
-                Toggle(isOn: Binding(get: { model.settings.checkForUpdates }, set: { model.set(\.checkForUpdates, $0) })) {
-                    Text(L("Check for updates automatically"))
-                    Text(L("Once a day, and each time this window opens. Only the latest version number is asked of GitHub; nothing you type is sent."))
-                }
+                SeamToggleRow(title: L("Check for updates automatically"),
+                              detail: L("Once a day, and each time this window opens. Only the latest version number is asked of GitHub; nothing you type is sent."),
+                              isOn: Binding(get: { model.settings.checkForUpdates }, set: { model.set(\.checkForUpdates, $0) }))
             }
-            if Uninstaller.isAvailable {
-                Section {
-                    LabeledContent(L("Uninstall Seamtype")) {
+            SeamCard(title: L("This Mac")) {
+                SeamRow(title: L("Settings and learning files"),
+                        detail: L("What you type never leaves this Mac: deciding words and converting kanji both happen here.")) {
+                    Button(L("Show in Finder")) {
+                        if let url = SupportDirectory.url { NSWorkspace.shared.open(url) }
+                    }
+                }
+                SeamRow(title: L("License"), detail: L("MIT, with open source notices for the data it uses.")) {
+                    Button(L("Open Notices")) {
+                        if let url = Bundle.main.url(forResource: "ThirdPartyNotices", withExtension: "txt") {
+                            NSWorkspace.shared.open(url)
+                        }
+                    }
+                }
+                if Uninstaller.isAvailable {
+                    SeamRow(title: L("Uninstall Seamtype"),
+                            detail: L("Removes Seamtype from this Mac and switches to another input source. If it was installed with the installer, macOS asks for your password.")) {
                         Button(L("Uninstall…"), role: .destructive) { Uninstaller.confirmAndRun() }
                     }
-                } footer: {
-                    Text(L("Removes Seamtype from this Mac and switches to another input source. If it was installed with the installer, macOS asks for your password."))
-                        .font(.caption).foregroundStyle(.secondary)
                 }
             }
         }
-        .formStyle(.grouped)
     }
+
     private static func markdown(_ text: String) -> AttributedString {
         (try? AttributedString(markdown: text)) ?? AttributedString(text)
     }

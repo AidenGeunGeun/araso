@@ -75,7 +75,8 @@ extension PauseKey {
     }
 }
 
-/// A key as a small keycap, the size of a list's: chosen ones are filled with the accent color.
+/// A key as a keycap named as the rest of the window names it: a chosen one is filled with the
+/// website's blue and checked, so on and off read without knowing the color.
 struct Keycap: View {
     let key: SwitchKey
     let on: Bool
@@ -85,23 +86,28 @@ struct Keycap: View {
     @Environment(\.colorSchemeContrast) private var contrast
 
     var body: some View {
-        let shape = RoundedRectangle(cornerRadius: 4, style: .continuous)
-        Text(verbatim: key.label)
-            .font(.system(size: 11, weight: .medium, design: .rounded))
-            .lineLimit(1)
-            .foregroundStyle(on ? Color.white : Color.primary)
-            .padding(.horizontal, 6).padding(.vertical, 2)
-            .background {
-                shape.fill(on ? Color.accentColor : Color(nsColor: .controlBackgroundColor))
-                    // The key's lower edge; it sinks while pressed.
-                    .shadow(color: .black.opacity(on ? 0.25 : 0.1), radius: 0, y: pressed ? 0 : 1)
+        let shape = RoundedRectangle(cornerRadius: 7, style: .continuous)
+        HStack(spacing: 4) {
+            if on { Image(systemName: "checkmark").font(.system(size: 9, weight: .heavy)) }
+            Text(verbatim: key.displayName).lineLimit(1)
+        }
+        .font(.system(size: 12, weight: .semibold))
+        .foregroundStyle(on ? Color.white : Seam.ink2)
+        .padding(.horizontal, 10).padding(.vertical, 5)
+        .background {
+            ZStack {
+                // The key's lower edge; it sinks while pressed.
+                shape.fill(on ? Seam.ink.opacity(0.35) : Seam.line).offset(y: pressed ? 0 : 2)
+                shape.fill(on ? Seam.blue : Seam.card)
             }
-            .overlay {
-                shape.strokeBorder(on ? Color.clear : (contrast == .increased ? Color.primary : Color(nsColor: .separatorColor)))
-            }
-            .overlay { if hovering && !on { shape.fill(Color.primary.opacity(0.05)) } }
-            .offset(y: pressed ? 0.5 : 0)
-            .opacity(isEnabled ? 1 : 0.5)
+        }
+        .overlay {
+            shape.strokeBorder(on ? Color.clear : (contrast == .increased ? Seam.ink : Seam.line))
+        }
+        .overlay { if hovering && !on { shape.fill(Seam.ink.opacity(0.04)) } }
+        .offset(y: pressed ? 1.5 : 0)
+        .padding(.bottom, 2)
+        .opacity(isEnabled ? 1 : 0.45)
     }
 }
 
@@ -113,7 +119,7 @@ struct KeycapToggles: View {
     let set: (SwitchKey, Bool) -> Void
 
     var body: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 8) {
             ForEach(SwitchKey.allCases, id: \.self) { key in
                 Toggle(key.displayName, isOn: Binding(get: { selection.contains(key) }, set: { set(key, $0) }))
                     .toggleStyle(KeycapToggleStyle(key: key))
@@ -158,33 +164,5 @@ struct KeycapToggleStyle: ToggleStyle {
             Keycap(key: key, on: on, hovering: hovering, pressed: configuration.isPressed)
                 .contentShape(Rectangle())
         }
-    }
-}
-
-/// A small keycap for a list: the keys an app uses, in a row.
-struct MiniKeycaps: View {
-    let keys: Set<SwitchKey>
-    /// Following the default: drawn lighter.
-    var inherited = false
-
-    var body: some View {
-        HStack(spacing: 4) {
-            if keys.isEmpty {
-                Label(L("None"), systemImage: "exclamationmark.triangle.fill")
-                    .labelStyle(.titleAndIcon)
-                    .foregroundStyle(.orange)
-            }
-            ForEach(SwitchKey.sorted(keys), id: \.self) { key in
-                Text(verbatim: key.label)
-                    .font(.system(size: 11, weight: .medium, design: .rounded))
-                    .lineLimit(1)
-                    .padding(.horizontal, 6).padding(.vertical, 2)
-                    .background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 4, style: .continuous))
-                    .overlay(RoundedRectangle(cornerRadius: 4, style: .continuous).strokeBorder(Color(nsColor: .separatorColor)))
-            }
-        }
-        .opacity(inherited ? 0.6 : 1)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(keys.isEmpty ? L("None") : SwitchKey.sorted(keys).map(\.displayName).joined(separator: ", "))
     }
 }

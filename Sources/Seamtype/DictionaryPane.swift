@@ -11,7 +11,6 @@ struct DictionaryPane: View {
     @State private var selection = Set<UserDictionary.Entry.ID>()
     @State private var editing: EntrySheet.Target?
     @State private var confirmForgetAll = false
-    @State private var confirmKanji = false
 
     enum Filter: Hashable, CaseIterable {
         case all, added, remembered, once
@@ -33,6 +32,16 @@ struct DictionaryPane: View {
             case .once: return L("Corrected once %ld")
             }
         }
+
+        /// What the entries under this filter are, under the filter.
+        var explanation: String {
+            switch self {
+            case .all: return L("These keys come out as written here, also with a particle after them.")
+            case .added: return L("Words you added here. They always come out this way.")
+            case .remembered: return L("Words you switched the same way twice. They always come out this way.")
+            case .once: return L("Words you switched once. They only lean that way, and are forgotten after 30 days unless you switch or type them again.")
+            }
+        }
     }
 
     private var shown: [UserDictionary.Entry] {
@@ -43,7 +52,8 @@ struct DictionaryPane: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 14) {
+            PaneHeader(tab: .learning)
             HStack(spacing: 12) {
                 Picker(L("List"), selection: $filter) {
                     ForEach(Filter.allCases, id: \.self) { filter in
@@ -52,11 +62,11 @@ struct DictionaryPane: View {
                 }
                 .pickerStyle(.segmented).labelsHidden().fixedSize()
                 Spacer()
-                ComposingSearchField(placeholder: L("Search keys or words"), text: $search).frame(width: 180)
+                ComposingSearchField(placeholder: L("Search keys or words"), text: $search).frame(width: 170)
                 Button { editing = .new(keys: "") } label: { Label(L("Add…"), systemImage: "plus") }
             }
-            Text(L("These keys come out as written here, also with a particle after them. A word corrected once only leans that way, and is forgotten after 30 days unless you correct or type it again."))
-                .font(.callout).foregroundStyle(.secondary)
+            Text(filter.explanation)
+                .font(.system(size: 12)).foregroundStyle(Seam.ink2)
             if shown.isEmpty {
                 EmptyList(symbol: search.isEmpty ? "text.book.closed" : "magnifyingglass",
                           title: search.isEmpty ? L("No words yet") : L("No matches"),
@@ -65,25 +75,18 @@ struct DictionaryPane: View {
                 table
             }
             HStack {
-                if model.settings.japanese {
-                    Button(L("Reset Kanji Order…")) { confirmKanji = true }
-                }
                 Spacer()
                 Button(L("Forget Learned Words…"), role: .destructive) { confirmForgetAll = true }
                     .disabled(!model.entries.contains { $0.source == .learned })
             }
         }
-        .padding(20)
+        .padding(.horizontal, 28).padding(.top, 26).padding(.bottom, 20)
+        .background(Seam.bg)
         .sheet(item: $editing) { EntrySheet(model: model, target: $0) }
         .confirmationDialog(L("Forget every learned word?"), isPresented: $confirmForgetAll) {
             Button(L("Forget All"), role: .destructive) { model.forgetAll() }
         } message: {
             Text(L("Words you added stay. This can't be undone."))
-        }
-        .confirmationDialog(L("Reset the kanji candidate order?"), isPresented: $confirmKanji) {
-            Button(L("Reset"), role: .destructive) { model.resetKanji() }
-        } message: {
-            Text(L("Kanji you picked before won't come first anymore. Remembered words stay."))
         }
     }
 
@@ -92,36 +95,46 @@ struct DictionaryPane: View {
             HStack(spacing: 10) {
                 Text(L("Keys")).frame(width: Column.keys, alignment: .leading)
                 Text(L("Result")).frame(maxWidth: .infinity, alignment: .leading)
-                Text(L("Source")).frame(width: Column.source, alignment: .leading)
+                Text(L("Status")).frame(width: Column.source, alignment: .leading)
                 Text(L("Apps")).frame(width: Column.apps, alignment: .leading)
+                Text(L("Expires")).frame(width: Column.expires, alignment: .leading)
                 Color.clear.frame(width: Column.actions, height: 1)
             }
-            .font(.caption).foregroundStyle(.secondary)
-            .padding(.horizontal, 18).padding(.bottom, 4)
+            .font(.system(size: 11, weight: .medium)).foregroundStyle(Seam.ink3)
+            .padding(.horizontal, 18).padding(.top, 10).padding(.bottom, 6)
+            Rectangle().fill(Seam.line).frame(height: 1)
             List(selection: $selection) {
                 ForEach(shown) { entry in
                     // The sheet chooses a reading: an entry of the user's own text isn't one, and
                     // saving it there would turn the text into a reading. It can only be removed.
                     EntryRow(entry: entry, model: model) { if entry.language != nil { editing = .edit(entry) } }
                         .tag(entry.id)
-                        .contextMenu {
-                            if entry.language != nil { Button(L("Edit…")) { editing = .edit(entry) } }
-                            if entry.source == .learned { Button(L("Keep for Good")) { model.pin(entry.id) } }
-                            Button(L("Remove"), role: .destructive) { model.remove(entry.id) }
-                        }
+                        .contextMenu { actions(entry) }
                 }
             }
-            .listStyle(.inset(alternatesRowBackgrounds: true))
+            .listStyle(.inset(alternatesRowBackgrounds: false))
+            .scrollContentBackground(.hidden)
             .onDeleteCommand { selection.forEach(model.remove); selection = [] }
         }
+        .background(Seam.card, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(Seam.line))
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+    }
+
+    /// The row's commands, in its ⋯ menu and its context menu alike.
+    @ViewBuilder private func actions(_ entry: UserDictionary.Entry) -> some View {
+        if entry.language != nil { Button(L("Edit…")) { editing = .edit(entry) } }
+        if entry.source == .learned { Button(L("Keep for Good")) { model.pin(entry.id) } }
+        Button(L("Remove"), role: .destructive) { model.remove(entry.id) }
     }
 }
 
 private enum Column {
-    static let keys: CGFloat = 150
-    static let source: CGFloat = 90
-    static let apps: CGFloat = 130
-    static let actions: CGFloat = 50
+    static let keys: CGFloat = 120
+    static let source: CGFloat = 96
+    static let apps: CGFloat = 110
+    static let expires: CGFloat = 70
+    static let actions: CGFloat = 28
 }
 
 private struct EntryRow: View {
@@ -131,31 +144,36 @@ private struct EntryRow: View {
 
     var body: some View {
         HStack(spacing: 10) {
-            Text(verbatim: entry.keys).font(.system(.body, design: .monospaced)).foregroundStyle(.secondary)
+            Text(verbatim: entry.keys).font(.system(size: 13, design: .monospaced)).foregroundStyle(Seam.ink2)
                 .lineLimit(1).truncationMode(.middle).help(entry.keys)
                 .frame(width: Column.keys, alignment: .leading)
             HStack(spacing: 6) {
-                Text(EntryText.kind(entry)).font(.callout).foregroundStyle(.secondary)
-                Text(verbatim: EntryText.of(entry)).lineLimit(1).truncationMode(.middle)
+                Text(verbatim: EntryText.of(entry)).font(.system(size: 14, weight: .semibold)).foregroundStyle(Seam.ink)
+                    .lineLimit(1).truncationMode(.middle)
+                Text(EntryText.kind(entry)).font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(entry.language?.ink ?? Seam.ink3)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             SourceBadge(entry: entry).frame(width: Column.source, alignment: .leading)
-            Text(EntryText.apps(entry)).font(.callout).foregroundStyle(.secondary).lineLimit(1)
+            Text(EntryText.apps(entry)).font(.system(size: 12)).foregroundStyle(Seam.ink2).lineLimit(1)
                 .frame(width: Column.apps, alignment: .leading)
-            HStack(spacing: 6) {
-                if entry.source == .learned {
-                    Button { model.pin(entry.id) } label: { Image(systemName: "pin") }
-                        .buttonStyle(.borderless).foregroundStyle(.secondary)
-                        .help(L("Keep for good"))
-                        .accessibilityLabel(L("Keep %@ for good", entry.keys))
-                }
-                Button { model.remove(entry.id) } label: { Image(systemName: "xmark.circle.fill") }
-                    .buttonStyle(.borderless).foregroundStyle(.tertiary)
-                    .help(L("Remove"))
-                    .accessibilityLabel(L("Remove %@", entry.keys))
+            Text(EntryText.expires(entry)).font(.system(size: 12).monospacedDigit())
+                .foregroundStyle(entry.strength == .weak ? Seam.ink2 : Seam.ink3).lineLimit(1)
+                .frame(width: Column.expires, alignment: .leading)
+            Menu {
+                if entry.language != nil { Button(L("Edit…"), action: edit) }
+                if entry.source == .learned { Button(L("Keep for Good")) { model.pin(entry.id) } }
+                Button(L("Remove"), role: .destructive) { model.remove(entry.id) }
+            } label: {
+                Image(systemName: "ellipsis.circle")
             }
+            .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
+            .foregroundStyle(Seam.ink3)
+            .help(L("Edit, keep for good or remove"))
+            .accessibilityLabel(L("Actions for %@", entry.keys))
             .frame(width: Column.actions, alignment: .trailing)
         }
+        .padding(.vertical, 3)
         .contentShape(Rectangle())
         .onTapGesture(count: 2, perform: edit)
     }
@@ -172,25 +190,28 @@ enum EntryText {
         return entry.text ?? ""
     }
 
+    /// When a word corrected once is forgotten; a dash for the rest, which stay.
+    static func expires(_ entry: UserDictionary.Entry) -> String {
+        guard let days = UserDictionary.daysLeft(entry, today: Date()) else { return "—" }
+        return L("%ld days", days)
+    }
+
     static func apps(_ entry: UserDictionary.Entry) -> String {
-        if let days = UserDictionary.daysLeft(entry, today: Date()) { return L("%ld days left", days) }
         guard let apps = entry.apps else { return L("Every app") }
         return apps.map { $0.hasSuffix(".") ? $0 + "*" : AppName.of($0) }.joined(separator: ", ")
     }
 }
 
+/// Added and remembered words stay (blue and ink); a word corrected once is on its way (yellow).
 private struct SourceBadge: View {
     let entry: UserDictionary.Entry
 
     var body: some View {
-        let (title, color): (String, Color) = switch (entry.source, entry.strength) {
-        case (.user, _): (L("Added"), .accentColor)
-        case (_, .weak?): (L("Corrected once"), .orange)
-        default: (L("Remembered"), .green)
+        switch (entry.source, entry.strength) {
+        case (.user, _): Badge(title: L("Added"), fill: Seam.bg2, ink: Seam.ink)
+        case (_, .weak?): Badge(title: L("Corrected once"), fill: Seam.japanese.opacity(0.22), ink: Seam.japaneseInk)
+        default: Badge(title: L("Remembered"), fill: Seam.korean.opacity(0.14), ink: Seam.korean)
         }
-        Text(title).font(.caption)
-            .padding(.horizontal, 6).padding(.vertical, 1)
-            .background(color.opacity(0.15), in: RoundedRectangle(cornerRadius: 4))
     }
 }
 

@@ -19,7 +19,6 @@
 "Korean · English" = "한국어 · 영어";
 "Always on" = "항상 켜짐";
 "Japanese" = "일본어";
-"Off by default. Turn on to type Japanese with romaji; Space converts to kanji." = "기본값은 꺼짐입니다. 켜면 로마자로 일본어를 입력하고 Space로 한자를 변환합니다.";
 "Live conversion" = "라이브 변환";
 "Shows the top kanji candidate as you type." = "입력하면서 가장 앞선 한자 후보를 바로 보여 줍니다.";
 "Full-width numbers" = "전각 숫자";
@@ -37,20 +36,16 @@
 "Strict" = "엄격하게";
 "Switch keys" = "언어 바꾸기 키";
 "After Space / punctuation" = "Space·문장부호 뒤";
-"Hold" = "유지";
-"Finish" = "확정";
-"Hold: Space or punctuation goes inside the underline, so the word can still be changed until the next word starts. For terminals." = "유지: Space나 문장부호가 밑줄 안에 들어가, 다음 단어를 칠 때까지 단어를 바꿀 수 있습니다. 터미널용입니다.";
+"Hold" = "밑줄 유지";
+"Finish" = "단어 확정";
+"Hold: Space or punctuation goes inside the underline, so the word can still be changed until the next word starts. For terminals." = "밑줄 유지: Space나 문장부호가 밑줄 안에 들어가, 다음 단어를 칠 때까지 단어를 바꿀 수 있습니다. 터미널용입니다.";
 "None" = "없음";
 "None — can't switch" = "없음 — 바꿀 수 없음";
 "Convert words" = "단어 변환";
-"Off: keys go to the app as typed, as with the ABC layout." = "끄면 키가 친 그대로 앱에 갑니다(ABC 자판처럼).";
 "App" = "앱";
-"“Default” follows the setting above; anything else applies to this app only." = "‘기본’은 위 설정을 따르고, 나머지 값은 이 앱에만 적용됩니다.";
 "Default · %@" = "기본 · %@";
 "Exceptions — only apps that differ" = "예외 앱 — 다르게 쓸 앱만";
 "None. Add an app that should work differently." = "없음. 다르게 동작할 앱을 추가하세요.";
-"Add App" = "앱 추가";
-"Remove App" = "앱 빼기";
 "Add" = "추가";
 "Default (%@)" = "기본 (%@)";
 "On" = "켬";
@@ -67,12 +62,9 @@
 "Mixed" = "섞인 단어";
 
 /* 정보 */
-"Version" = "버전";
 "License" = "라이선스";
 "Settings and learning files" = "설정과 학습 파일";
 "Show in Finder" = "Finder에서 보기";
-"Open source notices" = "오픈소스 고지";
-"Open" = "열기";
 "What you type never leaves this Mac: deciding words and converting kanji both happen here." = "친 내용은 이 Mac 밖으로 나가지 않습니다. 단어 판단과 한자 변환 모두 이 Mac에서 합니다.";
 
 /* 입력 메뉴 */
@@ -154,11 +146,7 @@
 "A full-width space after Japanese; ⇧Space types the other width." = "일본어 뒤의 공백을 전각으로 씁니다. ⇧Space는 반대 폭입니다.";
 "A right ⌥ or ⇧ tap with other modifiers (a Hyper key) is left to what it's bound to." = "다른 modifier와 함께 온 오른쪽 ⌥·⇧(Hyper 키 등)는 받지 않고, 원래 묶어 둔 동작에 맡깁니다.";
 "All of these switch languages." = "모든 키가 언어를 바꿉니다.";
-"Apps…" = "앱별 설정…";
-"Change…" = "바꾸기…";
 "Every app uses these keys." = "모든 앱이 이 키를 씁니다.";
-"Go to the app as usual: %@" = "앱으로 가는 키: %@";
-"In some apps only" = "앱마다 다르게";
 "Japanese input" = "일본어 입력";
 "Keys go through as typed in that text field, for hjkl in terminal programs. Press it again to resume." = "그 입력창에서는 키가 친 그대로 갑니다. 터미널의 hjkl 같은 곳에 씁니다. 한 번 더 누르면 다시 켜집니다.";
 "Pause" = "일시정지";
@@ -191,23 +179,17 @@
 "All %ld" = "모두 %ld";
 "Added %ld" = "등록함 %ld";
 "Add…" = "추가…";
-"These keys come out as written here, also with a particle after them. A word corrected once only leans that way, and is forgotten after 30 days unless you correct or type it again." = "이 키는 여기 적힌 대로 나옵니다. 뒤에 조사가 붙어도 같습니다. 한 번 고친 단어는 그쪽으로 조금 기울 뿐이고, 30일 동안 다시 고치거나 그대로 치지 않으면 잊습니다.";
 "No words yet" = "아직 단어가 없습니다";
 "Add a word with +, or switch a word that came out wrong with the language switch key: corrected the same way twice, it's remembered here." = "+로 단어를 추가하거나, 잘못 바뀐 단어를 언어 바꾸기 키로 바꾸세요. 같은 쪽으로 두 번 고치면 여기에 기억됩니다.";
-"Reset Kanji Order…" = "한자 후보 순서 초기화…";
 "Forget Learned Words…" = "학습한 단어 모두 잊기…";
 "Forget every learned word?" = "학습한 단어를 모두 잊을까요?";
 "Words you added stay. This can't be undone." = "등록한 단어는 남습니다. 되돌릴 수 없습니다.";
 "Result" = "결과";
-"Source" = "출처";
-"Keep for good" = "등록으로 고정";
 "Keep for Good" = "등록으로 고정";
-"Keep %@ for good" = "%@ 등록으로 고정";
 "Remove" = "지우기";
 "Remove %@" = "%@ 지우기";
 "Edit…" = "고치기…";
 "My text" = "내 글";
-"%ld days left" = "%ld일 남음";
 "Every app" = "모든 앱";
 "Added" = "등록함";
 "Remembered" = "기억함";
@@ -220,3 +202,46 @@
 "Comes out as" = "읽기";
 "— also with a particle: %@" = "— 조사가 붙어도: %@";
 "Save" = "저장";
+
+/* 설정 창: 탭 머리 */
+"Which languages each word is decided between, and how Japanese types." = "단어마다 어느 언어로 판단할지, 일본어는 어떻게 칠지 정합니다.";
+"The keys that change a word's language, and a few more." = "단어의 언어를 바꾸는 키와 그 밖의 키를 정합니다.";
+"How sure a word must be to convert, and apps that work differently." = "얼마나 확실해야 바꿀지, 다르게 동작할 앱을 정합니다.";
+"Keys that always come out one way." = "늘 같은 글자로 나오는 키입니다.";
+"Type here to see how each word is decided." = "직접 쳐 보고 단어마다 어떻게 판단했는지 봅니다.";
+"Version, updates and files." = "버전, 업데이트, 파일을 확인합니다.";
+
+/* 언어 */
+"Off: keys go to the app as typed, as with the ABC layout. Apps can differ, under Apps." = "끄면 ABC 자판처럼 친 그대로 앱에 갑니다. 앱별로 다르게 할 수 있습니다.";
+"Type Japanese with romaji; Space converts to kanji." = "로마자로 일본어를 치고, Space로 한자로 바꿉니다.";
+"Kanji candidate order" = "한자 후보 순서";
+"Kanji you pick come first next time." = "고른 한자가 다음에 앞에 나옵니다.";
+"Reset…" = "초기화…";
+
+/* 키 */
+"Turns the word being typed, or the one just typed, into the next reading. Choose one or more." = "치고 있는 단어나 방금 친 단어를 다음 읽기로 바꿉니다. 하나 이상 고르세요.";
+"Switching: %@. The others go to the app as usual." = "바꾸는 키: %@. 나머지 키는 평소처럼 앱에 갑니다.";
+"Apps with their own keys" = "따로 키를 쓰는 앱";
+"Set in Apps…" = "앱별에서 정하기…";
+
+/* 앱별 */
+"Convert words is off under Languages, so nothing converts." = "언어 탭에서 단어 변환이 꺼져 있어 아무것도 바꾸지 않습니다.";
+"Add App…" = "앱 추가…";
+"Grey values follow the default; anything else applies to this app only." = "흐린 값은 기본값을 따르고, 진한 값은 이 앱에만 적용됩니다.";
+"Remove: the app follows the default again" = "빼기: 이 앱이 다시 기본값을 따릅니다";
+
+/* 사전 */
+"These keys come out as written here, also with a particle after them." = "이 키들은 뒤에 조사가 붙어도 여기 적힌 대로 나옵니다.";
+"Words you added here. They always come out this way." = "여기서 직접 추가한 단어입니다. 늘 이렇게 나옵니다.";
+"Words you switched the same way twice. They always come out this way." = "같은 쪽으로 두 번 고친 단어입니다. 늘 이렇게 나옵니다.";
+"Words you switched once. They only lean that way, and are forgotten after 30 days unless you switch or type them again." = "한 번 고친 단어입니다. 그쪽으로 기울기만 하고, 30일 안에 다시 고치거나 치지 않으면 잊습니다.";
+"Status" = "상태";
+"Expires" = "남은 기간";
+"%ld days" = "%ld일";
+"Edit, keep for good or remove" = "고치기, 등록으로 고정, 지우기";
+"Actions for %@" = "%@ 동작";
+
+/* 정보 */
+"This Mac" = "이 Mac";
+"MIT, with open source notices for the data it uses." = "MIT 라이선스입니다. 쓰는 데이터의 오픈 소스 고지도 함께 있습니다.";
+"Open Notices" = "고지 열기";
