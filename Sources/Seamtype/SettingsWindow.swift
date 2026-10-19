@@ -446,7 +446,9 @@ struct SettingsView: View {
                 case .about: AboutPane(model: model)
                 }
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            // A pane wider than its room is cut at its edge; it never pushes the sidebar aside.
+            .frame(minWidth: 0, maxWidth: .infinity, maxHeight: .infinity)
+            .clipped()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Seam.bg)
@@ -461,6 +463,8 @@ struct SettingsView: View {
 /// the website's yellow dot.
 private struct Sidebar: View {
     @ObservedObject var model: SettingsModel
+    /// A newer release puts a badge on About, where it's installed.
+    @ObservedObject private var updater = Updater.shared
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
@@ -490,7 +494,16 @@ private struct Sidebar: View {
                     .font(.system(size: 14, weight: chosen ? .semibold : .medium))
                     .foregroundStyle(chosen ? Seam.ink : Seam.ink2)
                 Spacer(minLength: 0)
+                if tab == .about, updater.available != nil {
+                    Text(L("Update"))
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 6).padding(.vertical, 2)
+                        .background(Seam.blue, in: Capsule())
+                        .transition(.scale.combined(with: .opacity))
+                }
             }
+            .animation(.snappy(duration: 0.25), value: updater.available?.version)
             .padding(.horizontal, 10).padding(.vertical, 7)
             .background(chosen ? Seam.card : .clear, in: RoundedRectangle(cornerRadius: 9, style: .continuous))
             .overlay {
@@ -501,6 +514,8 @@ private struct Sidebar: View {
         .buttonStyle(.plain)
         .noFocusRing()
         .accessibilityAddTraits(chosen ? [.isSelected] : [])
+        .accessibilityValue(tab == .about && updater.available != nil
+                            ? L("Seamtype %@ is available", updater.available?.version ?? "") : "")
     }
 }
 
@@ -589,7 +604,10 @@ private struct KeysPane: View {
                             .foregroundStyle(Seam.ink2)
                             .help(L("Which key to choose"))
                             .accessibilityLabel(L("Which key to choose"))
-                            .popover(isPresented: $showInfo, arrowEdge: .trailing) { SwitchKeysInfo() }
+                            // To the left, over the pane: at the window's right edge a trailing popover hung over the desktop.
+                            .popover(isPresented: $showInfo, arrowEdge: .leading) {
+                                SwitchKeysInfo(chosen: model.defaultPolicy.switchKeys)
+                            }
                     }
                     KeycapToggles(selection: model.defaultPolicy.switchKeys, taken: model.settings.pauseKey.switchKey) { key, on in
                         model.setDefault { if on { $0.switchKeys.insert(key) } else { $0.switchKeys.remove(key) } }
@@ -679,7 +697,7 @@ private struct PauseKeyPicker: View {
             let shape = RoundedRectangle(cornerRadius: 6, style: .continuous)
             HStack(spacing: 4) {
                 Text(L("Type a shortcut"))
-                    .foregroundStyle(problem ? Color.orange : Color.secondary)
+                    .foregroundStyle(problem ? Seam.warning : Seam.ink3)
                     .lineLimit(1)
                 Spacer(minLength: 0)
                 Button(action: cancel) { Image(systemName: "xmark.circle.fill") }
@@ -690,8 +708,8 @@ private struct PauseKeyPicker: View {
             }
             .padding(.leading, 8).padding(.trailing, 4)
             .frame(width: PauseKeyPicker.width, height: 22)
-            .background(shape.fill(Color(nsColor: .textBackgroundColor)))
-            .overlay(shape.strokeBorder(problem ? Color.orange : Color.accentColor, lineWidth: 2))
+            .background(shape.fill(Seam.card))
+            .overlay(shape.strokeBorder(problem ? Seam.warning : Seam.blue, lineWidth: 2))
             .accessibilityElement(children: .contain)
             .accessibilityLabel(L("Type a shortcut"))
         }
@@ -764,25 +782,31 @@ private struct SwitchKeysStatus: View {
     }
 }
 
-/// What each key is good for, behind the info button.
+/// What each key is good for, behind the info button: each as its keycap (checked when chosen),
+/// on the window's card color rather than the popover's see-through material.
 private struct SwitchKeysInfo: View {
+    let chosen: Set<SwitchKey>
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(L("Which key to choose")).font(.headline)
+        VStack(alignment: .leading, spacing: 12) {
+            Text(L("Which key to choose")).font(.system(size: 14, weight: .bold)).foregroundStyle(Seam.ink)
+            // Keycap and line side by side: stacked, the popover ran past the window's top.
             ForEach(SwitchKey.allCases, id: \.self) { key in
-                VStack(alignment: .leading, spacing: 1) {
-                    Text(key.displayName).font(.callout.weight(.medium))
-                    Text(key.help).font(.callout).foregroundStyle(.secondary)
+                HStack(alignment: .firstTextBaseline, spacing: 12) {
+                    Keycap(key: key, on: chosen.contains(key))
+                        .frame(width: 118, alignment: .leading)
+                    Text(key.help).font(.system(size: 12)).foregroundStyle(Seam.ink2)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
-            Divider()
+            Rectangle().fill(Seam.line).frame(height: 1)
             Text(L("A right ⌥ or ⇧ tap with other modifiers (a Hyper key) is left to what it's bound to."))
-                .font(.callout).foregroundStyle(.secondary)
+                .font(.system(size: 12)).foregroundStyle(Seam.ink2)
                 .fixedSize(horizontal: false, vertical: true)
         }
-        .padding(16)
-        .frame(width: 320)
+        .padding(18)
+        .frame(width: 440)
+        .background(Seam.card)
     }
 }
 
@@ -968,10 +992,11 @@ private struct FieldMenu<Value>: View {
 
     var body: some View {
         Menu {
-            Button(L("Default (%@)", inherited)) { set(nil) }
+            // Checked as the switch keys' menu is: the default while the app follows it, else its own.
+            Toggle(L("Default (%@)", inherited), isOn: Binding(get: { own == nil }, set: { if $0 { set(nil) } }))
             Divider()
             ForEach(choices.indices, id: \.self) { i in
-                Button(choices[i].0) { set(choices[i].1) }
+                Toggle(choices[i].0, isOn: Binding(get: { own == choices[i].0 }, set: { if $0 { set(choices[i].1) } }))
             }
         } label: {
             Text(own ?? L("Default · %@", inherited))
@@ -994,7 +1019,7 @@ private struct SwitchKeysMenu: View {
     var body: some View {
         Menu {
             // Checked while the app follows the default; choosing it drops the app's own keys.
-            Toggle(L("Default (%@)", SwitchKey.shortNames(inherited)),
+            Toggle(L("Default (%@)", SwitchKey.names(inherited)),
                    isOn: Binding(get: { own == nil }, set: { if $0 { set(nil) } }))
             Divider()
             ForEach(SwitchKey.allCases, id: \.self) { key in
@@ -1009,8 +1034,8 @@ private struct SwitchKeysMenu: View {
             }
         } label: {
             // A menu's label shows only text.
-            Text(own.map { $0.isEmpty ? L("None — can't switch") : SwitchKey.shortNames($0) }
-                 ?? L("Default · %@", SwitchKey.shortNames(effective)))
+            Text(own.map { $0.isEmpty ? L("None — can't switch") : SwitchKey.names($0) }
+                 ?? L("Default · %@", SwitchKey.names(effective)))
         }
         .menuStyle(.borderlessButton)
         .fixedSize()

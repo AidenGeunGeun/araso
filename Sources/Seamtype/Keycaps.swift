@@ -43,14 +43,10 @@ extension SwitchKey {
         }
     }
 
-    /// The keys in a few characters each, for a narrow column ("right ⌥, ⇧Esc").
-    static func shortNames(_ keys: Set<SwitchKey>) -> String {
-        keys.isEmpty ? L("None") : sorted(keys).map(\.label)
-            .joined(separator: ", ")
+    /// The keys by the names the keycaps and menus use ("Right ⌥ tap, ⇧Esc").
+    static func names(_ keys: Set<SwitchKey>) -> String {
+        keys.isEmpty ? L("None") : sorted(keys).map(\.displayName).joined(separator: ", ")
     }
-
-    /// On a small keycap: "right ⌥", "⌥Space", "Esc".
-    var label: String { caption == nil ? displayName : L("right %@", glyph) }
 
     /// The keys in the settings' order.
     static func sorted(_ keys: Set<SwitchKey>) -> [SwitchKey] { allCases.filter(keys.contains) }

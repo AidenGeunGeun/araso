@@ -62,8 +62,11 @@ struct DictionaryPane: View {
                 }
                 .pickerStyle(.segmented).labelsHidden().fixedSize()
                 Spacer()
-                ComposingSearchField(placeholder: L("Search keys or words"), text: $search).frame(width: 170)
-                Button { editing = .new(keys: "") } label: { Label(L("Add…"), systemImage: "plus") }
+                // Narrow, and + alone: the filter's English titles take most of the row.
+                ComposingSearchField(placeholder: L("Search"), text: $search).frame(width: 140)
+                Button { editing = .new(keys: "") } label: { Image(systemName: "plus") }
+                    .help(L("Add…"))
+                    .accessibilityLabel(L("Add…"))
             }
             Text(filter.explanation)
                 .font(.system(size: 12)).foregroundStyle(Seam.ink2)
@@ -130,8 +133,8 @@ struct DictionaryPane: View {
 }
 
 private enum Column {
-    static let keys: CGFloat = 120
-    static let source: CGFloat = 96
+    static let keys: CGFloat = 100
+    static let source: CGFloat = 112
     static let apps: CGFloat = 110
     static let expires: CGFloat = 70
     static let actions: CGFloat = 28
@@ -271,7 +274,8 @@ struct EntrySheet: View {
     private var apps: [(id: String, name: String)] {
         var ids = Set(model.apps.map(\.id))
         for running in NSWorkspace.shared.runningApplications where running.activationPolicy == .regular {
-            if let id = running.bundleIdentifier { ids.insert(id) }
+            // Not this settings window: it runs as Seamtype, an app no one types in.
+            if let id = running.bundleIdentifier, id != Bundle.main.bundleIdentifier { ids.insert(id) }
         }
         if let app { ids.insert(app) }
         return ids.map { ($0, AppName.of($0)) }.sorted { $0.name.lowercased() < $1.name.lowercased() }

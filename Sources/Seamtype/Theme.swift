@@ -238,6 +238,7 @@ struct Badge: View {
     var body: some View {
         Text(title)
             .font(.system(size: 11, weight: .semibold))
+            .lineLimit(1).fixedSize()
             .foregroundStyle(ink)
             .padding(.horizontal, 7).padding(.vertical, 2)
             .background(fill, in: Capsule())
