@@ -113,6 +113,8 @@ curl -fsSL https://raw.githubusercontent.com/nyttastudio/legato/main/scripts/get
   필요 없습니다.
 - 깨끗이 다시 설치하려면 설치 프로그램의 **사용자화**에서 **설정과 학습한 단어 초기화**를 체크하세요.
 
+<a id="from-seamtype"></a>
+
 ### Seamtype에서 옮겨 오기
 
 0.2.0부터 이름이 Seamtype에서 Legato로 바뀌었고, macOS에는 다른 입력기로 보입니다. 한 번만 아래를 해 주세요.
