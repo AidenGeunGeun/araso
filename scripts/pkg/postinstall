@@ -1,9 +1,9 @@
 #!/bin/sh
-# The payload lands in a staging folder, not in /Library/Input Methods: PackageKit swaps a bundle
-# it upgrades for a new folder, and imklaunchagent, which had seen the old one, then fails to
-# launch Seamtype (LaunchInputMethod -50) until the user logs out. So the files are synced into
-# the existing Seamtype.app here, each written aside and renamed over the old one (the folder
+# The payload lands in a staging folder, not in /Library/Input Methods, and the files are synced
+# into the existing Seamtype.app here, each written aside and renamed over the old one (the folder
 # stays, and a running Seamtype keeps its old files). A first install just moves it into place.
+# This was meant to avoid imklaunchagent's LaunchInputMethod -50 after an upgrade; that turned out
+# to hit only ad hoc signed copies (see CLAUDE.md), and the Developer ID copy starts again either way.
 #
 # The old Seamtype keeps running while that happens (no preinstall stops it: macOS would only
 # start the old code again). Stop it after, then register the new copy for the logged-in user (the

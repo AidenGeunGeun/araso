@@ -206,11 +206,11 @@ runtime.
   build needs `SEAMTYPE_UNSIGNED=1`). The pkg installs
   into `/Library/Input Methods` and is not relocatable. Its payload lands in
   `/Library/Application Support/Seamtype/Install` and the postinstall rsyncs it into the existing
-  bundle: a bundle PackageKit swaps for a new folder leaves imklaunchagent failing to launch it
-  (`LaunchInputMethod() Error, status=-50`) until the user logs out. Then the postinstall runs
+  bundle (see Ad hoc builds for what the -50 it was meant to avoid really is). Then the postinstall runs
   `lsregister -f` and `Seamtype --register` as the logged-in user, until `Seamtype --registered`
   sees the source (users have no Swift toolchain, so registration can't use the scripts).
-  `release.sh` signs the app with the hardened runtime even ad hoc, and `build-app.sh` runs the
+  `release.sh` signs the app with the hardened runtime even ad hoc (it has `build-app.sh` sign
+  ad hoc too unless `SEAMTYPE_APP_SIGN` is set, not with a keychain identity), and `build-app.sh` runs the
   self-test under Rosetta too for a universal build.
 - **Reinstalling** (the pattern of vChewing's installer): put the new bundle in place first, then
   stop Seamtype (SIGTERM, wait, SIGKILL, wait); stopping it earlier only lets macOS start the old
@@ -231,7 +231,22 @@ runtime.
   To try an update before publishing (drafts aren't visible to it), point the check at a file in
   GitHub's format: `defaults write com.aimdevlee.inputmethod.Seamtype updateFeed file:///…/latest.json`
   (its `browser_download_url` may be a file URL to a signed pkg); `defaults delete … updateFeed` after.
-- **One install method while developing:** `scripts/install.sh` (ad hoc, `~/Library`) or a signed
+- **Ad hoc builds don't start again after a reinstall.** launchd runs the input method as a job
+  named after the inodes of the bundle and of `Contents/MacOS/Seamtype`, and every reinstall (a
+  swapped folder, rsync, even the same bytes copied to a new file) gives the executable a new one.
+  A copy signed with an identity then starts again by itself (in 2–3 s, or about a minute after
+  the kill); an ad hoc one gets `LaunchInputMethod() Error, status=-50` from imklaunchagent and stays
+  down until the source is re-added in System Settings (− then +) or the user logs out.
+  `lsregister -f`, `TISRegisterInputSource`, `LSRegisterURL`, disabling and enabling the source and
+  a LaunchServices check-in don't bring it back (all tried, 2026-10-19). Any identity works:
+  Developer ID (the pkg updates fine), and an Apple Development certificate of another, free team
+  too, without notarization. So `build-app.sh` signs with `SEAMTYPE_APP_SIGN`, else the keychain's
+  Apple Development, else its Developer ID Application identity, and only then ad hoc;
+  `install.sh` says to re-add the source (and opens the pane) when it replaced a copy with an ad
+  hoc one. A single -50 line isn't proof by itself: it shows up while Seamtype runs too; no
+  process and keys not reaching it are. To check, have a text field ask for it (the typing test),
+  not just an input source switch, and wait past the minute.
+- **One install method while developing:** `scripts/install.sh` (`~/Library`) or a signed
   pkg (`/Library`), not both. After trying a pkg, run its copy's `--uninstall` before going back to
   `install.sh`; without a terminal `install.sh` refuses to install while the pkg's copy is there
   (two copies are one input method twice). Never install an ad-hoc pkg (`release.sh` without

@@ -6,6 +6,7 @@
 #
 #   scripts/build-app.sh                               this Mac's architecture
 #   SEAMTYPE_ARCHS="arm64 x86_64" scripts/build-app.sh   universal (release.sh)
+#   SEAMTYPE_APP_SIGN=<identity or hash> scripts/build-app.sh   that identity ("-": ad hoc)
 set -euo pipefail
 setopt extended_glob
 cd "${0:A:h}/.."
@@ -46,7 +47,27 @@ section "azooKey dictionary (Contents/Resources/Dictionary)" "${dictionary:h}/LI
 section "Tatoeba (kana, written-Japanese, Korean syllable and word models)" scripts/third-party/tatoeba.txt
 section "SCOWL (english_words.txt)" scripts/third-party/scowl-Copyright
 section "FrequencyWords (korean_vocabulary.txt)" scripts/third-party/frequencywords.txt
-codesign --force --sign - "$app"
+# Signed with an identity when there is one: SEAMTYPE_APP_SIGN, else this keychain's Apple
+# Development identity (a free Apple ID in Xcode gives one), else its Developer ID Application.
+# After a reinstall swaps the executable, macOS starts an ad hoc copy no more (imklaunchagent:
+# LaunchInputMethod() Error, status=-50) until the source is re-added in System Settings or the
+# user logs out; a copy signed with any identity starts again on its own. By hash, since a
+# keychain can hold two certificates of one name.
+sign=${SEAMTYPE_APP_SIGN:-}
+if [[ -z $sign ]]; then
+  identities=$(security find-identity -v -p codesigning 2>/dev/null || true)
+  for kind in "Apple Development" "Developer ID Application"; do
+    sign=$(print -r -- "$identities" | awk -v k="\"$kind:" 'index($0, k) { print $2; exit }')
+    [[ -n $sign ]] && break
+  done
+fi
+if [[ -n $sign && $sign != - ]]; then
+  codesign --force --options runtime --sign "$sign" "$app"
+  echo "signed with $(codesign -dvv "$app" 2>&1 | sed -n 's/^Authority=//p' | head -1)"
+else
+  codesign --force --sign - "$app"
+  echo "signed ad hoc"
+fi
 
 "$app/Contents/MacOS/Seamtype" --selftest
 # The Intel half too, through Rosetta.

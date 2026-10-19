@@ -18,7 +18,9 @@
 set -euo pipefail
 cd "${0:A:h}/.."
 
-SEAMTYPE_ARCHS="arm64 x86_64" scripts/build-app.sh
+# Signed below either way; ad hoc here unless a Developer ID is given, rather than whatever
+# identity build-app.sh would find in the keychain.
+SEAMTYPE_ARCHS="arm64 x86_64" SEAMTYPE_APP_SIGN="${SEAMTYPE_APP_SIGN:--}" scripts/build-app.sh
 app=build/Seamtype.app
 version=$(plutil -extract CFBundleShortVersionString raw "$app/Contents/Info.plist")
 out=build/release

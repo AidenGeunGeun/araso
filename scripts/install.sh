@@ -78,6 +78,8 @@ mkdir -p "$dest"
 # Swapped by renaming within the folder, so there is never a moment without a Seamtype.app there
 # for macOS to launch (the old one keeps running meanwhile).
 rm -rf "$dest/.Seamtype.app.new" "$dest/.Seamtype.app.old"
+replaced=false
+[[ -d "$dest/Seamtype.app" ]] && replaced=true
 ditto build/Seamtype.app "$dest/.Seamtype.app.new"
 [[ -d "$dest/Seamtype.app" ]] && mv "$dest/Seamtype.app" "$dest/.Seamtype.app.old"
 mv "$dest/.Seamtype.app.new" "$dest/Seamtype.app"
@@ -118,6 +120,19 @@ $enabled && killall TextInputMenuAgent 2>/dev/null || true
 $enabled && killall -KILL CursorUIViewService TextInputSwitcher 2>/dev/null || true
 $enabled && echo "input source $id is enabled" ||
   echo "input source $id isn't enabled: add it in System Settings → Keyboard → Input Sources"
+
+# An ad hoc copy that replaced one macOS had running isn't started again (build-app.sh says why)
+# until the source is re-added; the settings pane is opened for it.
+if $replaced && codesign -dv "$dest/Seamtype.app" 2>&1 | grep -q '^Signature=adhoc'; then
+  cat <<'EOF'
+
+This build is signed ad hoc (no Apple Development or Developer ID identity in the keychain), so
+macOS won't start the new copy: in System Settings → Keyboard → Input Sources → Edit…, remove
+Seamtype (−) and add it again (+), or log out and back in. An Apple ID signed in to Xcode gives
+an Apple Development identity, and then a reinstall needs none of this.
+EOF
+  open "x-apple.systempreferences:com.apple.Keyboard-Settings.extension" 2>/dev/null || true
+fi
 
 cat <<'EOF'
 
