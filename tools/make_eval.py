@@ -9,7 +9,7 @@ drawn the way people write: mostly the same language.
 
 The random streams match the dataset this project was measured on, so the same words come out.
 
-usage: python3 make_eval.py <seamtype-cli> <ko_50k.txt> <en_50k.txt> <ja_tokens.jsonl> <out.tsv>
+usage: python3 make_eval.py <legato-cli> <ko_50k.txt> <en_50k.txt> <ja_tokens.jsonl> <out.tsv>
 """
 import hashlib
 import json

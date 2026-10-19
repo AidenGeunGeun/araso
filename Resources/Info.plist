@@ -5,18 +5,18 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>Seamtype</string>
+	<string>Legato</string>
 	<key>CFBundleExecutable</key>
-	<string>Seamtype</string>
+	<string>Legato</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.aimdevlee.inputmethod.Seamtype</string>
+	<string>com.nyttastudio.inputmethod.Legato</string>
 	<key>CFBundleLocalizations</key>
 	<array>
 		<string>en</string>
 		<string>ko</string>
 	</array>
 	<key>CFBundleName</key>
-	<string>Seamtype</string>
+	<string>Legato</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -24,9 +24,9 @@
 	<key>CFBundleVersion</key>
 	<string>20</string>
 	<key>InputMethodConnectionName</key>
-	<string>com.aimdevlee.inputmethod.Seamtype_Connection</string>
+	<string>com.nyttastudio.inputmethod.Legato_Connection</string>
 	<key>InputMethodServerControllerClass</key>
-	<string>SeamtypeInputController</string>
+	<string>LegatoInputController</string>
 	<key>LSBackgroundOnly</key>
 	<true/>
 	<key>LSMinimumSystemVersion</key>
@@ -38,7 +38,7 @@
 	<key>TISIconIsTemplate</key>
 	<true/>
 	<key>TISInputSourceID</key>
-	<string>com.aimdevlee.inputmethod.Seamtype</string>
+	<string>com.nyttastudio.inputmethod.Legato</string>
 	<key>TISIntendedLanguage</key>
 	<string>ko</string>
 	<key>tsInputMethodCharacterRepertoireKey</key>
@@ -47,6 +47,6 @@
 		<string>Hang</string>
 	</array>
 	<key>tsInputMethodIconFileKey</key>
-	<string>Seamtype.tiff</string>
+	<string>Legato.tiff</string>
 </dict>
 </plist>

@@ -6,7 +6,7 @@ English side: the most frequent English words whose romaji is clean kana — you
 machine, demo — are what English writers type there. Both counts are reported, so a change
 that rescues English words can be weighed against the Japanese words it breaks.
 
-usage: python3 eval_overlap.py <seamtype-cli> <ja_tokens.jsonl> <en_50k.txt> [n=300]
+usage: python3 eval_overlap.py <legato-cli> <ja_tokens.jsonl> <en_50k.txt> [n=300]
 """
 import json
 import re

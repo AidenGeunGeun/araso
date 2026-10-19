@@ -5,7 +5,7 @@ language. Real text is the opposite: the top words make up most of it, and switc
 language mid-sentence is the point. This scores the top N English and Korean words (by
 frequency rank) after: nothing, the same language, the other language, and Japanese.
 
-usage: python3 eval_context.py <seamtype-cli> <ko_50k.txt> <en_50k.txt> [N=10000] [--list]
+usage: python3 eval_context.py <legato-cli> <ko_50k.txt> <en_50k.txt> [N=10000] [--list]
 Prints wrong counts within the top 1k and top N; --list also prints the worst words.
 """
 import subprocess

@@ -1,4 +1,4 @@
-# Seamtype
+# Legato
 
 A macOS input method that decides, per word typed on QWERTY, whether the keys are English,
 Korean (2-set) or Japanese romaji. These are the words the code and docs use for that.

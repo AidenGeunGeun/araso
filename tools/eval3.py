@@ -1,7 +1,7 @@
 """Three-way (English / Korean / Japanese) evaluation of the heuristic, sweeping the
 Japanese score offset.
 
-usage: python3 eval3.py <seamtype-cli> <eval.tsv> [more.tsv ...] [offset ...]
+usage: python3 eval3.py <legato-cli> <eval.tsv> [more.tsv ...] [offset ...]
 Rows: keys<TAB>previous<TAB>label<TAB>reading, as tools/make_eval.py writes them (held-out
 English/Korean words and Tatoeba phrases).
 """

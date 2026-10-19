@@ -1,12 +1,12 @@
-/* Seamtype — 한국어. 키는 영어 원문이고, 영어 사용자에게는 키가 그대로 보인다. */
+/* Legato — 한국어. 키는 영어 원문이고, 영어 사용자에게는 키가 그대로 보인다. */
 
 /* 설정 창: 사이드바 */
 "Apps" = "앱별";
 "About" = "정보";
-"Seamtype Settings" = "Seamtype 설정";
+"Legato Settings" = "Legato 설정";
 
 /* 앱 메뉴 */
-"Quit Seamtype Settings" = "Seamtype 설정 종료";
+"Quit Legato Settings" = "Legato 설정 종료";
 "Edit" = "편집";
 "Close" = "닫기";
 "Cut" = "잘라내기";
@@ -88,13 +88,13 @@
 "⌥Space" = "⌥Space";
 "Right ⇧ tap" = "오른쪽 ⇧ 단독";
 "Undo Last Learned (%@)" = "마지막 학습 취소 (%@)";
-"Seamtype Settings…" = "Seamtype 설정…";
+"Legato Settings…" = "Legato 설정…";
 
 /* Typing test */
 "Try Typing" = "입력해 보기";
 "Try Typing…" = "입력해 보기…";
-"Seamtype isn't the input source in use." = "지금 입력 소스가 Seamtype이 아닙니다.";
-"Switch to Seamtype" = "Seamtype으로 바꾸기";
+"Legato isn't the input source in use." = "지금 입력 소스가 Legato가 아닙니다.";
+"Switch to Legato" = "Legato로 바꾸기";
 "The language switch key changes the word's reading, also right after the word." = "언어 바꾸기 키로 읽기를 바꿉니다. 단어를 확정한 직후에도 됩니다.";
 "Clear" = "지우기";
 "How it was decided" = "판정 내용";
@@ -106,40 +106,40 @@
 "Type here on the English layout, e.g. dkssud hello" = "여기에 영문 자판으로 쳐 보세요. 예: dkssud hello";
 
 /* Pause, under the caret */
-"Seamtype paused" = "Seamtype 일시정지";
-"Seamtype resumed" = "Seamtype 다시 켜짐";
+"Legato paused" = "Legato 일시정지";
+"Legato resumed" = "Legato 다시 켜짐";
 
 /* 정보: 제거 */
-"Uninstall Seamtype" = "Seamtype 제거";
+"Uninstall Legato" = "Legato 제거";
 "Uninstall…" = "제거…";
-"Removes Seamtype from this Mac and switches to another input source. If it was installed with the installer, macOS asks for your password." = "이 Mac에서 Seamtype을 지우고 다른 입력 소스로 바꿉니다. 설치 파일(.pkg)로 설치했다면 macOS가 암호를 묻습니다.";
-"Uninstall Seamtype?" = "Seamtype을 제거할까요?";
-"Seamtype is removed from your input sources and from this Mac. You can install it again any time." = "입력 소스와 이 Mac에서 Seamtype을 지웁니다. 언제든 다시 설치할 수 있습니다.";
+"Removes Legato from this Mac and switches to another input source. If it was installed with the installer, macOS asks for your password." = "이 Mac에서 Legato를 지우고 다른 입력 소스로 바꿉니다. 설치 파일(.pkg)로 설치했다면 macOS가 암호를 묻습니다.";
+"Uninstall Legato?" = "Legato를 제거할까요?";
+"Legato is removed from your input sources and from this Mac. You can install it again any time." = "입력 소스와 이 Mac에서 Legato를 지웁니다. 언제든 다시 설치할 수 있습니다.";
 "Uninstall" = "제거";
 "Cancel" = "취소";
 "Also delete settings and learned words" = "설정과 학습한 단어도 지우기";
-"Couldn't uninstall Seamtype" = "Seamtype을 제거하지 못했습니다";
-"Seamtype was uninstalled." = "Seamtype을 제거했습니다.";
-"Seamtype wants to remove itself from /Library/Input Methods." = "Seamtype을 /Library/Input Methods에서 제거하려고 합니다.";
+"Couldn't uninstall Legato" = "Legato를 제거하지 못했습니다";
+"Legato was uninstalled." = "Legato를 제거했습니다.";
+"Legato wants to remove itself from /Library/Input Methods." = "Legato를 /Library/Input Methods에서 제거하려고 합니다.";
 
 /* Updates */
-"Update to Seamtype %@…" = "Seamtype %@로 업데이트…";
+"Update to Legato %@…" = "Legato %@로 업데이트…";
 "Updates" = "업데이트";
 "Install %@…" = "%@ 설치…";
 "Check Now" = "지금 확인";
 "Check for updates automatically" = "업데이트 자동 확인";
 "Once a day, and each time this window opens. Only the latest version number is asked of GitHub; nothing you type is sent." = "하루 한 번, 그리고 이 창을 열 때마다 확인합니다. GitHub에 최신 버전 번호만 물어보며, 입력한 내용은 보내지 않습니다.";
-"Seamtype %@ is available" = "Seamtype %@이 나왔습니다";
+"Legato %@ is available" = "Legato %@이 나왔습니다";
 "What's changed" = "바뀐 것";
 "Full Release Notes" = "전체 릴리스 노트";
 "Checking for updates…" = "업데이트 확인 중…";
-"Seamtype is up to date" = "최신 버전입니다";
+"Legato is up to date" = "최신 버전입니다";
 "Version %@" = "버전 %@";
 "Downloading… Installer opens when it's done; macOS asks for your password." = "내려받는 중… 다 받으면 설치 프로그램이 열리고, macOS가 암호를 묻습니다.";
 "Installer opens and macOS asks for your password. Settings and learned words stay." = "설치 프로그램이 열리고 macOS가 암호를 묻습니다. 설정과 학습한 단어는 그대로 남습니다.";
 "Couldn't reach GitHub. Try again later." = "GitHub에 연결하지 못했습니다. 잠시 뒤 다시 시도하세요.";
 "Couldn't download the update. Try again later." = "업데이트를 내려받지 못했습니다. 잠시 뒤 다시 시도하세요.";
-"The downloaded installer isn't signed by Seamtype's developer, so it was deleted." = "내려받은 설치 파일이 Seamtype 개발자의 서명이 아니어서 지웠습니다.";
+"The downloaded installer isn't signed by Legato's developer, so it was deleted." = "내려받은 설치 파일이 Legato 개발자의 서명이 아니어서 지웠습니다.";
 
 /* 설정 창 */
 "%ld apps use their own keys." = "앱 %ld개는 따로 정한 키를 씁니다.";

@@ -1,8 +1,8 @@
-// Types test scripts with real key events into the typing pane of Seamtype's own settings window
+// Types test scripts with real key events into the typing pane of Legato's own settings window
 // (so they go through the input method) and compares the field's text with the expectation. The
-// pane knows whether Seamtype is the input source in use and has a button to switch to it.
+// pane knows whether Legato is the input source in use and has a button to switch to it.
 //
-// usage: typer <cases.tsv> <Seamtype.app>    each line: script<TAB>expected
+// usage: typer <cases.tsv> <Legato.app>    each line: script<TAB>expected
 // script: characters as typed; ⏎ Return, ⎋ Esc, ⇧ Shift+Esc, ⌫ Delete, ← → arrows.
 import AppKit
 import Carbon
@@ -50,7 +50,7 @@ let cases = try! String(contentsOfFile: CommandLine.arguments[1], encoding: .utf
 
 // The settings window on its typing tab, a process of its own.
 let settings = Process()
-settings.executableURL = URL(fileURLWithPath: CommandLine.arguments[2]).appendingPathComponent("Contents/MacOS/Seamtype")
+settings.executableURL = URL(fileURLWithPath: CommandLine.arguments[2]).appendingPathComponent("Contents/MacOS/Legato")
 settings.arguments = ["--settings", "typing"]
 try! settings.run()
 defer { settings.terminate() }
@@ -85,7 +85,7 @@ func clear() {
 }
 
 front()
-func typingThroughSeamtype() -> Bool {
+func typingThroughLegato() -> Bool {
     clear()
     for ch in "dkssud " { press(ch) }
     usleep(500_000)
@@ -93,21 +93,21 @@ func typingThroughSeamtype() -> Bool {
     return fieldText() == "안녕 "
 }
 // Right after an install macOS can take half a minute to hand keys to the new copy: keep trying,
-// with the pane's own "Switch to Seamtype" button (shown while another input source is in use).
-var ready = typingThroughSeamtype()
+// with the pane's own "Switch to Legato" button (shown while another input source is in use).
+var ready = typingThroughLegato()
 for _ in 0..<8 where !ready {
     if let button = descendants(window).first(where: {
         attribute($0, kAXRoleAttribute) as? String == kAXButtonRole
-            && (attribute($0, kAXTitleAttribute) as? String ?? attribute($0, kAXDescriptionAttribute) as? String ?? "").contains("Seamtype")
+            && (attribute($0, kAXTitleAttribute) as? String ?? attribute($0, kAXDescriptionAttribute) as? String ?? "").contains("Legato")
     }) {
         AXUIElementPerformAction(button, kAXPressAction as CFString)
     }
     sleep(5)
     front()
-    ready = typingThroughSeamtype()
+    ready = typingThroughLegato()
 }
 guard ready else {
-    print("Keys don't go through Seamtype in its settings window (dkssud didn't become 안녕): pick Seamtype in the input menu, then run again")
+    print("Keys don't go through Legato in its settings window (dkssud didn't become 안녕): pick Legato in the input menu, then run again")
     settings.terminate() // exit skips the defer
     exit(2)
 }

@@ -1,10 +1,10 @@
 """Kanji conversion accuracy on held-out Tatoeba sentences (never used for the kana model).
 
-For each sample the reading comes from the typed romaji (composed by Seamtype) and the
+For each sample the reading comes from the typed romaji (composed by Legato) and the
 target is the original Japanese text. Reports top-1 exact match and whether the target
 is anywhere in the candidate list, for short phrases and whole sentences.
 
-usage: python eval_convert.py <seamtype-cli> <ja_tokens.jsonl> [n]
+usage: python eval_convert.py <legato-cli> <ja_tokens.jsonl> [n]
 """
 import hashlib
 import json

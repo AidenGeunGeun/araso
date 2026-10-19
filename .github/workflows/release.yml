@@ -5,7 +5,7 @@
 # otherwise); a push made with GITHUB_TOKEN also wouldn't start the run below.
 #
 # On a v<version> tag (pushed by `bump`, or by an admin): scripts/release.sh with the Developer ID
-# (signed, notarized, stapled), then a draft release with Seamtype{,-<version>}.{zip,pkg} and
+# (signed, notarized, stapled), then a draft release with Legato{,-<version>}.{zip,pkg} and
 # .github/release-notes.md as its notes. Fill in the notes and publish it by hand;
 # the updater only sees published releases.
 #
@@ -83,9 +83,9 @@ jobs:
     if: github.event_name == 'push'
     runs-on: macos-latest
     env:
-      SEAMTYPE_APP_SIGN: "Developer ID Application: Dongbin Lee (2UZ65T3U82)"
-      SEAMTYPE_PKG_SIGN: "Developer ID Installer: Dongbin Lee (2UZ65T3U82)"
-      SEAMTYPE_NOTARY_PROFILE: seamtype
+      LEGATO_APP_SIGN: "Developer ID Application: Dongbin Lee (2UZ65T3U82)"
+      LEGATO_PKG_SIGN: "Developer ID Installer: Dongbin Lee (2UZ65T3U82)"
+      LEGATO_NOTARY_PROFILE: legato
     steps:
       - uses: actions/checkout@v4
         with:
@@ -124,7 +124,7 @@ jobs:
           security list-keychains -d user -s "$keychain" $(security list-keychains -d user | tr -d '"')
           # release.sh calls notarytool --keychain-profile without --keychain: it reads the default one.
           security default-keychain -d user -s "$keychain"
-          xcrun notarytool store-credentials "$SEAMTYPE_NOTARY_PROFILE" \
+          xcrun notarytool store-credentials "$LEGATO_NOTARY_PROFILE" \
             --apple-id "$NOTARY_APPLE_ID" --team-id 2UZ65T3U82 --password "$NOTARY_PASSWORD"
           security find-identity -v -p codesigning "$keychain"
 
@@ -135,23 +135,26 @@ jobs:
 
       - name: Verify the signatures
         run: |
-          codesign --verify --strict --deep build/Seamtype.app
-          spctl --assess --type execute build/Seamtype.app
-          pkgutil --check-signature build/release/Seamtype.pkg
-          spctl --assess --type install build/release/Seamtype.pkg
+          codesign --verify --strict --deep build/Legato.app
+          spctl --assess --type execute build/Legato.app
+          pkgutil --check-signature build/release/Legato.pkg
+          spctl --assess --type install build/release/Legato.pkg
 
       - name: Draft release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           version=${GITHUB_REF_NAME#v}
-          assets=(build/release/Seamtype.pkg build/release/Seamtype.zip
-                  build/release/Seamtype-$version.pkg build/release/Seamtype-$version.zip)
+          # Seamtype.pkg and Seamtype.zip: the same files under the name before 0.2.0, which
+          # Seamtype's update check (0.1.x) and its get.sh look for. Keep them while 0.1.x is around.
+          assets=(build/release/Legato.pkg build/release/Legato.zip
+                  build/release/Legato-$version.pkg build/release/Legato-$version.zip
+                  build/release/Seamtype.pkg build/release/Seamtype.zip)
           # A run started again after the draft was made (an upload failed) replaces its assets.
           if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
             gh release upload "$GITHUB_REF_NAME" --clobber "${assets[@]}"
           else
-            gh release create "$GITHUB_REF_NAME" --draft --title "Seamtype $version" --notes-file .github/release-notes.md "${assets[@]}"
+            gh release create "$GITHUB_REF_NAME" --draft --title "Legato $version" --notes-file .github/release-notes.md "${assets[@]}"
           fi
 
       - name: Remove the keychain

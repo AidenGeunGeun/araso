@@ -1,6 +1,6 @@
 #!/bin/zsh
 # Data for the heuristic's models and its held-out evaluation, then the accuracy:
-# word lists + Tatoeba + SCOWL → typed romaji → [--models: rebuild Sources/SeamtypeCore/Data] →
+# word lists + Tatoeba + SCOWL → typed romaji → [--models: rebuild Sources/LegatoCore/Data] →
 # eval.tsv → accuracy, then the most frequent words after each language.
 # Needs only python3 and the Swift toolchain. Downloads go to tools/data (not in git).
 #
@@ -31,19 +31,19 @@ if [[ ! -d data/scowl ]]; then
   tar -xzf data/scowl.tar.gz -C data/scowl.part --strip-components 1 && mv data/scowl.part data/scowl
 fi
 
-(cd .. && swift build -c release --product seamtype-cli)
-cli=../.build/release/seamtype-cli
+(cd .. && swift build -c release --product legato-cli)
+cli=../.build/release/legato-cli
 if [[ ! -f data/ja_tokens.jsonl ]]; then
   swiftc -O -o data/ja_romaji ja_romaji.swift
   cut -f3 data/jpn_sentences.tsv | data/ja_romaji > data/ja_tokens.jsonl
 fi
 if [[ "${1:-}" == "--models" ]]; then
-  python3 build_kana_model.py $cli data/ja_tokens.jsonl ../Sources/SeamtypeCore/Data/kana_trigrams.txt data/ja_eval.tsv
-  python3 build_text_model.py data/ja_tokens.jsonl ../Sources/SeamtypeCore/Data/text_trigrams.txt 2
-  python3 build_korean_syllables.py data/kor_sentences.tsv ../Sources/SeamtypeCore/Data/korean_syllables.txt
-  python3 build_korean_words.py data/kor_sentences.tsv ../Sources/SeamtypeCore/Data/korean_words.txt
-  python3 build_english_words.py data/scowl/final ../Sources/SeamtypeCore/Data/english_words.txt
-  (cd .. && swift build -c release --product seamtype-cli)
+  python3 build_kana_model.py $cli data/ja_tokens.jsonl ../Sources/LegatoCore/Data/kana_trigrams.txt data/ja_eval.tsv
+  python3 build_text_model.py data/ja_tokens.jsonl ../Sources/LegatoCore/Data/text_trigrams.txt 2
+  python3 build_korean_syllables.py data/kor_sentences.tsv ../Sources/LegatoCore/Data/korean_syllables.txt
+  python3 build_korean_words.py data/kor_sentences.tsv ../Sources/LegatoCore/Data/korean_words.txt
+  python3 build_english_words.py data/scowl/final ../Sources/LegatoCore/Data/english_words.txt
+  (cd .. && swift build -c release --product legato-cli)
 fi
 
 python3 make_eval.py $cli data/ko_50k.txt data/en_50k.txt data/ja_tokens.jsonl data/eval.tsv

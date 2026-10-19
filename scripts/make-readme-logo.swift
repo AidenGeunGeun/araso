@@ -97,13 +97,21 @@ func svg(tile: String, ink: String) -> String {
     for (i, (text, size)) in letters.enumerated() {
         body.append("<g class=\"s s\(i)\"><path d=\"\(svgData(glyphPath(text, size: H * size)))\"/></g>")
     }
-    // Joined: each letter, grown, shows only in its own row of the band, with thin gaps.
+    // Joined: each letter, grown, shows only in its own row of the band, with thin gaps. The
+    // seams between rows are gentle waves (the outer edges of the band don't matter: nothing is there).
     let band = H * 0.62, gap = H * 0.03, grow: CGFloat = 1.32
     let row = (band - gap * CGFloat(letters.count - 1)) / CGFloat(letters.count)
+    let amplitude = H * 0.02, wavelength = W * 0.5
+    func wave(_ y: CGFloat) -> [CGPoint] {
+        stride(from: 0, through: W, by: 5).map { CGPoint(x: $0, y: y + amplitude * sin(2 * .pi * ($0 - W / 4) / wavelength)) }
+    }
     var defs: [String] = [], joined: [String] = []
     for (i, (text, size)) in letters.enumerated() {
         let y = H / 2 - band / 2 + CGFloat(i) * (row + gap) + H * 0.01
-        defs.append(String(format: "<clipPath id=\"r%d\"><rect x=\"0\" y=\"%.2f\" width=\"%.0f\" height=\"%.2f\"/></clipPath>", i, y, W, row))
+        let top = i == 0 ? [CGPoint(x: 0, y: 0), CGPoint(x: W, y: 0)] : wave(y)
+        let bottom = i == letters.count - 1 ? [CGPoint(x: 0, y: H), CGPoint(x: W, y: H)] : wave(y + row)
+        let outline = (top + bottom.reversed()).map { String(format: "%.1f %.2f", $0.x, $0.y) }
+        defs.append("<clipPath id=\"r\(i)\"><path d=\"M\(outline.joined(separator: " L"))Z\"/></clipPath>")
         joined.append("<path clip-path=\"url(#r\(i))\" d=\"\(svgData(glyphPath(text, size: H * size, grow: grow)))\"/>")
     }
     body.append("<g class=\"s s3\">\(joined.joined())</g>")
@@ -115,7 +123,7 @@ func svg(tile: String, ink: String) -> String {
     @media (prefers-reduced-motion:reduce){.s{animation:none;opacity:0}.s3{opacity:1}}
     """
     return """
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 \(Int(W)) \(Int(H))" width="\(Int(W))" height="\(Int(H))" role="img" aria-label="Seamtype">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 \(Int(W)) \(Int(H))" width="\(Int(W))" height="\(Int(H))" role="img" aria-label="Legato">
     <style>
     \(css)
     </style>

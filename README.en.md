@@ -1,13 +1,16 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/media/logo-dark.svg">
-    <img src="docs/media/logo-light.svg" width="150" alt="Seamtype: A, 아, あ">
+    <img src="docs/media/logo-light.svg" width="150" alt="Legato: A, 아, あ">
   </picture>
 </p>
 
-<h1 align="center">Seamtype</h1>
+<h1 align="center">Legato</h1>
 
 <p align="center"><b>흐름대로 써진다 · 流れるままに · Type as it flows</b></p>
+
+<p align="center">Legato is the musical marking for notes played without a break. Switch languages without lifting your hands.<br>
+<sub>Before 0.2.0 it was called Seamtype. If you used it, see <a href="#moving-from-seamtype">Moving from Seamtype</a>.</sub></p>
 
 <p align="center">
   <a href="https://github.com/nyttastudio/seamtype/releases/latest"><img src="https://img.shields.io/github/v/release/nyttastudio/seamtype?style=flat-square&label=release" alt="Latest release"></a>
@@ -18,13 +21,13 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" alt="MIT license"></a>
 </p>
 
-<p align="center"><a href="https://nyttastudio.com/seamtype/">Website (Korean)</a> · <a href="README.md">한국어</a> · English</p>
+<p align="center"><a href="https://nyttastudio.com/legato/">Website (Korean)</a> · <a href="README.md">한국어</a> · English</p>
 
 <h3 align="center">Stop pressing the language-switch key.</h3>
 
 <p align="center">
 Type everything on the English (QWERTY) layout.<br>
-Seamtype decides <b>per word</b> whether you meant English, Korean (2-set / 두벌식) or, if you turn it on, Japanese (romaji), and commits the right one.
+Legato decides <b>per word</b> whether you meant English, Korean (2-set / 두벌식) or, if you turn it on, Japanese (romaji), and commits the right one.
 </p>
 
 ```
@@ -34,11 +37,11 @@ Hello, worldhasaishonopuroguramudesu␣.           →  Hello, worldは最初の
 ```
 
 <p align="center">
-  <a href="https://github.com/nyttastudio/seamtype/releases/latest/download/Seamtype.pkg"><img src="https://img.shields.io/badge/Download%20Seamtype.pkg-0071e3?style=for-the-badge&logo=apple&logoColor=white" width="292" alt="Download Seamtype.pkg"></a>
+  <a href="https://github.com/nyttastudio/seamtype/releases/latest/download/Legato.pkg"><img src="https://img.shields.io/badge/Download%20Legato.pkg-0071e3?style=for-the-badge&logo=apple&logoColor=white" width="292" alt="Download Legato.pkg"></a>
 </p>
 
 <p align="center">
-  <img src="docs/media/demo.gif" width="720" alt="Choosing Seamtype once from the input menu, then typing on QWERTY into Safari without switching the input source again: Stay hungry, stay foolish는 잡스의 말이다. / 吾輩は猫である는 소세키의 소설이다. / Hello, worldは最初のプログラムです。">
+  <img src="docs/media/demo.gif" width="720" alt="Choosing Legato once from the input menu, then typing on QWERTY into Safari without switching the input source again: Stay hungry, stay foolish는 잡스의 말이다. / 吾輩は猫である는 소세키의 소설이다. / Hello, worldは最初のプログラムです。">
 </p>
 
 ## At a glance
@@ -55,7 +58,7 @@ Hello, worldhasaishonopuroguramudesu␣.           →  Hello, worldは最初の
 ## Contents
 
 - [Why](#why)
-- [Install](#install) · [Updates](#updates) · [Uninstall](#uninstall)
+- [Install](#install) · [Updates](#updates) · [Moving from Seamtype](#moving-from-seamtype) · [Uninstall](#uninstall)
 - [Keys](#keys) · [Language switch keys](#language-switch-keys) · [Undo after commit, and learning](#undo-after-commit-and-learning) · [Text replacements](#text-replacements) · [Pause](#pause) · [vim](#vim)
 - [Settings](#settings) · [Settings files](#settings-files)
 - [How it decides](#how-it-decides) · [Held-out results](#held-out-results)
@@ -72,9 +75,9 @@ inspired me to build one input method for all three.
 
 ## Install
 
-1. Download [`Seamtype.pkg`](https://github.com/nyttastudio/seamtype/releases/latest/download/Seamtype.pkg),
+1. Download [`Legato.pkg`](https://github.com/nyttastudio/seamtype/releases/latest/download/Legato.pkg),
    open it and follow the steps. It installs into `/Library/Input Methods` and registers the input source.
-2. Pick **Seamtype** in the input menu in the menu bar.
+2. Pick **Legato** in the input menu in the menu bar.
 3. To mix in Japanese as in the examples above, turn on **Japanese Input** in the input menu.
    **Japanese is off by default.**
 
@@ -83,14 +86,14 @@ memory (plus the ~35 MB Japanese dictionary when Japanese is on) and ~47 MB on d
 else running.
 
 > [!TIP]
-> If Seamtype isn't in the input menu, add it in **System Settings → Keyboard → Input Sources →
-> Edit… → + → Korean → Seamtype**. If it isn't listed there either, log out and back in once.
+> If Legato isn't in the input menu, add it in **System Settings → Keyboard → Input Sources →
+> Edit… → + → Korean → Legato**. If it isn't listed there either, log out and back in once.
 
 <details>
 <summary>Install from Terminal</summary>
 
 Instead of the pkg, this installs the latest release into `~/Library/Input Methods` and registers it.
-If Seamtype is already installed, it asks what to do.
+If Legato is already installed, it asks what to do.
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/nyttastudio/seamtype/main/scripts/get.sh | sh
@@ -104,24 +107,43 @@ pkg, not both.
 
 ### Updates
 
-When a new version is out, the input menu shows **Update to Seamtype …**, and **About** in the
+When a new version is out, the input menu shows **Update to Legato …**, and **About** in the
 settings window lists what changed and installs it (**Check Now** checks by hand). It downloads the
 installer, checks its signature and opens it, so you only enter your password.
 
 - Checks happen once a day and when the settings window opens. They ask GitHub only for the latest
   version number, and nothing you type is sent. Turn them off with **Check for updates
   automatically** in About.
-- You can also download the new `Seamtype.pkg` and install it the same way. It replaces the app and
+- You can also download the new `Legato.pkg` and install it the same way. It replaces the app and
   keeps your settings and learned words, with no logout or restart.
 - For a clean reinstall, tick **Reset settings and learned words** under **Customize** in the installer.
 
+### Moving from Seamtype
+
+From 0.2.0 Seamtype is called Legato, and macOS sees it as a different input method. Once:
+
+1. Update from Seamtype's input menu or the settings window's **About**, or download and open the new
+   `Legato.pkg`. The installer removes Seamtype and registers Legato. Settings, per-app rules, the
+   dictionary and kanji learning move over as they are the first time Legato runs.
+2. Add it in **System Settings → Keyboard → Input Sources → Edit… → + → Korean → Legato** (the
+   installer opens Keyboard settings when it's done). macOS doesn't let an installer turn a new input
+   method on, so this step is yours. Remove Seamtype (−) if it's still listed, and pick **Legato**
+   from the input menu. If Legato isn't listed, or shows without a name, restart the Mac once
+   (logging out didn't always do).
+3. Set any keyboard shortcut or per-app input source you had for Seamtype again for Legato.
+4. If you use the vim integration, replace `seamtype.lua` / `seamtype.vim` with the new
+   [`legato.lua` / `legato.vim`](#vim). The old scripts can't find Seamtype.app and do nothing.
+
+The same goes for a terminal install (`get.sh`): the new `get.sh` removes Seamtype, asking for your
+password for a copy in `/Library`.
+
 ### Uninstall
 
-In the settings window, click **About → Uninstall Seamtype → Uninstall…**. It removes Seamtype
+In the settings window, click **About → Uninstall Legato → Uninstall…**. It removes Legato
 from both Input Methods folders (macOS asks for your password if you used the pkg) and switches to
 another input source. Settings and learned words go only if you tick that in the confirmation.
 
-- If Seamtype still shows in the input source list in System Settings afterwards, log out and back in once.
+- If Legato still shows in the input source list in System Settings afterwards, log out and back in once.
 - If you reinstall and it isn't in the input menu, remove it from that list with − and add it again with +.
 
 <details>
@@ -130,14 +152,14 @@ another input source. Settings and learned words go only if you tick that in the
 Does what the settings window does. Add `--delete-data` only to drop settings and learned words too.
 
 ```sh
-"/Library/Input Methods/Seamtype.app/Contents/MacOS/Seamtype" --uninstall --delete-data
+"/Library/Input Methods/Legato.app/Contents/MacOS/Legato" --uninstall --delete-data
 ```
 
 </details>
 
 ## Keys
 
-While a word is being typed it is underlined and shows the language Seamtype expects.
+While a word is being typed it is underlined and shows the language Legato expects.
 
 | Key | English / Korean word | Japanese phrase |
 | --- | --- | --- |
@@ -151,7 +173,7 @@ While a word is being typed it is underlined and shows the language Seamtype exp
 | Return | commit only (press again for a newline or to send; a setting) | commit as shown, kana or live-converted kanji (no newline) |
 | ⌃K / F7, ⌃J / F6 | (the app's shortcut) | katakana / hiragana (Space flips, Return commits) |
 | Tab, arrows, ⌘/⌃/⌥ | commit, the app gets the key | same |
-| **Right ⌘** (tapped on its own; a setting) | [pause](#pause) / resume Seamtype in this text field | same |
+| **Right ⌘** (tapped on its own; a setting) | [pause](#pause) / resume Legato in this text field | same |
 
 <details>
 <summary>While converting (candidate window open)</summary>
@@ -218,19 +240,19 @@ conversion, Esc goes back to the kana first whatever keys are chosen.
 Right after a word is committed with Space or punctuation, a language switch key switches it to its
 next reading, and pressing it again keeps cycling. Deleting the space or punctuation first keeps
 that chance; any other key ends it. This needs the caret still right after the word, and an app that
-lets Seamtype read the text there.
+lets Legato read the text there.
 
 A word corrected once leans that way from then on: a close call (`so`/`내`) turns, a clear one
 doesn't, so a stray switch doesn't do much. It is forgotten after 30 days unless corrected or typed
-that way again. Correct the same keys the same way a second time and Seamtype always writes them so, also with a
+that way again. Correct the same keys the same way a second time and Legato always writes them so, also with a
 particle after them (remember `ghostty` and you get `ghostty에`);
-switching a word back to Seamtype's own guess forgets it. Long tokens (over 20 keys, such as a
+switching a word back to Legato's own guess forgets it. Long tokens (over 20 keys, such as a
 sentence switched as one) aren't remembered.
 
 <details>
 <summary>In apps where that can't work: hold the word after Space or punctuation</summary>
 
-In an app that doesn't let Seamtype read the text, such as a terminal, turn on **Hold the word after
+In an app that doesn't let Legato read the text, such as a terminal, turn on **Hold the word after
 Space or punctuation** for that app (the input menu, or Apps in the settings window; `holdSpace` in
 `apps.json`). Space or a punctuation mark (any symbol such as `. , ? !`, not digits) then doesn't
 end the word but goes inside the underline too.
@@ -265,7 +287,7 @@ Where every key is a command, like lazygit or htop in a terminal, tap **right �
 word in progress goes in, and in that text field keys go through as typed. Tap again, move to
 another app or text field, or change a setting, to resume.
 
-Each tap shows Seamtype's icon under the caret for a moment, like the input source indicator,
+Each tap shows Legato's icon under the caret for a moment, like the input source indicator,
 struck through when paused. The menu bar icon doesn't change, so to check later, look for the tick
 in the input menu.
 
@@ -276,11 +298,11 @@ shortcut the app also has in its menus may reach the app first.
 
 ### vim
 
-For neovim put [`scripts/vim/seamtype.lua`](scripts/vim/seamtype.lua) in `~/.config/nvim/plugin/`;
-for Vim (8.2 or later, `+job`) put [`scripts/vim/seamtype.vim`](scripts/vim/seamtype.vim) in
+For neovim put [`scripts/vim/legato.lua`](scripts/vim/legato.lua) in `~/.config/nvim/plugin/`;
+for Vim (8.2 or later, `+job`) put [`scripts/vim/legato.vim`](scripts/vim/legato.vim) in
 `~/.vim/plugin/`.
 
-Vim then tells Seamtype on every mode change, so words are decided only in insert mode, and in
+Vim then tells Legato on every mode change, so words are decided only in insert mode, and in
 normal, visual and command-line mode keys go straight to vim: `s`, `dd`, `ciw` and `:wq⏎` run key
 by key. Inside vim, Esc always goes to vim, so no per-app setting is needed. Once vim quits, words
 are decided again at the shell.
@@ -288,23 +310,23 @@ are decided again at the shell.
 <details>
 <summary>How it works, and caveats</summary>
 
-- The signal is `Seamtype --vim insert|normal|off --app <bundle id>`, sent on mode changes
+- The signal is `Legato --vim insert|normal|off --app <bundle id>`, sent on mode changes
   (entering and leaving insert mode, start, quit, focus), not on keys.
 - The bundle identifier is `$__CFBundleIdentifier`, which macOS sets for every app, so nothing
   needs setting up per terminal (Ghostty, Terminal, iTerm2, VS Code…), and the signal reaches only
   that app's text field. A signal without `--app` is taken only where Esc isn't a switch key.
 - Attached to tmux from a different terminal than the one that started its server, the bundle
   identifiers differ and the signal is ignored.
-- If Vim doesn't see the terminal's focus changes, Seamtype can't tell when you move from its pane
+- If Vim doesn't see the terminal's focus changes, Legato can't tell when you move from its pane
   to a shell pane; press ⇧Esc there (when it's a switch key) to start deciding words again.
 
 </details>
 
 ## Settings
 
-From the input menu (the menu bar, while Seamtype is selected) you can:
+From the input menu (the menu bar, while Legato is selected) you can:
 
-- pause Seamtype in this text field (like the pause key)
+- pause Legato in this text field (like the pause key)
 - turn word conversion on or off for the app in front, set its conversion threshold
   (Normal/Strict), whether Esc switches languages and whether the word is held after Space or
   punctuation, or drop its settings. Those are greyed while conversion is off
@@ -324,11 +346,11 @@ The settings window has these panes, and changes apply at once.
 
 ### Settings files
 
-The menu and the settings window both write JSON files in `~/Library/Application Support/Seamtype/`.
+The menu and the settings window both write JSON files in `~/Library/Application Support/Legato/`.
 You can edit them by hand; missing keys, and values of the wrong type (`"true"` in quotes), keep the
 default. A file that isn't readable JSON is moved aside, such as to `settings.json.unreadable`,
 rather than written over (`apps.json` and `dictionary.json` too). After editing these files by hand,
-restart the input method: `pkill -x Seamtype`.
+restart the input method: `pkill -x Legato`.
 
 <details>
 <summary><code>settings.json</code>: global settings</summary>
@@ -469,7 +491,7 @@ in as typed, in English with half-width symbols, until the next space (`https://
 candidate re-picked by a character trigram model of written Japanese. So variant kanji like `髙`
 (`たか`, `たかはし` → `髙橋`), English spellings of names (`とぅいっち` → `Twitch`) and completions
 of a partial reading (`ゆーちゅ` → `YouTube`, after the top candidate) come up as in the system's
-input. Seamtype remembers what you pick for each reading and puts it first next time. The engine is
+input. Legato remembers what you pick for each reading and puts it first next time. The engine is
 private to macOS, so where it can't be loaded the app's own
 [AzooKey](https://github.com/azooKey/AzooKeyKanaKanjiConverter) dictionary converter stands in.
 
@@ -527,27 +549,27 @@ held-out score. Many remaining misses are genuinely ambiguous keys: `so`/내, `g
 ```sh
 swift test                     # tests: composers, engines, sessions, settings, end to end
 scripts/install.sh             # build, self-test and install into ~/Library/Input Methods (development; stops if the pkg's copy is there)
-scripts/typing-test/run.sh     # real key events into the settings window's typing pane through the installed Seamtype
+scripts/typing-test/run.sh     # real key events into the settings window's typing pane through the installed Legato
 swift scripts/make-readme-logo.swift docs/media  # the README logo (animated SVG)
 scripts/release.sh             # universal (arm64 + x86_64) zip and pkg for a release; with a Developer ID also signed and notarized (app and pkg)
 tools/prepare.sh               # accuracy (downloads word lists, Tatoeba and SCOWL once)
-tools/prepare.sh --models      # rebuild the data in Sources/SeamtypeCore/Data first (not korean_vocabulary.txt)
-SEAMTYPE_TIMING=1 swift run -c release seamtype-cli --decide --japanese < keys.tsv  # + time per decision
-swift run seamtype-cli -v "dkssud gksrmf hello"               # English/Korean, with scores
-printf 'kyouhagoogledekensaku\t\n' | swift run seamtype-cli --decide --japanese
-printf 'きょうはいいてんきですね\n' | swift run seamtype-cli --convert
+tools/prepare.sh --models      # rebuild the data in Sources/LegatoCore/Data first (not korean_vocabulary.txt)
+LEGATO_TIMING=1 swift run -c release legato-cli --decide --japanese < keys.tsv  # + time per decision
+swift run legato-cli -v "dkssud gksrmf hello"               # English/Korean, with scores
+printf 'kyouhagoogledekensaku\t\n' | swift run legato-cli --decide --japanese
+printf 'きょうはいいてんきですね\n' | swift run legato-cli --convert
 ```
 
 | Path | What |
 | --- | --- |
-| `Sources/SeamtypeCore` | composers, engines, conversion, `InputSession` (all typing logic) |
-| `Sources/Seamtype` | InputMethodKit server, a thin controller over `InputSession`, candidate window, settings window |
-| `Sources/SeamtypeCore/Data` | kana and written-Japanese trigrams, Korean syllables and words, English words |
+| `Sources/LegatoCore` | composers, engines, conversion, `InputSession` (all typing logic) |
+| `Sources/Legato` | InputMethodKit server, a thin controller over `InputSession`, candidate window, settings window |
+| `Sources/LegatoCore/Data` | kana and written-Japanese trigrams, Korean syllables and words, English words |
 | `tools/` | corpus → romaji, model builders, evaluation set and accuracy (python3, no packages) |
 
 ## License and data
 
-Seamtype is MIT licensed ([LICENSE](LICENSE)). The app carries the licenses of everything compiled
+Legato is MIT licensed ([LICENSE](LICENSE)). The app carries the licenses of everything compiled
 or copied into it in `Contents/Resources/ThirdPartyNotices.txt`, collected by
 `scripts/build-app.sh`.
 
