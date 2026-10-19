@@ -231,7 +231,9 @@ runtime.
   (and the settings window on open and on Check Now); the result is shared through the bundle's
   user defaults. Install downloads `Legato.pkg`, requires `pkgutil --check-signature` to show
   the Developer ID Installer of team 2UZ65T3U82 and notarization, then opens it in Installer. So
-  a release must keep the `Legato.pkg` asset name and a `v<version>` tag. About lists the items of
+  a release must keep the `Legato.pkg` asset name and a `v<version>` tag. The repository is
+  nyttastudio/legato; installed copies ask the names it had (aimdevlee/seamtype up to 0.1.19,
+  nyttastudio/seamtype in 0.2.0), which GitHub redirects: never create a repository under either. About lists the items of
   the notes' first `## ` section as what changed (see Release notes).
   To try an update before publishing (drafts aren't visible to it), point the check at a file in
   GitHub's format: `defaults write com.nyttastudio.inputmethod.Legato updateFeed file:///…/latest.json`

@@ -13,11 +13,11 @@
 <sub>Before 0.2.0 it was called Seamtype. If you used it, see <a href="#moving-from-seamtype">Moving from Seamtype</a>.</sub></p>
 
 <p align="center">
-  <a href="https://github.com/nyttastudio/seamtype/releases/latest"><img src="https://img.shields.io/github/v/release/nyttastudio/seamtype?style=flat-square&label=release" alt="Latest release"></a>
-  <a href="https://github.com/nyttastudio/seamtype/releases"><img src="https://img.shields.io/github/downloads/nyttastudio/seamtype/total?style=flat-square" alt="Downloads"></a>
+  <a href="https://github.com/nyttastudio/legato/releases/latest"><img src="https://img.shields.io/github/v/release/nyttastudio/legato?style=flat-square&label=release" alt="Latest release"></a>
+  <a href="https://github.com/nyttastudio/legato/releases"><img src="https://img.shields.io/github/downloads/nyttastudio/legato/total?style=flat-square" alt="Downloads"></a>
   <img src="https://img.shields.io/badge/macOS-13%2B-555?style=flat-square&logo=apple" alt="macOS 13 or later">
   <img src="https://img.shields.io/badge/Apple%20Silicon%20%7C%20Intel-555?style=flat-square" alt="Apple silicon and Intel">
-  <a href="https://github.com/nyttastudio/seamtype/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/nyttastudio/seamtype/ci.yml?branch=main&style=flat-square&label=tests" alt="Tests"></a>
+  <a href="https://github.com/nyttastudio/legato/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/nyttastudio/legato/ci.yml?branch=main&style=flat-square&label=tests" alt="Tests"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" alt="MIT license"></a>
 </p>
 
@@ -37,7 +37,7 @@ Hello, worldhasaishonopuroguramudesu␣.           →  Hello, worldは最初の
 ```
 
 <p align="center">
-  <a href="https://github.com/nyttastudio/seamtype/releases/latest/download/Legato.pkg"><img src="https://img.shields.io/badge/Download%20Legato.pkg-0071e3?style=for-the-badge&logo=apple&logoColor=white" width="292" alt="Download Legato.pkg"></a>
+  <a href="https://github.com/nyttastudio/legato/releases/latest/download/Legato.pkg"><img src="https://img.shields.io/badge/Download%20Legato.pkg-0071e3?style=for-the-badge&logo=apple&logoColor=white" width="292" alt="Download Legato.pkg"></a>
 </p>
 
 <p align="center">
@@ -75,7 +75,7 @@ inspired me to build one input method for all three.
 
 ## Install
 
-1. Download [`Legato.pkg`](https://github.com/nyttastudio/seamtype/releases/latest/download/Legato.pkg),
+1. Download [`Legato.pkg`](https://github.com/nyttastudio/legato/releases/latest/download/Legato.pkg),
    open it and follow the steps. It installs into `/Library/Input Methods` and registers the input source.
 2. Pick **Legato** in the input menu in the menu bar.
 3. To mix in Japanese as in the examples above, turn on **Japanese Input** in the input menu.
@@ -96,7 +96,7 @@ Instead of the pkg, this installs the latest release into `~/Library/Input Metho
 If Legato is already installed, it asks what to do.
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/nyttastudio/seamtype/main/scripts/get.sh | sh
+curl -fsSL https://raw.githubusercontent.com/nyttastudio/legato/main/scripts/get.sh | sh
 ```
 
 To choose without the question, add `| sh -s -- --reinstall` (keeps settings and learned words),

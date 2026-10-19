@@ -1,7 +1,7 @@
 #!/bin/sh
 # Installs the latest Legato release into ~/Library/Input Methods and registers it:
 #
-#   curl -fsSL https://raw.githubusercontent.com/nyttastudio/seamtype/main/scripts/get.sh | sh
+#   curl -fsSL https://raw.githubusercontent.com/nyttastudio/legato/main/scripts/get.sh | sh
 #
 # If Legato is already installed it asks what to do; to choose without the question:
 #   … | sh -s -- --reinstall              replace it, keep settings and learned words
@@ -17,7 +17,7 @@
 # without the Developer ID needs LEGATO_UNSIGNED=1 as well.
 set -eu
 
-url="https://github.com/nyttastudio/seamtype/releases/latest/download/Legato.zip"
+url="https://github.com/nyttastudio/legato/releases/latest/download/Legato.zip"
 dest="$HOME/Library/Input Methods"
 app="$dest/Legato.app"
 system="/Library/Input Methods/Legato.app"

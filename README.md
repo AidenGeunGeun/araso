@@ -13,11 +13,11 @@
 <sub>0.2.0 전의 이름은 Seamtype이었습니다. 쓰고 있었다면 <a href="#seamtype에서-옮겨-오기">Seamtype에서 옮겨 오기</a>를 보세요.</sub></p>
 
 <p align="center">
-  <a href="https://github.com/nyttastudio/seamtype/releases/latest"><img src="https://img.shields.io/github/v/release/nyttastudio/seamtype?style=flat-square&label=release" alt="최신 릴리스"></a>
-  <a href="https://github.com/nyttastudio/seamtype/releases"><img src="https://img.shields.io/github/downloads/nyttastudio/seamtype/total?style=flat-square" alt="다운로드 수"></a>
+  <a href="https://github.com/nyttastudio/legato/releases/latest"><img src="https://img.shields.io/github/v/release/nyttastudio/legato?style=flat-square&label=release" alt="최신 릴리스"></a>
+  <a href="https://github.com/nyttastudio/legato/releases"><img src="https://img.shields.io/github/downloads/nyttastudio/legato/total?style=flat-square" alt="다운로드 수"></a>
   <img src="https://img.shields.io/badge/macOS-13%2B-555?style=flat-square&logo=apple" alt="macOS 13 이상">
   <img src="https://img.shields.io/badge/Apple%20Silicon%20%7C%20Intel-555?style=flat-square" alt="Apple Silicon과 Intel">
-  <a href="https://github.com/nyttastudio/seamtype/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/nyttastudio/seamtype/ci.yml?branch=main&style=flat-square&label=tests" alt="테스트"></a>
+  <a href="https://github.com/nyttastudio/legato/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/nyttastudio/legato/ci.yml?branch=main&style=flat-square&label=tests" alt="테스트"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" alt="MIT 라이선스"></a>
 </p>
 
@@ -37,7 +37,7 @@ Hello, worldhasaishonopuroguramudesu␣.           →  Hello, worldは最初の
 ```
 
 <p align="center">
-  <a href="https://github.com/nyttastudio/seamtype/releases/latest/download/Legato.pkg"><img src="https://img.shields.io/badge/Legato.pkg%20%EB%B0%9B%EA%B8%B0-0071e3?style=for-the-badge&logo=apple&logoColor=white" width="222" alt="Legato.pkg 받기"></a>
+  <a href="https://github.com/nyttastudio/legato/releases/latest/download/Legato.pkg"><img src="https://img.shields.io/badge/Legato.pkg%20%EB%B0%9B%EA%B8%B0-0071e3?style=for-the-badge&logo=apple&logoColor=white" width="222" alt="Legato.pkg 받기"></a>
 </p>
 
 <p align="center">
@@ -74,7 +74,7 @@ Hello, worldhasaishonopuroguramudesu␣.           →  Hello, worldは最初の
 
 ## 설치
 
-1. [`Legato.pkg`](https://github.com/nyttastudio/seamtype/releases/latest/download/Legato.pkg)를 받아 열고
+1. [`Legato.pkg`](https://github.com/nyttastudio/legato/releases/latest/download/Legato.pkg)를 받아 열고
    안내대로 설치하세요. `/Library/Input Methods`에 설치하고 입력 소스로 등록까지 합니다.
 2. 메뉴 막대의 입력 메뉴에서 **Legato**를 고르세요.
 3. 일본어도 섞어 쓰려면 입력 메뉴에서 **일본어 입력**을 켜세요. **일본어는 기본으로 꺼져 있습니다.**
@@ -93,7 +93,7 @@ pkg 대신 최신 릴리스를 `~/Library/Input Methods`에 설치하고 등록�
 묻습니다.
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/nyttastudio/seamtype/main/scripts/get.sh | sh
+curl -fsSL https://raw.githubusercontent.com/nyttastudio/legato/main/scripts/get.sh | sh
 ```
 
 물을 것 없이 고르려면 `| sh -s -- --reinstall`(설정과 학습한 단어는 남김), `--clean`(모두 지우고 새로 설치),

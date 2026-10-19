@@ -1,7 +1,7 @@
 import Foundation
 
 /// The latest release as GitHub's API describes it
-/// (`api.github.com/repos/nyttastudio/seamtype/releases/latest`): its version, the installer and
+/// (`api.github.com/repos/nyttastudio/legato/releases/latest`): its version, the installer and
 /// what changed.
 public struct Release: Equatable, Sendable {
     public var version: String
