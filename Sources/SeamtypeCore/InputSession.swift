@@ -109,12 +109,14 @@ public final class InputSession {
         let boundary: String
         let location: Int
         let previous: Language?
+        /// A segment of a URL or path: a switch there isn't a correction to learn.
+        var learns = true
 
         /// The same word after Delete took back its boundary character.
         var withoutBoundary: Committed {
             Committed(keys: keys, decided: decided, committedAs: committedAs, language: language,
                       text: String(text.dropLast(boundary.count)), boundary: "", location: location,
-                      previous: previous)
+                      previous: previous, learns: learns)
         }
     }
 
@@ -166,6 +168,12 @@ public final class InputSession {
     private var passedRun: (text: String, location: Int)?
     /// The word being typed started right after a number, in Japanese text: a counter (3ji → 3時).
     private var afterNumberInJapanese = false
+    /// The text gone in since the last Space, Tab or Return (`runKnown`), or since the caret moved
+    /// or the field changed, when the text before the caret is read the first time it matters.
+    private var runText = ""
+    private var runKnown = false
+    /// The word being typed is a segment of a URL or path (`hasURLMarker`): it goes in as typed.
+    private var inURLRun = false
     /// Live conversion: a Japanese phrase is shown as its top kanji candidate while it is typed,
     /// and committed that way.
     public let liveConversion: Bool
@@ -213,6 +221,7 @@ public final class InputSession {
         previousLanguage = nil
         passedRun = nil
         paused = false
+        resetRun()
     }
 
     /// Pauses or resumes Seamtype in this text field; what was being typed goes in first.
@@ -220,6 +229,7 @@ public final class InputSession {
         if !paused { commit(client: client) }
         paused.toggle()
         previousLanguage = nil
+        resetRun()
     }
 
     /// Vim's mode, from `Seamtype --vim` (the caller checks it came from this app).
@@ -227,6 +237,7 @@ public final class InputSession {
         if signal == .normal, vimMode != .normal {
             commit(client: client)
             previousLanguage = nil
+            resetRun()
         }
         vimMode = signal == .off ? nil : signal
     }
@@ -242,6 +253,7 @@ public final class InputSession {
             // was lost (Vim not seeing the terminal's focus change): it only says "decide words".
             if key == .cycle { vimMode = nil; return true }
             previousLanguage = nil
+            resetRun()
             return false
         }
         if key == .shiftSpace {
@@ -250,8 +262,9 @@ public final class InputSession {
                 return handle(.printable(" "), client: client)
             }
             closeFlipWindow()
-            if fullWidthSpace && previousLanguage == .japanese { return false } // the app types " "
+            if fullWidthSpace && previousLanguage == .japanese { noteRun(" "); return false } // the app types " "
             client.insertText("　", replacing: nil)
+            noteRun("　")
             return true
         }
         if conversion != nil { return handleConverting(key, client: client) }
@@ -276,6 +289,7 @@ public final class InputSession {
         // word itself can still be changed (Space before looking, then Delete and Esc).
         if key == .delete, keys.isEmpty, let pending, !pending.boundary.isEmpty {
             lastCommit = pending.withoutBoundary
+            noteDeleted()
             return false
         }
         if let pending { finalize(pending) }
@@ -297,6 +311,7 @@ public final class InputSession {
                 afterNumberInJapanese = japaneseEnabled && previousLanguage == .japanese
                     && passedRun?.text.last?.isNumber == true && cursor.location != NSNotFound
                     && passedRunRange(endingAt: cursor.location, client) != nil
+                inURLRun = Self.hasURLMarker(run(client))
             }
             addedNMarker = false
             pinned = nil
@@ -311,7 +326,7 @@ public final class InputSession {
                 updatePreview(client)
                 return true
             }
-            guard !keys.isEmpty else { return false }
+            guard !keys.isEmpty else { noteDeleted(); return false }
             let shown = forced ?? pinned ?? previewLanguage
             if forced == nil { pinned = shown }
             switch shown {
@@ -369,6 +384,12 @@ public final class InputSession {
             }
             if keys.isEmpty {
                 defer { afterDigit = ch.isNumber }
+                // Inside a URL or path symbols stay half-width, whatever came before: ほ@gmail.com.
+                if Self.hasURLMarker(run(client) + String(ch)) {
+                    passedRun = nil
+                    noteRun(String(ch))
+                    return false
+                }
                 if previousLanguage == .japanese {
                     if ch == " ", fullWidthSpace, japaneseEnabled, policy.fullWidth {
                         client.insertText("　", replacing: nil)
@@ -388,9 +409,12 @@ public final class InputSession {
                     return true
                 }
                 notePassed(ch, client)
+                noteRun(String(ch))
                 return false
             }
-            if japaneseEnabled, belongsToJapanesePhrase(ch) {
+            // A symbol that makes the run a URL or path (ho@, www.) ends the word, half-width.
+            let endsInURL = inURLRun || Self.hasURLMarker(run(client) + keys + String(ch))
+            if japaneseEnabled, !endsInURL, belongsToJapanesePhrase(ch) {
                 keys.append(ch)
                 // Digits don't read as anything: the phrase stays Japanese, as it was shown.
                 if ch.isNumber, forced == nil { forced = .japanese; forcedByUser = false }
@@ -401,7 +425,7 @@ public final class InputSession {
                 startConversion(client)
                 return true
             }
-            if closesFullWidth(ch) { // 日本語（English）
+            if !endsInURL, closesFullWidth(ch) { // 日本語（English）
                 commit(client: client)
                 startSymbol(String(ch), client)
                 return true
@@ -429,10 +453,12 @@ public final class InputSession {
             client.insertText(word.text, replacing: nil)
             lastCommit = Committed(keys: word.keys, decided: word.decided, committedAs: word.language,
                                    language: word.language, text: word.text + String(ch), boundary: String(ch),
-                                   location: location, previous: previous)
+                                   location: location, previous: previous, learns: !inURLRun)
+            noteRun(word.text + String(ch))
             return false
 
         case .enter:
+            defer { noteRun("\n") }
             guard !keys.isEmpty else { return false }
             // Like a Japanese IME, Return on an underlined word only confirms it; the next Return
             // is the app's. Passed on (the setting off), terminals and web chats may still drop a
@@ -454,6 +480,7 @@ public final class InputSession {
         case .up, .down, .left, .right, .other:
             commit(client: client)
             previousLanguage = nil
+            resetRun()
             return false
 
         case .shiftSpace: // handled above
@@ -466,6 +493,7 @@ public final class InputSession {
         closeFlipWindow()
         if let conversion {
             client?.insertText(conversion.display, replacing: nil)
+            noteRun(conversion.display)
             noteBrackets(in: conversion.display)
             converter?.learn(conversion.current, for: conversion.kana)
             self.conversion = nil
@@ -478,6 +506,7 @@ public final class InputSession {
         heldBoundary = nil
         let word = finishWord()
         client?.insertText(word.text + boundary, replacing: nil)
+        noteRun(word.text + boundary)
     }
 
     /// Drops the word being typed: nothing goes in, as when Delete takes its last key.
@@ -498,6 +527,7 @@ public final class InputSession {
     public func commitForNewContext(client: TextClient?) {
         commit(client: client)
         previousLanguage = nil
+        resetRun()
     }
 
     /// Commits candidate `index` of the open conversion (e.g. clicked in the candidate window).
@@ -505,6 +535,63 @@ public final class InputSession {
         guard let conversion, conversion.candidates.indices.contains(index) else { return }
         self.conversion?.selected = index
         commitCandidate(client: client)
+    }
+
+    // MARK: - URLs and paths
+
+    /// Whether a run of text without spaces is a URL or path from here on: `://`, `www.`, `~/`,
+    /// `./` or `../` at its start, a path that starts with `/` and has another, `@` after
+    /// something (an email; `@홍길동` is a mention) or `localhost:`. A lone `.` or `/` isn't one:
+    /// L.A.로, TV/라디오 and 남/여 are Korean.
+    static func hasURLMarker(_ run: String) -> Bool {
+        run.contains("://") || run.contains("localhost:")
+            || ["www.", "~/", "./", "../"].contains(where: run.hasPrefix)
+            || (run.hasPrefix("/") && run.dropFirst().contains("/"))
+            || run.dropFirst().contains("@")
+    }
+
+    /// The run of text before the word being typed: what went in since the last space, with
+    /// what the field had before the caret when that isn't known (a pasted URL, a click).
+    private func run(_ client: TextClient) -> String {
+        guard !runKnown else { return runText }
+        runKnown = true
+        let marked = client.markedRange(), cursor = client.selectedRange()
+        // Up to the word being typed, if there is one on screen.
+        let end = marked.location != NSNotFound ? marked.location : cursor.length == 0 ? cursor.location : NSNotFound
+        guard end != NSNotFound else { return runText }
+        let start = max(0, end - Self.runLookBehind)
+        guard let before = client.text(in: NSRange(location: start, length: end - start)) else { return runText }
+        let field = String(before.reversed().prefix { !$0.isWhitespace }.reversed())
+        if field.hasSuffix(runText) { runText = field }
+        return runText
+    }
+
+    /// How far back the field is read for the run (UTF-16 units).
+    private static let runLookBehind = 256
+
+    /// Keeps the run up to date with text going in; Space, Tab and Return end it. A URL or path
+    /// counts as English for the next word.
+    private func noteRun(_ text: String) {
+        for ch in text {
+            if ch.isWhitespace {
+                if Self.hasURLMarker(runText) { previousLanguage = .english }
+                runText = ""
+                runKnown = true
+            } else {
+                runText.append(ch)
+            }
+        }
+    }
+
+    /// The app deleted the character before the caret, nothing being typed.
+    private func noteDeleted() {
+        if runText.isEmpty { runKnown = false } else { runText.removeLast() }
+    }
+
+    /// The caret moved or the field changed: what is before the caret is read again when needed.
+    private func resetRun() {
+        runText = ""
+        runKnown = false
     }
 
     // MARK: - Japanese conversion
@@ -704,7 +791,7 @@ public final class InputSession {
         var kana = japaneseReading(partial: false)
         guard converter != nil, !kana.isEmpty else { return }
         let userForced = forced == .japanese && forcedByUser
-        if userForced {
+        if userForced, !inURLRun {
             record(keys, as: .japanese, engineChoice: committedLanguage())
         }
         // A number the app typed just before the phrase is part of it: 3ji is 3時, not 3 and 時
@@ -845,12 +932,16 @@ public final class InputSession {
             self.conversion = nil
             liveSuppressed = true // "back to kana" means kana, also with live conversion
             // A number taken in from before the phrase goes back as it was typed.
-            if !conversion.numberPrefix.isEmpty { client.insertText(conversion.numberPrefix, replacing: nil) }
+            if !conversion.numberPrefix.isEmpty {
+                client.insertText(conversion.numberPrefix, replacing: nil)
+                noteRun(conversion.numberPrefix)
+            }
             let kana = String(conversion.kana.dropFirst(conversion.numberPrefix.count))
             // Back to editing the romaji — when it still spells the reading. After part of a
             // phrase with English in it was committed it may not; keep the kana rather than lose it.
             guard JapaneseSegmenter.reading(of: conversion.keys, segmenter: segmenter) == kana else {
                 client.insertText(kana, replacing: nil)
+                noteRun(kana)
                 previousLanguage = .japanese
                 return true
             }
@@ -881,6 +972,7 @@ public final class InputSession {
         let candidate = conversion.current
         converter.learn(candidate, for: conversion.kana)
         client.insertText(candidate.text, replacing: nil)
+        noteRun(candidate.text)
         noteBrackets(in: candidate.text)
         let rest = String(conversion.kana.dropFirst(candidate.kanaCount))
         self.conversion = nil
@@ -889,6 +981,7 @@ public final class InputSession {
         let candidates = conversionCandidates(for: rest)
         if candidates.isEmpty {
             client.insertText(rest, replacing: nil)
+            noteRun(rest)
         } else {
             // The rest is the engine's Japanese, not something the user corrected.
             self.conversion = Conversion(kana: rest, keys: restKeys, candidates: candidates, selected: 0)
@@ -943,6 +1036,14 @@ public final class InputSession {
     // MARK: - Private
 
     private func decide(partial: Bool) -> Decision {
+        // A segment of a URL or path goes in as typed, before the dictionary is asked (so in a
+        // URL is so even where it was taught to be 내).
+        if inURLRun {
+            keptEnglishByStrict = false
+            let decision = Decision(language: .english, confidence: 1, output: keys, explanation: "inside a URL or path")
+            lastTrace = Trace(keys: keys, previous: previousLanguage, decision: decision, partial: partial)
+            return decision
+        }
         if let shortcut = shortcutReading(partial: partial) {
             // As sure as a split word, so a Strict app shows it too.
             keptEnglishByStrict = false
@@ -1039,8 +1140,10 @@ public final class InputSession {
             show(forced == .japanese ? japaneseDisplay()
                  : forced == .korean ? hangul() ?? keys : engine.render(keys, as: forced), client)
         } else {
-            splitOffKoreanBeforeOther(client)
-            splitOffJapaneseBeforeKorean(client)
+            if !inURLRun {
+                splitOffKoreanBeforeOther(client)
+                splitOffJapaneseBeforeKorean(client)
+            }
             let decision = decide(partial: true)
             var language = decision.language
             // Hysteresis: a weak flip on one keystroke (わた → "wat" → わたし) isn't shown,
@@ -1089,6 +1192,7 @@ public final class InputSession {
                   korean.syllables.allSatisfy({ Self.koreanModel.syllableLogProbability($0) > KoreanModel.unknownSyllableLogP }),
                   isOtherLanguageWord(back) else { continue }
             client.insertText(korean.text, replacing: nil)
+            noteRun(korean.text)
             keys = back
             syllableStart = nil
             previousLanguage = .korean
@@ -1137,7 +1241,9 @@ public final class InputSession {
                   case let decision = engine.decide(front, context: DecisionContext(previousLanguage: previousLanguage, app: app)),
                   decision.language == .japanese, decision.confidence >= 0.9 else { continue }
             keys = front
-            client.insertText(committedJapanese(), replacing: nil)
+            let japanese = committedJapanese()
+            client.insertText(japanese, replacing: nil)
+            noteRun(japanese)
             keys = back
             syllableStart = nil
             previousLanguage = .japanese
@@ -1175,7 +1281,9 @@ public final class InputSession {
         // "Back to kana" without the user's Esc, or a reading kept while deleting, isn't a
         // correction: report it as the engine's.
         let decided = (forced != nil && !forcedByUser) || (forced == nil && pinned != nil) ? language : engineChoice
-        if forced != nil, forcedByUser { record(keys, as: language, engineChoice: decided) } else { engine.used(keys, as: language) }
+        if inURLRun {
+            // Not a word: neither a correction to learn nor a use of one.
+        } else if forced != nil, forcedByUser { record(keys, as: language, engineChoice: decided) } else { engine.used(keys, as: language) }
         let text = language == .japanese ? committedJapanese()
                  : language == .korean ? hangul() ?? engine.render(keys, as: language) : engine.render(keys, as: language)
         liveSuppressed = false
@@ -1291,10 +1399,11 @@ public final class InputSession {
                                             : engine.render(commit.keys, as: language)
         let text = reading + commit.boundary
         client.insertText(text, replacing: range)
+        if runText.hasSuffix(commit.text) { runText = String(runText.dropLast(commit.text.count)) + text }
         previousLanguage = language.sentenceLanguage
         return Committed(keys: commit.keys, decided: commit.decided, committedAs: commit.committedAs,
                          language: language, text: text, boundary: commit.boundary, location: commit.location,
-                         previous: commit.previous)
+                         previous: commit.previous, learns: commit.learns)
     }
 
     private func closeFlipWindow() {
@@ -1305,7 +1414,7 @@ public final class InputSession {
     /// The undo window closed: learn where the word ended up (once, not every reading Esc
     /// passed through on the way).
     private func finalize(_ commit: Committed) {
-        if commit.language != commit.committedAs {
+        if commit.learns, commit.language != commit.committedAs {
             record(commit.keys, as: commit.language, engineChoice: commit.decided)
         }
     }

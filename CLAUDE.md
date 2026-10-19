@@ -77,6 +77,10 @@ tests use `FakeTextField`). It owns the preview and hysteresis, commits, Esc rea
 - Korean → other fires only when the whole token reads as broken Hangul, and for Japanese also
   not as Japanese on its own; Japanese → Korean only when the romaji has stray letters. Without
   those guards, ordinary Japanese phrases split (`chanwokoroshita` → `초무をころした`).
+- Inside a URL or path (`hasURLMarker` on the run since the last Space/Tab/Return: `://`, `www.`,
+  `~/`, `x@`…, never a lone `.` or `/`), segments go in as typed English before the engine or
+  dictionary is asked, symbols stay half-width, and a switch there isn't learned. Where the run
+  isn't known (a click, ⌘V, a new field) it is read from the text before the caret. `tools/eval_urls.py`.
 - In a Strict app, a token of 3 keys or fewer kept English by the threshold wins over a Korean
   preview shown along the way (`gst` stays `gst`); longer words keep the preview's hysteresis.
 - The keys that switch a word's reading are per app (`AppPolicy.switchKeys`; default right ⌥ tap

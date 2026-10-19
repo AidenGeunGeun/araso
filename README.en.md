@@ -399,6 +399,11 @@ Locally, in this order. A keystroke's preview takes at most ~3 ms and a word's f
 4. **Heuristic**: the keys are scored per keystroke in all three languages, plus a nudge toward the
    previous word's language.
 
+None of this happens inside a URL or path. Once a run of text without spaces has a marker like
+`://`, `www.` or `~/` at its start, or an `@` with something before it (an email), what follows goes
+in as typed, in English with half-width symbols, until the next space (`https://a.io/?q=dl`). A lone
+`.` or `/` isn't one (`L.A.로`, `남/여`, `@홍길동`).
+
 <details>
 <summary>Each step in detail</summary>
 
