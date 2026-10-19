@@ -21,7 +21,7 @@ final class Updater: ObservableObject {
     /// A release newer than this copy, from the last check by either process.
     @Published private(set) var available: Release?
 
-    private static let gitHub = URL(string: "https://api.github.com/repos/aimdevlee/seamtype/releases/latest")!
+    private static let gitHub = URL(string: "https://api.github.com/repos/nyttastudio/seamtype/releases/latest")!
     /// GitHub's latest release, or, for trying an update before it is published (drafts aren't
     /// visible without a login), a file in the same format whose `browser_download_url` may be a
     /// file URL: `defaults write com.aimdevlee.inputmethod.Seamtype updateFeed file:///…/latest.json`.

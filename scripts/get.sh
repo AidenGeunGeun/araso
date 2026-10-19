@@ -1,7 +1,7 @@
 #!/bin/sh
 # Installs the latest Seamtype release into ~/Library/Input Methods and registers it:
 #
-#   curl -fsSL https://raw.githubusercontent.com/aimdevlee/seamtype/main/scripts/get.sh | sh
+#   curl -fsSL https://raw.githubusercontent.com/nyttastudio/seamtype/main/scripts/get.sh | sh
 #
 # If Seamtype is already installed it asks what to do; to choose without the question:
 #   … | sh -s -- --reinstall              replace it, keep settings and learned words
@@ -17,7 +17,7 @@
 # without the Developer ID needs SEAMTYPE_UNSIGNED=1 as well.
 set -eu
 
-url="https://github.com/aimdevlee/seamtype/releases/latest/download/Seamtype.zip"
+url="https://github.com/nyttastudio/seamtype/releases/latest/download/Seamtype.zip"
 dest="$HOME/Library/Input Methods"
 app="$dest/Seamtype.app"
 system="/Library/Input Methods/Seamtype.app"
