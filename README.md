@@ -10,7 +10,7 @@
 <p align="center"><b>흐름대로 써진다 · 流れるままに · Type as it flows</b></p>
 
 <p align="center">레가토(legato)는 음을 끊지 않고 이어 연주하라는 음악 기호입니다. 언어가 바뀌어도 손을 멈추지 않고 이어서 치세요.<br>
-<sub>0.2.0 전의 이름은 Seamtype이었습니다. 쓰고 있었다면 <a href="#seamtype에서-옮겨-오기">Seamtype에서 옮겨 오기</a>를 보세요.</sub></p>
+<sub>0.2.0 전의 이름은 Seamtype이었습니다. 쓰고 있었다면 <a href="#from-seamtype">Seamtype에서 옮겨 오기</a>를 보세요.</sub></p>
 
 <p align="center">
   <a href="https://github.com/nyttastudio/legato/releases/latest"><img src="https://img.shields.io/github/v/release/nyttastudio/legato?style=flat-square&label=release" alt="최신 릴리스"></a>
@@ -58,7 +58,7 @@ Hello, worldhasaishonopuroguramudesu␣.           →  Hello, worldは最初の
 ## 목차
 
 - [만든 이유](#만든-이유)
-- [설치](#설치) · [업데이트](#업데이트) · [Seamtype에서 옮겨 오기](#seamtype에서-옮겨-오기) · [제거](#제거)
+- [설치](#설치) · [업데이트](#업데이트) · [Seamtype에서 옮겨 오기](#from-seamtype) · [제거](#제거)
 - [키](#키) · [언어 바꾸기 키](#언어-바꾸기-키) · [확정한 뒤에 고치기와 학습](#확정한-뒤에-고치기와-학습) · [텍스트 대치](#텍스트-대치) · [일시정지](#일시정지) · [vim](#vim)
 - [설정](#설정) · [설정 파일](#설정-파일)
 - [판단 방식](#판단-방식) · [평가 결과](#평가-결과-학습에-쓰지-않은-데이터)
