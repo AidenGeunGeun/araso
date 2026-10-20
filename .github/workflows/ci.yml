@@ -17,8 +17,10 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: .build
-          key: spm-${{ runner.os }}-${{ hashFiles('Package.resolved') }}
-          restore-keys: spm-${{ runner.os }}-
+          # .build holds absolute paths (the module cache), which change with the repository's
+          # name: a cache from before a rename fails the build ("compiled with module cache path").
+          key: spm-${{ runner.os }}-${{ github.event.repository.name }}-${{ hashFiles('Package.resolved') }}
+          restore-keys: spm-${{ runner.os }}-${{ github.event.repository.name }}-
       - run: swift --version
       - run: swift build
       - run: swift test
