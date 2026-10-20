@@ -6,7 +6,7 @@ assumed QWERTY for English and romaji and 2-set (두벌식) for Korean. This is 
 ## English layouts (done: Colemak, Colemak-DH)
 
 `settings.json`'s `"latinLayout"`: `"qwerty"` (default), `"colemak"` or `"colemakDH"`; the
-Languages pane's English layout menu.
+English menu of the Languages pane's Layouts card.
 
 **Keys are the layout's letters.** On Colemak `hello` is typed as `hello`, so English, romaji and
 everything that reads keys as text (the English model, `RomajiComposer`, URL runs, the
@@ -31,7 +31,7 @@ for its own task with `LatinLayout.$override.withValue(.colemak) { … }`; `aras
 `ARASO_LAYOUT=colemak`.
 
 **Romaji can have its own layout.** `settings.json`'s `"japaneseLayout"` (absent: English's);
-the Romaji menu of the Languages pane's Layouts card (with Hangul and English). Keys stay English's letters, and
+the Romaji menu of the Languages pane's Layouts card. Keys stay English's letters, and
 `RomajiComposer.compose`, which every Japanese reading goes through, first turns each into
 romaji's letter on the same key (`LatinLayout.romajiKeys`), as 2-set looks through to the key. A
 key romaji's layout has a letter on is part of a word (`isLetterSeat`): QWERTY's `;` when romaji is
@@ -73,8 +73,8 @@ far more often than 3-set's `!` does, so it would need deciding at the word's en
 
 ## 세벌식 최종 (done)
 
-`settings.json`'s `"koreanLayout"`: `"dubeolsik"` (default) or `"sebeolsikFinal"`; the Languages
-pane's Korean layout menu. `KoreanLayout` mirrors `LatinLayout` (`active`, `$override`, `current`;
+`settings.json`'s `"koreanLayout"`: `"dubeolsik"` (default) or `"sebeolsikFinal"`; the Hangul menu
+of the Languages pane's Layouts card. `KoreanLayout` mirrors `LatinLayout` (`active`, `$override`, `current`;
 `araso-cli` takes `ARASO_KOREAN_LAYOUT`).
 
 **One way in.** Everything that reads keys as Korean goes through `HangulComposer.compose(keys:)`
