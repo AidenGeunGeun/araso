@@ -30,6 +30,15 @@ settings window's change reaches it through the usual notification). A test or t
 for its own task with `LatinLayout.$override.withValue(.colemak) { … }`; `araso-cli` takes
 `ARASO_LAYOUT=colemak`.
 
+**Romaji can have its own layout.** `settings.json`'s `"japaneseLayout"` (absent: English's);
+the Languages pane's Romaji layout menu, under Japanese. Keys stay English's letters, and
+`RomajiComposer.compose`, which every Japanese reading goes through, first turns each into
+romaji's letter on the same key (`LatinLayout.romajiKeys`), as 2-set looks through to the key. A
+key romaji's layout has a letter on is part of a word (`isLetterSeat`): QWERTY's `;` when romaji is
+on Colemak. `araso-cli` takes `ARASO_JAPANESE_LAYOUT`. English on Colemak with romaji on QWERTY
+scores 99.63% on eval.tsv, above every single layout: the same letters no longer spell English
+and romaji both.
+
 **QWERTY is unchanged**: a key and its seat are the same character there.
 
 **Accuracy** (eval.tsv, 5,998 held-out words and phrases, Japanese on; Korean rows rewritten to

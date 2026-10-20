@@ -340,7 +340,7 @@ The settings window has these panes, and changes apply at once.
 
 | Pane | What's there |
 | --- | --- |
-| Languages | converting words on or off, the Korean layout (2-set, 3-set final), the English layout (QWERTY, Colemak, Colemak-DH), Japanese input and its options, resetting the kanji candidate order |
+| Languages | converting words on or off, each language's layout (Korean: 2-set, 3-set final; English and romaji: QWERTY, Colemak, Colemak-DH), Japanese input and its options, resetting the kanji candidate order |
 | Keys | the language switch keys, Return, the pause key |
 | Apps | how sure a word must be to convert (Normal, Strict) and per-app behavior (`apps.json`) |
 | Dictionary | words you added and words learned, in one list (`dictionary.json`): **+** to type keys and pick their reading (English, Korean, Japanese) and app; from a row's ⋯, keep a learned word for good or remove it. A word corrected once shows how long until it's forgotten |
@@ -371,6 +371,7 @@ restart the input method: `pkill -x Araso`.
 | `fullWidthDigits` | off | Numbers after Japanese come out full-width (`１２３`, `０３－１２３４` in addresses and phone numbers), underlined, with Space offering `123` (half-width) or conversions like `三月`. |
 | `fullWidthSpace` | off | Space after Japanese types a full-width space (`　`). ⇧Space types the other width (full-width while this is off). |
 | `latinLayout` | `"qwerty"` | The layout English and romaji are typed on; also `"colemak"` or `"colemakDH"`. Korean stays on its usual keys (QWERTY's) whatever the layout. Words learned on one layout are learned again on another: their keys differ. |
+| `japaneseLayout` | none | The layout romaji is typed on (`"qwerty"`, `"colemak"`, `"colemakDH"`); without it, `latinLayout`'s. English on Colemak with romaji on QWERTY, for one. |
 | `koreanLayout` | `"dubeolsik"` | The Korean layout; `"sebeolsikFinal"` is 3-set final (세벌식 최종). Jamo on digit and symbol keys (ㅆ of 갔 on 2, ㅂ of 밥 on ;) read as jamo inside a word where they fit, and as the symbol where they don't (the ! of 안녕!). Digits alone stay a number, so ㅋㅋ (00) and ㅠㅠ (55) take a switch key. Shifted keys that type a digit or symbol in Korean (⇧H 0, ⇧B ?) type as on QWERTY. |
 | `japaneseEngine` | `"apple"` | Kanji conversion: `"apple"` uses the engine of macOS's Japanese input, `"azooKey"` the AzooKey converter in the app. |
 | `checkForUpdates` | on | Once a day, ask GitHub for the latest release's version (nothing else is sent), and say so in the input menu and About when it is newer. |

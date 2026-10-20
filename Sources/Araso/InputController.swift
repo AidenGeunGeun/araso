@@ -256,9 +256,9 @@ final class InputController: IMKInputController {
         }
         // On another English layout the letter comes from the key, not from whatever layout macOS
         // hands the input method: the setting decides. Colemak's ; (on the p key, 2-set's ㅔ) is
-        // part of a word too.
+        // part of a word too, as is any key romaji's layout has a letter on.
         let layout = LatinLayout.current
-        if layout != .qwerty, let ch = layout.character(keyCode: event.keyCode,
+        if layout != .qwerty || LatinLayout.romaji != .qwerty, let ch = layout.character(keyCode: event.keyCode,
                                                         shift: event.modifierFlags.contains(.shift),
                                                         capsLock: event.modifierFlags.contains(.capsLock)),
            ch.isLetter || layout.isLetterSeat(ch) {

@@ -24,6 +24,7 @@ final class Runtime {
         settings = Settings.load()
         LatinLayout.active = settings.latinLayout
         KoreanLayout.active = settings.koreanLayout
+        LatinLayout.activeRomaji = settings.japaneseLayout
         engine = Self.makeEngine(japanese: settings.japanese)
         converter = settings.japanese ? Self.makeConverter(settings) : nil
         let center = DistributedNotificationCenter.default()
@@ -123,6 +124,7 @@ final class Runtime {
         settings = new
         LatinLayout.active = new.latinLayout
         KoreanLayout.active = new.koreanLayout
+        LatinLayout.activeRomaji = new.japaneseLayout
         generation += 1
     }
 

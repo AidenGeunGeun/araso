@@ -59,6 +59,29 @@ import Testing
         }
     }
 
+    /// English on Colemak, romaji on QWERTY: the keys are Colemak's letters, and Japanese reads
+    /// each through QWERTY, so a QWERTY romaji typist's fingers still make kana.
+    @Test func romajiHasItsOwnLayout() {
+        LatinLayout.$override.withValue(.colemak) {
+            LatinLayout.$romajiOverride.withValue(.qwerty) {
+                let keys = Self.keys("kyouhaiitenkidesune", on: .colemak)
+                #expect(LatinLayout.romajiKeys(keys) == "kyouhaiitenkidesune")
+                #expect(RomajiComposer.compose(keys).text == "きょうはいいてんきですね")
+                let d = trilingual.decide(keys, context: DecisionContext())
+                #expect(d.language == .japanese, "\(d.explanation)")
+                #expect(trilingual.decide("hello", context: DecisionContext()).output == "hello")
+            }
+        }
+        // English on QWERTY, romaji on Colemak: QWERTY's ; key is romaji's o.
+        LatinLayout.$romajiOverride.withValue(.colemak) {
+            #expect(LatinLayout.qwerty.isLetterSeat(";"))
+            let keys = String("kyouha".map(LatinLayout.colemak.seat(of:))) // the keys Colemak's kyouha is on
+            #expect(keys == "no;iha")
+            #expect(RomajiComposer.compose(keys).text == "きょうは")
+        }
+        #expect(!LatinLayout.qwerty.isLetterSeat(";"))
+    }
+
     @Test func aSessionTypesKoreanAndEnglishOnColemak() {
         LatinLayout.$override.withValue(.colemak) {
             let field = FakeTextField()

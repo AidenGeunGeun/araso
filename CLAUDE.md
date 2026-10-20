@@ -171,6 +171,8 @@ runtime.
   `HangulComposer.compose(keys:)` and `DubeolsikLayout`'s statics, so callers don't branch; its
   digit and symbol keys arrive as printable and `KoreanLayout.continuesWord` (asked by
   `InputSession`) keeps them in the word where the jamo fits. `ARASO_KOREAN_LAYOUT` for the CLI.
+  Romaji may have its own layout (`japaneseLayout`, `LatinLayout.romaji`): `RomajiComposer.compose`
+  reads keys through it (`romajiKeys`); `ARASO_JAPANESE_LAYOUT` for the CLI.
 - **UI strings:** they go through `L("English key")`, with Korean in
   `Resources/ko.lproj/Localizable.strings`. The input source's name comes from
   `Resources/*.lproj/InfoPlist.strings`.

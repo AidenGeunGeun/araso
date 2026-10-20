@@ -26,7 +26,7 @@ public enum RomajiComposer {
     public static func compose(_ keys: String, partial: Bool = false) -> Result {
         // Matched in lowercase; letters that don't become kana stay as typed (⇧P waiting for its
         // vowel shows P, not p).
-        let typed = Array(keys)
+        let typed = Array(LatinLayout.romajiKeys(keys))
         let chars = typed.map { $0.isASCII ? Character($0.lowercased()) : $0 }
         var out = ""
         var stray = 0

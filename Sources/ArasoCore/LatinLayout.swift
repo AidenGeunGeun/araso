@@ -16,11 +16,34 @@ public enum LatinLayout: String, Codable, CaseIterable, Sendable {
     /// Colemak Mod-DH, ANSI rows (no angle mod): D and H move to the bottom row.
     case colemakDH
 
+    /// How the settings show it.
+    public var name: String {
+        switch self {
+        case .qwerty: return "QWERTY"
+        case .colemak: return "Colemak"
+        case .colemakDH: return "Colemak-DH"
+        }
+    }
+
     /// What the input controllers type with: set from the settings when they load.
     nonisolated(unsafe) public static var active: LatinLayout = .qwerty
     /// For a test (or a tool) that types on another layout without touching `active`.
     @TaskLocal public static var override: LatinLayout?
     public static var current: LatinLayout { override ?? active }
+
+    /// The layout romaji is typed on, when it isn't the English one (`settings.json`'s
+    /// `"japaneseLayout"`): English on Colemak, romaji on QWERTY.
+    nonisolated(unsafe) public static var activeRomaji: LatinLayout?
+    @TaskLocal public static var romajiOverride: LatinLayout?
+    public static var romaji: LatinLayout { romajiOverride ?? activeRomaji ?? current }
+
+    /// Keys (the English layout's letters) as romaji's layout spells them: each key's character
+    /// on romaji's layout, as 2-set looks through to the key. The same keys when the layouts match.
+    public static func romajiKeys(_ keys: String) -> String {
+        let english = current, romaji = romaji
+        guard romaji != english else { return keys }
+        return String(keys.map { romaji.character(onSeat: english.seat(of: $0)) })
+    }
 
     /// QWERTY's character on each key, unshifted, in the order of `rows`.
     private static let qwertyRows = ["qwertyuiop", "asdfghjkl;", "zxcvbnm"]
@@ -56,10 +79,11 @@ public enum LatinLayout: String, Codable, CaseIterable, Sendable {
     }
 
     /// Whether the key typing `character` is one of QWERTY's letter keys, where 2-set Korean has
-    /// its jamo: Colemak's `;` (on the p key, ㅔ) is part of a word too.
+    /// its jamo, or romaji's layout types a letter: Colemak's `;` (on the p key, ㅔ) is part of a
+    /// word too, and so is QWERTY's `;` when romaji is on Colemak (its o).
     public func isLetterSeat(_ character: Character) -> Bool {
         let seat = seat(of: character)
-        return seat.isASCII && seat.isLetter
+        return seat.isASCII && seat.isLetter || Self.romaji.character(onSeat: seat).isLetter
     }
 
     private static func position(of seat: Character) -> (Int, Int, Bool)? {

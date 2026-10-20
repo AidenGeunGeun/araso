@@ -16,8 +16,6 @@
 
 /* 일반 */
 "Languages" = "언어";
-"Korean · English" = "한국어 · 영어";
-"Always on" = "항상 켜짐";
 "Japanese" = "일본어";
 "Live conversion" = "라이브 변환";
 "Shows the top kanji candidate as you type." = "입력하면서 가장 앞선 한자 후보를 바로 보여 줍니다.";
@@ -247,8 +245,10 @@
 "Open Notices" = "고지 열기";
 "Update" = "업데이트";
 "English layout" = "영문 자판";
-"The layout you type English and romaji on. Korean stays on its usual keys." = "영어와 일본어 로마자를 치는 자판입니다. 한글은 영문 자판과 상관없이 늘 같은 자리에 있습니다.";
 "Korean layout" = "한글 자판";
-"3-set types jamo on the digit and symbol keys too; a number on its own stays a number." = "세벌식은 숫자·기호 키로도 자모를 칩니다. 숫자만 친 것은 숫자로 둡니다.";
+"Always on. 3-set types jamo on the digit and symbol keys too; a number on its own stays a number." = "항상 켜져 있습니다. 세벌식은 숫자·기호 키로도 자모를 칩니다. 숫자만 친 것은 숫자로 둡니다.";
+"Always on." = "항상 켜져 있습니다.";
+"Romaji layout" = "로마자 자판";
+"Same as English (%@)" = "영어와 같게 (%@)";
 "2-set" = "두벌식";
 "3-set final" = "세벌식 최종";
