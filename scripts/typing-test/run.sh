@@ -58,7 +58,7 @@ suite() {
   sleep 1
   # A failing suite must not end the script here: zsh skips the EXIT trap (the restore) when
   # errexit fires inside a function.
-  "$work/typer" "$here/$1" "$app" || failed=1
+  "$work/typer" "$here/$1" "$app" ${3:+"$3"} || failed=1
 }
 failed=0
 print -r -- '{ "*": { "switchKeys": ["escape", "shiftEscape"] } }' > "$support/apps.json"
@@ -66,5 +66,5 @@ suite cases.tsv '{ "japanese": true }'
 suite live.tsv '{ "japanese": true, "liveConversion": true }'
 suite fullwidth.tsv '{ "japanese": true, "fullWidthDigits": true, "fullWidthSpace": true }'
 suite colemak.tsv '{ "japanese": true, "latinLayout": "colemak" }'
-suite sebeolsik.tsv '{ "japanese": true, "koreanLayout": "sebeolsikFinal" }'
+suite sebeolsik.tsv '{ "japanese": true, "koreanLayout": "sebeolsikFinal" }' 'jfshea '
 exit $failed

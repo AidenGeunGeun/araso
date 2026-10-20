@@ -2,7 +2,8 @@
 // (so they go through the input method) and compares the field's text with the expectation. The
 // pane knows whether Araso is the input source in use and has a button to switch to it.
 //
-// usage: typer <cases.tsv> <Araso.app>    each line: script<TAB>expected
+// usage: typer <cases.tsv> <Araso.app> [probe]    each line: script<TAB>expected
+// probe: the keys of 안녕 + Space on the suite's layout (dkssud on 2-set, the default).
 // script: characters as typed; ⏎ Return, ⎋ Esc, ⇧ Shift+Esc, ⌫ Delete, ← → arrows.
 import AppKit
 import Carbon
@@ -86,9 +87,10 @@ func clear() {
 }
 
 front()
+let probe = CommandLine.arguments.count > 3 ? CommandLine.arguments[3] : "dkssud "
 func typingThroughAraso() -> Bool {
     clear()
-    for ch in "dkssud " { press(ch) }
+    for ch in probe { press(ch) }
     usleep(500_000)
     defer { clear() }
     return fieldText() == "안녕 "
@@ -108,7 +110,7 @@ for _ in 0..<8 where !ready {
     ready = typingThroughAraso()
 }
 guard ready else {
-    print("Keys don't go through Araso in its settings window (dkssud didn't become 안녕): pick Araso in the input menu, then run again")
+    print("Keys don't go through Araso in its settings window (\(probe)didn't become 안녕): pick Araso in the input menu, then run again")
     settings.terminate() // exit skips the defer
     exit(2)
 }
