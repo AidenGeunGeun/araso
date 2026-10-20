@@ -268,6 +268,14 @@ public final class InputSession {
             return true
         }
         if conversion != nil { return handleConverting(key, client: client) }
+        // On 3-set a digit or symbol key with a jamo goes on with the word where the jamo fits
+        // (갔 is kf2, 밥 starts on ;); elsewhere it is the symbol. Not in a URL or path, though the
+        // word itself doesn't make one: 밝 is ;f@, not an address.
+        if case .printable(let ch) = key, heldBoundary == nil, keys.isEmpty || !inURLRun,
+           KoreanLayout.current.continuesWord(keys, with: ch, afterDigit: afterDigit, knows: Self.koreanModel.knowsSyllable),
+           !Self.hasURLMarker(run(client)) {
+            return handle(.letter(ch), client: client)
+        }
 
         if case .printable = key, keys.isEmpty {} else { afterDigit = false }
         switch key {
@@ -303,7 +311,10 @@ public final class InputSession {
         case .letter(let ch):
             if heldBoundary != nil { commit(client: client) } // the held word goes in with its boundary; a new word starts
             // A symbol on its own is confirmed by the next word, which is judged by itself.
-            if !keys.isEmpty, keys.allSatisfy({ RomajiComposer.symbols[$0] != nil }) { commit(client: client) }
+            if !keys.isEmpty, keys.allSatisfy({ RomajiComposer.symbols[$0] != nil }),
+               !(KoreanLayout.current == .sebeolsikFinal && keys.allSatisfy({ SebeolsikFinal.jamo(for: $0) != nil })) {
+                commit(client: client) // (3-set's ; is ㅂ, a word on its way)
+            }
             if keys.isEmpty { // a new word
                 lastRecorded = nil
                 liveSuppressed = false

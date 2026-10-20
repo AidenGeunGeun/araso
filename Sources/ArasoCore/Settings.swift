@@ -31,11 +31,15 @@ public struct Settings: Codable, Equatable, Sendable {
     /// The layout English and romaji are typed on: "qwerty", "colemak" or "colemakDH". Korean
     /// 2-set stays on its keys either way (`LatinLayout`).
     public var latinLayout: LatinLayout = .qwerty
+    /// The layout Korean is typed on: "dubeolsik" or "sebeolsikFinal" (`KoreanLayout`).
+    public var koreanLayout: KoreanLayout = .dubeolsik
 
     public init(japanese: Bool = false, liveConversion: Bool = false, pauseKey: PauseKey = .standard,
                 returnConfirmsOnly: Bool = true, checkForUpdates: Bool = true, japaneseEngine: String = "apple",
-                fullWidthDigits: Bool = false, fullWidthSpace: Bool = false, latinLayout: LatinLayout = .qwerty) {
+                fullWidthDigits: Bool = false, fullWidthSpace: Bool = false, latinLayout: LatinLayout = .qwerty,
+                koreanLayout: KoreanLayout = .dubeolsik) {
         self.latinLayout = latinLayout
+        self.koreanLayout = koreanLayout
         self.fullWidthDigits = fullWidthDigits
         self.fullWidthSpace = fullWidthSpace
         self.japanese = japanese
@@ -63,6 +67,7 @@ public struct Settings: Codable, Equatable, Sendable {
         fullWidthDigits = value(.fullWidthDigits, false)
         fullWidthSpace = value(.fullWidthSpace, false)
         latinLayout = value(.latinLayout, .qwerty)
+        koreanLayout = value(.koreanLayout, .dubeolsik)
     }
 
     private enum LegacyKeys: String, CodingKey { case rightCommandPause }

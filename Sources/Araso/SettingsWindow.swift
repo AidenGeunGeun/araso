@@ -576,8 +576,18 @@ private struct GeneralPane: View {
                 SeamRow(title: L("Korean · English")) {
                     Text(L("Always on")).font(.system(size: 13)).foregroundStyle(Seam.ink3)
                 }
+                SeamRow(title: L("Korean layout"),
+                        detail: L("3-set types jamo on the digit and symbol keys too; a number on its own stays a number.")) {
+                    Picker(L("Korean layout"), selection: Binding(get: { model.settings.koreanLayout },
+                                                                  set: { model.set(\.koreanLayout, $0) })) {
+                        Text(L("2-set")).tag(KoreanLayout.dubeolsik)
+                        Text(L("3-set final")).tag(KoreanLayout.sebeolsikFinal)
+                    }
+                    .labelsHidden()
+                    .fixedSize()
+                }
                 SeamRow(title: L("English layout"),
-                        detail: L("The layout you type English and romaji on. Korean 2-set stays on its usual keys.")) {
+                        detail: L("The layout you type English and romaji on. Korean stays on its usual keys.")) {
                     Picker(L("English layout"), selection: Binding(get: { model.settings.latinLayout },
                                                                    set: { model.set(\.latinLayout, $0) })) {
                         Text(verbatim: "QWERTY").tag(LatinLayout.qwerty)

@@ -9,10 +9,14 @@ import Foundation
 //   araso-cli --decide < keys_prev.tsv              heuristic verdict for "keys<TAB>previous" lines
 //   araso-cli --type [--japanese] < keys.txt        "keys<TAB>text" after typing keys + Space into a session
 // ARASO_LAYOUT=colemak (or colemakDH): keys are that layout's letters, as settings.json's latinLayout.
+// ARASO_KOREAN_LAYOUT=sebeolsikFinal: Korean is read as 3-set, as settings.json's koreanLayout.
 
 var args = Array(CommandLine.arguments.dropFirst())
 if let name = ProcessInfo.processInfo.environment["ARASO_LAYOUT"], let layout = LatinLayout(rawValue: name) {
     LatinLayout.active = layout
+}
+if let name = ProcessInfo.processInfo.environment["ARASO_KOREAN_LAYOUT"], let layout = KoreanLayout(rawValue: name) {
+    KoreanLayout.active = layout
 }
 
 switch args.first {

@@ -58,16 +58,39 @@ Dvorak puts `'`, `,`, `.` and `;` on the keys of 2-set's ㅂ, ㅈ, ㄷ and ㅋ. 
 would have to end (English punctuation) and keep composing (Korean jamo) at once. Needs a rule
 for trailing punctuation keys: split them off when the word before reads well without them and
 the jamo would leave broken Hangul (안녕. not 안녕ㄷ), with its own evaluation, including common
-cases like `가.` where the jamo makes a valid syllable (갇).
+cases like `가.` where the jamo makes a valid syllable (갇). 3-set's `KoreanLayout.continuesWord`
+is that rule for digits and symbols decided as they are typed; Dvorak's `.` and `,` end sentences
+far more often than 3-set's `!` does, so it would need deciding at the word's end instead.
 
-## 세벌식 최종 (not done)
+## 세벌식 최종 (done)
 
-3-set has separate keys for initial, medial and final jamo, so no 도깨비불, and it types jamo on
-digit and punctuation keys. Needs:
+`settings.json`'s `"koreanLayout"`: `"dubeolsik"` (default) or `"sebeolsikFinal"`; the Languages
+pane's Korean layout menu. `KoreanLayout` mirrors `LatinLayout` (`active`, `$override`, `current`;
+`araso-cli` takes `ARASO_KOREAN_LAYOUT`).
 
-- a `KoreanLayout` setting next to `latinLayout`, and a 3-set composer beside `HangulComposer`
-  (`DubeolsikLayout` becomes one implementation of a layout protocol);
-- the word-boundary rule above, for digits and punctuation that are jamo in Korean;
-- `KoreanModel` divides by the number of keys, and 3-set types more keys per syllable, so the
-  Korean scores and thresholds need retuning;
-- eval.tsv's Korean rows rewritten as 3-set keys (`tools/make_eval.py` has the 2-set table).
+**One way in.** Everything that reads keys as Korean goes through `HangulComposer.compose(keys:)`
+and `DubeolsikLayout`'s statics; with 3-set chosen they answer for `SebeolsikFinal`
+(Sebeolsik.swift), which returns the same `HangulComposer.Result`. The table goes by QWERTY seat,
+so 3-set on Colemak works as 2-set does. The composer fills initial, medial and final in order
+(ㄱㄱ ㄷㄷ ㅂㅂ ㅅㅅ ㅈㅈ double an initial, ㄱㄱ ㅅㅅ a final, vowels combine as on 2-set); there is
+no 도깨비불, so a vowel after a final is a stray jamo. 2-set-only rules stay 2-set's: the lingering
+Shift (on 3-set a shifted letter is a final, or a digit or symbol: ⇧H is 0, so a capital with no
+jamo is English), the 갷/개ㅎ rescoring, and chat jamo, which on 3-set must be one jamo repeated
+(ㅋㅋ, ㅎㅎ; its consonants sit on the right hand's letters, so jun is ㅇㄷㅅ).
+
+**Digits and symbols.** They reach the session as printable keys. `KoreanLayout.continuesWord`
+lets one go on with the word when its jamo fits: a word starts on an initial (ㅂ ;, ㅌ ', ㅋ 0, not
+0 right after a digit), and a vowel or final has to make a syllable the model knows (갔 kf2, 밝
+;f@; not 안녕! or 하세요!, whose ㄲ makes nothing or 욖). Inside a URL or path they stay symbols.
+Keys of digits only never read as Korean (`compose` returns nil): 2026 and 100 are numbers, and so
+are 00 and 55 (ㅋㅋ and ㅠㅠ take a switch key). The shifted keys that type a digit or symbol in
+Korean (⇧H–⇧P, ⇧B, ⇧M, ⇧N) type as on QWERTY.
+
+**Accuracy** (eval.tsv, Korean rows typed again from their reading with `tools/layout_eval.py
+sebeolsikFinal`): 99.40% (English → Korean 10, Korean → English 3, against 2-set's 5 and 4); typed
+through a session, 1,984 of 1,987 Korean rows come out right, the Japanese rows exactly as on
+2-set, and of en_50k's top 20,000 words 64 change (2-set: 128): mr 해, pc 페, mm ㅎㅎ, 2nd 2시.
+
+**Not covered.** Words learned on one Korean layout are learned again on the other (their keys
+differ). 3-set's own symbol layer (· “ ” ※) isn't typed; full-width digits after Japanese don't
+apply to digits that went into a word.

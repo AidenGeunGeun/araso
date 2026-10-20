@@ -167,6 +167,10 @@ runtime.
   Korean reads keys only there. With a layout other than QWERTY, `InputController` takes the letter
   from the key code. Tests switch layouts with `LatinLayout.$override.withValue`, the CLI with
   `ARASO_LAYOUT`; `tools/layout_eval.py` rewrites eval.tsv's Korean rows for a layout.
+  Korean 3-set final (`KoreanLayout`, `koreanLayout`: dubeolsik, sebeolsikFinal) answers through
+  `HangulComposer.compose(keys:)` and `DubeolsikLayout`'s statics, so callers don't branch; its
+  digit and symbol keys arrive as printable and `KoreanLayout.continuesWord` (asked by
+  `InputSession`) keeps them in the word where the jamo fits. `ARASO_KOREAN_LAYOUT` for the CLI.
 - **UI strings:** they go through `L("English key")`, with Korean in
   `Resources/ko.lproj/Localizable.strings`. The input source's name comes from
   `Resources/*.lproj/InfoPlist.strings`.

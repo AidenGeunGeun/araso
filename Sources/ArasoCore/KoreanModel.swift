@@ -154,8 +154,9 @@ public struct KoreanModel: Sendable {
         guard let composition = HangulComposer.compose(keys: keys), !keys.isEmpty else { return nil }
         var total = logProbability(composition, partial: partial)
         // The consonant typed last may have joined the syllable before as its final (개 + ㅎ
-        // shows 갷) while it is the next syllable's first (소개하는): score that reading too.
-        if partial, !composition.isChat, let last = keys.last, DubeolsikLayout.jamo(for: last).map(Jamo.isConsonant) == true,
+        // shows 갷) while it is the next syllable's first (소개하는): score that reading too. Only
+        // on 2-set: 3-set has its own keys for finals.
+        if partial, KoreanLayout.current == .dubeolsik, !composition.isChat, let last = keys.last, DubeolsikLayout.jamo(for: last).map(Jamo.isConsonant) == true,
            case .syllable = composition.units.last,
            let before = HangulComposer.compose(keys: String(keys.dropLast())), before.units.count == composition.units.count,
            case .syllable = before.units.last {
@@ -189,11 +190,13 @@ public struct KoreanModel: Sendable {
 extension HangulComposer.Result {
     /// ㅋㅋ, ㅠㅠ, ㅜㅜ: two or more of the jamo typed on their own in chat. Korean as it is, and
     /// already complete: they don't go on to make syllables.
+    /// On 3-set only the same jamo again (ㅋㅋ, ㅎㅎ): its consonants sit on the right hand's
+    /// letters, so a mix of them is English as often as not (jun is ㅇㄷㅅ, uhh ㄷㄴㄴ).
     public var isChat: Bool {
         units.count >= 2 && units.allSatisfy {
             if case .jamo(let j) = $0 { return KoreanModel.chatJamo.contains(j) }
             return false
-        }
+        } && (KoreanLayout.current == .dubeolsik || Set(units.map(\.character)).count == 1)
     }
 
     /// Two or more loose consonants, or ㅜ/ㅠ: what chat abbreviates to (ㅁㅊ, ㅈㅅ, ㄹㅇ, ㅜㅜ).

@@ -27,7 +27,7 @@
 
 <p align="center">
 Type everything on the English (QWERTY) layout.<br>
-Araso decides <b>per word</b> whether you meant English, Korean (2-set / 두벌식) or, if you turn it on, Japanese (romaji), and commits the right one.
+Araso decides <b>per word</b> whether you meant English, Korean (2-set / 두벌식, or 3-set final / 세벌식 최종) or, if you turn it on, Japanese (romaji), and commits the right one.
 </p>
 
 ```
@@ -340,7 +340,7 @@ The settings window has these panes, and changes apply at once.
 
 | Pane | What's there |
 | --- | --- |
-| Languages | converting words on or off, the English layout (QWERTY, Colemak, Colemak-DH), Japanese input and its options, resetting the kanji candidate order |
+| Languages | converting words on or off, the Korean layout (2-set, 3-set final), the English layout (QWERTY, Colemak, Colemak-DH), Japanese input and its options, resetting the kanji candidate order |
 | Keys | the language switch keys, Return, the pause key |
 | Apps | how sure a word must be to convert (Normal, Strict) and per-app behavior (`apps.json`) |
 | Dictionary | words you added and words learned, in one list (`dictionary.json`): **+** to type keys and pick their reading (English, Korean, Japanese) and app; from a row's ⋯, keep a learned word for good or remove it. A word corrected once shows how long until it's forgotten |
@@ -370,7 +370,8 @@ restart the input method: `pkill -x Araso`.
 | `pauseKey` | `"rightCommand"` | The pause key (see [Pause](#pause)): `"rightCommand"`, `"rightOption"`, `"rightShift"` or `"rightControl"` tapped alone, `"off"`, or a shortcut such as `{ "keyCode": 35, "modifiers": ["control", "option"], "key": "P" }`. The older `"rightCommandPause": false` reads as `"off"`. |
 | `fullWidthDigits` | off | Numbers after Japanese come out full-width (`１２３`, `０３－１２３４` in addresses and phone numbers), underlined, with Space offering `123` (half-width) or conversions like `三月`. |
 | `fullWidthSpace` | off | Space after Japanese types a full-width space (`　`). ⇧Space types the other width (full-width while this is off). |
-| `latinLayout` | `"qwerty"` | The layout English and romaji are typed on; also `"colemak"` or `"colemakDH"`. Korean 2-set stays on its usual keys (QWERTY's letter keys) whatever the layout. Words learned on one layout are learned again on another: their keys differ. |
+| `latinLayout` | `"qwerty"` | The layout English and romaji are typed on; also `"colemak"` or `"colemakDH"`. Korean stays on its usual keys (QWERTY's) whatever the layout. Words learned on one layout are learned again on another: their keys differ. |
+| `koreanLayout` | `"dubeolsik"` | The Korean layout; `"sebeolsikFinal"` is 3-set final (세벌식 최종). Jamo on digit and symbol keys (ㅆ of 갔 on 2, ㅂ of 밥 on ;) read as jamo inside a word where they fit, and as the symbol where they don't (the ! of 안녕!). Digits alone stay a number, so ㅋㅋ (00) and ㅠㅠ (55) take a switch key. Shifted keys that type a digit or symbol in Korean (⇧H 0, ⇧B ?) type as on QWERTY. |
 | `japaneseEngine` | `"apple"` | Kanji conversion: `"apple"` uses the engine of macOS's Japanese input, `"azooKey"` the AzooKey converter in the app. |
 | `checkForUpdates` | on | Once a day, ask GitHub for the latest release's version (nothing else is sent), and say so in the input menu and About when it is newer. |
 
