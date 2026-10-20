@@ -41,7 +41,7 @@ Hello, worldhasaishonopuroguramudesu␣.           →  Hello, worldは最初の
 </p>
 
 <p align="center">
-  <img src="docs/media/demo.gif" width="720" alt="입력 메뉴에서 Araso를 한 번 고른 뒤, 입력 소스를 다시 바꾸지 않고 Safari에 QWERTY로 치는 모습: Stay hungry, stay foolish는 잡스의 말이다. / 吾輩は猫である는 소세키의 소설이다. / Hello, worldは最初のプログラムです。">
+  <img src="docs/media/demo.gif" width="720" alt="입력 메뉴에서 Araso를 한 번 고른 뒤, 입력 소스를 다시 바꾸지 않고 Safari에 QWERTY로 치는 모습. 아래에 누른 키와 단어마다 고른 언어가 함께 나옵니다: Stay hungry, stay foolish는 잡스의 말이다. / 吾輩は猫である는 소세키의 소설이다. / Hello, worldは最初のプログラムです。">
 </p>
 
 ## 한눈에 보기

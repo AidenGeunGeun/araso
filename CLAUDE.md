@@ -25,10 +25,13 @@ printf 'keys\tprevious\n' | swift run araso-cli --decide --japanese   # previous
 printf 'きょうは\n' | swift run araso-cli --convert                    # AzooKey candidates (ARASO_ENGINE=apple: macOS's)
 tools/prepare.sh [--models]                  # held-out accuracy (downloads into tools/data, gitignored)
 scripts/typing-test/run.sh                   # real key events into the settings window's typing pane through the installed app
+scripts/record-demo/record.sh                # the README demo's footage: real typing into Safari through the installed app
+scripts/record-demo/render.sh                # → docs/media/demo.gif and build/demo/web/demo.mp4 + poster (the website's araso/)
 /usr/bin/log show --last 10m --predicate 'subsystem == "com.nyttastudio.inputmethod.Araso"' --info --debug
 ```
 
-- `scripts/typing-test/run.sh` takes over the keyboard and focus for about a minute. Don't run it
+- `scripts/typing-test/run.sh` and `scripts/record-demo/record.sh` take over the keyboard, pointer
+  and focus for about a minute; record.sh also records the whole screen. Don't run them
   while the user is using the machine.
 - Use `/usr/bin/log`, not `log`: zsh's builtin `log` shadows it and prints nothing.
 - A change only reaches real typing after `scripts/install.sh`. A copy started with `open` or from

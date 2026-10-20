@@ -1,0 +1,5 @@
+# Made by ../render.sh from the footage, and by the HyperFrames CLI.
+assets/
+renders/
+snapshots/
+.hyperframes/

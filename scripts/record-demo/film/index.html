@@ -1,0 +1,221 @@
+<!doctype html>
+<!-- The README demo. Everything on screen that moves inside a window is the real recording
+     (assets/, made by ../render.sh from record.sh's footage): the input menu switched to
+     Araso once, then three mixed-language lines typed with no further switch. The film adds
+     the keys that were pressed and which language each word came out in. -->
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1440, height=900" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script src="assets/keys.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1440px; height: 900px; overflow: hidden; background: #0b0b0d; }
+      #root {
+        position: relative; width: 100%; height: 100%; overflow: hidden; background: #0b0b0d;
+        font-family: system-ui, -apple-system, sans-serif; color: #f5f5f7;
+      }
+
+      /* Scene 1: the menu bar around the input menu, and the menu it opens. */
+      #menu-group {
+        position: absolute; left: 295px; top: 90px; width: 680px; height: 600px;
+        transform-origin: 0 0;
+      }
+      .menu-layer { position: absolute; inset: 0; }
+      .menu-layer video { position: absolute; left: 0; top: 0; width: 680px; height: 600px; }
+      #menu-strip { clip-path: inset(0 0 526px 0 round 18px); }
+      #menu-drop { clip-path: inset(86px 128px 44px 115px round 24px); opacity: 0; }
+      #menu-ring {
+        position: absolute; left: 118px; top: 7px; width: 100px; height: 62px; border-radius: 30px;
+        border: 3px solid #64d2ff; opacity: 0;
+      }
+
+      /* Scene 2: the page, with the keys below it. */
+      #page-card {
+        position: absolute; left: 160px; top: 68px; width: 1120px; height: 625px;
+        border-radius: 22px; overflow: hidden; background: #161618;
+        box-shadow: 0 0 0 1px #2c2c30, 0 30px 80px rgba(0, 0, 0, 0.55);
+      }
+      #page-video { position: absolute; left: 0; top: 0; width: 1120px; height: 625px; }
+
+
+      #keys {
+        position: absolute; left: 0; top: 712px; width: 1440px; height: 140px; overflow: hidden;
+        -webkit-mask-image: linear-gradient(90deg, transparent 40px, #000 150px, #000 1290px, transparent 1400px);
+        mask-image: linear-gradient(90deg, transparent 40px, #000 150px, #000 1290px, transparent 1400px);
+      }
+      #track { position: absolute; left: 0; top: 0; height: 140px; }
+      .key {
+        position: absolute; top: 0; height: 64px; border-radius: 12px; display: grid;
+        place-items: center; font: 500 30px/1 system-ui, sans-serif; color: #e5e5ea;
+        background: #232327; box-shadow: inset 0 -3px 0 #18181b, 0 0 0 1px #34343a; opacity: 0;
+      }
+      .tag {
+        position: absolute; top: 76px; height: 44px; padding: 0 16px; border-radius: 22px;
+        display: grid; place-items: center; font: 600 26px/1 system-ui, sans-serif; opacity: 0;
+        white-space: nowrap;
+      }
+      .tag.en { color: #64d2ff; background: rgba(100, 210, 255, 0.14); }
+      .tag.ko { color: #30d158; background: rgba(48, 209, 88, 0.14); }
+      .tag.ja { color: #ff6482; background: rgba(255, 100, 130, 0.14); }
+      .tag.mix { color: #f5f5f7; background: rgba(245, 245, 247, 0.1); }
+
+      /* Close: the logo and the tagline from the README. */
+      #lockup {
+        position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center;
+        justify-content: center; gap: 26px;
+      }
+      #logo { width: 200px; height: 160px; display: block; }
+      #wordmark { font: 700 64px/1 system-ui, sans-serif; letter-spacing: -0.02em; }
+      #tagline { font: 500 30px/1.2 system-ui, sans-serif; color: #a1a1a6; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="33.5" data-width="1440" data-height="900">
+      <!-- Scene 1 -->
+      <div id="menu-scene">
+        <div id="menu-group">
+          <div class="menu-layer" id="menu-strip">
+            <video id="menu-video-strip" src="assets/menu.mp4" muted playsinline data-start="0.3" data-duration="6.4" data-track-index="1"></video>
+          </div>
+          <div class="menu-layer" id="menu-drop">
+            <video id="menu-video-drop" src="assets/menu.mp4" muted playsinline data-start="2.8" data-media-start="2.5" data-duration="2.4" data-track-index="2"></video>
+          </div>
+          <div id="menu-ring"></div>
+        </div>
+      </div>
+
+      <!-- Scene 2 -->
+      <div id="page-card">
+        <video id="page-video" src="assets/page.mp4" muted playsinline data-start="6.2" data-duration="24" data-track-index="4"></video>
+      </div>
+      <div id="keys">
+        <div id="track" data-layout-allow-overflow></div>
+      </div>
+
+      <!-- Close -->
+      <div id="lockup" class="clip" data-start="29.6" data-duration="3.9" data-track-index="8">
+        <svg id="logo" viewBox="0 0 200 160" role="img" aria-label="Araso">
+<defs><clipPath id="logo-r0"><path d="M0.0 0.00 L200.0 0.00 L200.0 61.87 L195.0 62.86 L190.0 63.75 L185.0 64.46 L180.0 64.91 L175.0 65.07 L170.0 64.91 L165.0 64.46 L160.0 63.75 L155.0 62.86 L150.0 61.87 L145.0 60.88 L140.0 59.99 L135.0 59.28 L130.0 58.82 L125.0 58.67 L120.0 58.82 L115.0 59.28 L110.0 59.99 L105.0 60.88 L100.0 61.87 L95.0 62.86 L90.0 63.75 L85.0 64.46 L80.0 64.91 L75.0 65.07 L70.0 64.91 L65.0 64.46 L60.0 63.75 L55.0 62.86 L50.0 61.87 L45.0 60.88 L40.0 59.99 L35.0 59.28 L30.0 58.82 L25.0 58.67 L20.0 58.82 L15.0 59.28 L10.0 59.99 L5.0 60.88 L0.0 61.87Z"/></clipPath><clipPath id="logo-r1"><path d="M0.0 66.67 L5.0 65.68 L10.0 64.79 L15.0 64.08 L20.0 63.62 L25.0 63.47 L30.0 63.62 L35.0 64.08 L40.0 64.79 L45.0 65.68 L50.0 66.67 L55.0 67.66 L60.0 68.55 L65.0 69.26 L70.0 69.71 L75.0 69.87 L80.0 69.71 L85.0 69.26 L90.0 68.55 L95.0 67.66 L100.0 66.67 L105.0 65.68 L110.0 64.79 L115.0 64.08 L120.0 63.62 L125.0 63.47 L130.0 63.62 L135.0 64.08 L140.0 64.79 L145.0 65.68 L150.0 66.67 L155.0 67.66 L160.0 68.55 L165.0 69.26 L170.0 69.71 L175.0 69.87 L180.0 69.71 L185.0 69.26 L190.0 68.55 L195.0 67.66 L200.0 66.67 L200.0 96.53 L195.0 97.52 L190.0 98.41 L185.0 99.12 L180.0 99.58 L175.0 99.73 L170.0 99.58 L165.0 99.12 L160.0 98.41 L155.0 97.52 L150.0 96.53 L145.0 95.54 L140.0 94.65 L135.0 93.94 L130.0 93.49 L125.0 93.33 L120.0 93.49 L115.0 93.94 L110.0 94.65 L105.0 95.54 L100.0 96.53 L95.0 97.52 L90.0 98.41 L85.0 99.12 L80.0 99.58 L75.0 99.73 L70.0 99.58 L65.0 99.12 L60.0 98.41 L55.0 97.52 L50.0 96.53 L45.0 95.54 L40.0 94.65 L35.0 93.94 L30.0 93.49 L25.0 93.33 L20.0 93.49 L15.0 93.94 L10.0 94.65 L5.0 95.54 L0.0 96.53Z"/></clipPath><clipPath id="logo-r2"><path d="M0.0 101.33 L5.0 100.34 L10.0 99.45 L15.0 98.74 L20.0 98.29 L25.0 98.13 L30.0 98.29 L35.0 98.74 L40.0 99.45 L45.0 100.34 L50.0 101.33 L55.0 102.32 L60.0 103.21 L65.0 103.92 L70.0 104.38 L75.0 104.53 L80.0 104.38 L85.0 103.92 L90.0 103.21 L95.0 102.32 L100.0 101.33 L105.0 100.34 L110.0 99.45 L115.0 98.74 L120.0 98.29 L125.0 98.13 L130.0 98.29 L135.0 98.74 L140.0 99.45 L145.0 100.34 L150.0 101.33 L155.0 102.32 L160.0 103.21 L165.0 103.92 L170.0 104.38 L175.0 104.53 L180.0 104.38 L185.0 103.92 L190.0 103.21 L195.0 102.32 L200.0 101.33 L200.0 160.00 L0.0 160.00Z"/></clipPath></defs>
+<rect width="200" height="160" rx="44" fill="#f5f5f7"/>
+<g fill="#0d1117">
+<g class="logo-glyph" id="logo-a"><path d="M75.73 117.20Q71.42 117.20 68.92 114.85Q66.42 112.50 66.42 108.43Q66.42 105.87 67.70 102.42L85.51 53.53Q87.51 48.01 90.94 45.41Q94.37 42.80 99.74 42.80Q105.42 42.80 108.90 45.34Q112.38 47.88 114.44 53.52L132.38 102.42Q133.58 105.71 133.58 108.39Q133.58 112.23 130.99 114.71Q128.39 117.20 124.42 117.20Q120.43 117.20 118.18 115.24Q115.93 113.29 114.75 108.86L112.28 100.89L87.59 100.89L85.14 108.59Q83.84 113.18 81.63 115.19Q79.42 117.20 75.73 117.20ZM91.26 87.01L108.28 87.01L99.83 59.23L99.45 59.23Z"/></g>
+<g class="logo-glyph" id="logo-ah"><path d="M92.75 73.28C92.75 85.76 88.72 91.33 83.82 91.33C79.02 91.33 75.18 85.76 75.18 73.28C75.18 60.90 79.02 55.33 83.82 55.33C88.72 55.33 92.75 60.90 92.75 73.28ZM60.21 73.28C60.21 91.42 69.23 104.86 83.82 104.86C98.61 104.86 107.34 91.33 107.34 73.28C107.34 55.14 98.61 41.70 83.82 41.70C69.23 41.70 60.21 55.23 60.21 73.28ZM129.23 36.80L114.16 36.80L114.16 123.20L129.23 123.20L129.23 80.77L139.79 80.77L139.79 68.48L129.23 68.48Z"/></g>
+<g class="logo-glyph" id="logo-a-kana"><path d="M65.92 62.18C67.07 62.01 67.78 62.01 68.31 62.01C68.49 62.01 69.02 62.01 69.91 62.01C71.59 62.09 73.01 62.09 74.16 62.18C78.95 62.36 79.57 62.36 81.25 62.36C83.02 62.36 83.02 62.36 83.73 62.36C83.56 66.08 83.47 69.19 83.47 71.67C78.15 73.97 74.78 76.10 71.32 79.65C65.56 85.32 62.46 92.41 62.46 99.86C62.46 109.78 68.58 116.52 77.62 116.52C85.15 116.52 92.69 112.53 101.02 104.11C107.84 97.29 112.19 90.81 116.89 80.62C122.29 83.10 124.69 86.29 124.69 91.17C124.69 97.02 120.88 101.81 114.05 104.55C109.53 106.33 105.01 107.12 98.27 107.12C101.29 112.35 102.17 114.57 103.59 119.53C112.19 118.38 117.15 117.23 121.58 115.19C131.87 110.40 137.54 102.16 137.54 91.97C137.54 85.05 134.97 79.65 129.65 75.30C126.73 72.91 124.16 71.67 120.52 70.60C120.88 69.89 120.88 69.89 121.50 68.12C122.38 65.91 122.38 65.91 122.65 65.29L110.68 61.92C110.42 63.87 110.06 65.29 109.17 68.12C107.76 67.94 106.96 67.86 106.07 67.86C101.46 67.86 99.25 68.03 94.99 68.92C94.99 67.24 94.99 66.35 95.08 65.29C95.26 63.16 95.26 63.16 95.26 62.01C102.88 61.83 117.06 60.50 126.28 59.17C128.23 58.90 128.68 58.81 130.01 58.73L129.39 46.58C122.03 48.80 110.86 50.30 96.06 51.19C96.50 45.25 96.76 43.39 97.47 41.09L84.53 40.47C84.62 41.35 84.62 41.44 84.62 42.77C84.62 45.25 84.62 45.43 84.53 46.94C84.27 50.22 84.27 50.22 84.18 51.55C82.49 51.55 82.40 51.55 82.23 51.55C75.22 51.55 71.06 51.19 65.83 50.30ZM83.65 83.72C83.73 90.37 84.09 95.60 85.15 102.07C82.85 103.84 80.90 104.64 78.77 104.64C75.93 104.64 74.34 102.43 74.34 98.70C74.34 93.03 77.71 87.71 83.65 83.72ZM94.81 79.29C97.39 78.32 100.31 77.87 103.24 77.87C104.83 77.87 104.83 77.87 105.72 78.05C103.06 84.08 100.93 87.45 95.52 94.09C95.08 89.48 94.90 86.03 94.81 79.29Z"/></g>
+<g class="logo-glyph" id="logo-seam"><path clip-path="url(#logo-r0)" d="M67.97 129.10Q62.27 129.10 58.97 126.00Q55.67 122.90 55.67 117.53Q55.67 114.14 57.36 109.59L80.87 45.07Q83.51 37.77 88.04 34.34Q92.56 30.90 99.65 30.90Q107.15 30.90 111.75 34.25Q116.34 37.61 119.06 45.05L142.74 109.59Q144.33 113.94 144.33 117.48Q144.33 122.55 140.90 125.82Q137.48 129.10 132.23 129.10Q126.96 129.10 124.00 126.52Q121.03 123.94 119.47 118.09L116.21 107.57L83.62 107.57L80.38 117.74Q78.67 123.79 75.75 126.45Q72.83 129.10 67.97 129.10ZM88.46 89.25L110.93 89.25L99.77 52.58L99.27 52.58Z"/><path clip-path="url(#logo-r1)" d="M90.43 71.13C90.43 87.60 85.11 94.95 78.65 94.95C72.31 94.95 67.24 87.60 67.24 71.13C67.24 54.78 72.31 47.43 78.65 47.43C85.11 47.43 90.43 54.78 90.43 71.13ZM47.47 71.13C47.47 95.08 59.39 112.82 78.65 112.82C98.16 112.82 109.69 94.95 109.69 71.13C109.69 47.18 98.16 29.44 78.65 29.44C59.39 29.44 47.47 47.31 47.47 71.13ZM138.59 22.98L118.69 22.98L118.69 137.02L138.59 137.02L138.59 81.01L152.53 81.01L152.53 64.79L138.59 64.79Z"/><path clip-path="url(#logo-r2)" d="M55.01 56.48C56.53 56.25 57.47 56.25 58.17 56.25C58.40 56.25 59.11 56.25 60.28 56.25C62.50 56.36 64.37 56.36 65.89 56.48C72.21 56.72 73.03 56.72 75.25 56.72C77.59 56.72 77.59 56.72 78.53 56.72C78.29 61.63 78.18 65.72 78.18 69.00C71.16 72.04 66.71 74.85 62.15 79.53C54.54 87.02 50.45 96.38 50.45 106.21C50.45 119.31 58.52 128.21 70.46 128.21C80.40 128.21 90.35 122.94 101.35 111.83C110.36 102.82 116.09 94.28 122.29 80.82C129.43 84.10 132.59 88.31 132.59 94.74C132.59 102.47 127.56 108.78 118.55 112.41C112.58 114.75 106.61 115.80 97.72 115.80C101.70 122.71 102.87 125.63 104.74 132.19C116.09 130.66 122.64 129.14 128.49 126.45C142.06 120.13 149.55 109.25 149.55 95.80C149.55 86.67 146.16 79.53 139.14 73.80C135.28 70.64 131.88 69.00 127.09 67.60C127.56 66.66 127.56 66.66 128.37 64.32C129.54 61.40 129.54 61.40 129.90 60.58L114.10 56.13C113.75 58.70 113.28 60.58 112.11 64.32C110.24 64.09 109.19 63.97 108.02 63.97C101.93 63.97 99.01 64.20 93.39 65.37C93.39 63.15 93.39 61.98 93.51 60.58C93.74 57.77 93.74 57.77 93.74 56.25C103.80 56.01 122.52 54.26 134.69 52.50C137.27 52.15 137.85 52.04 139.61 51.92L138.79 35.89C129.08 38.81 114.33 40.80 94.79 41.97C95.38 34.13 95.73 31.68 96.67 28.63L79.58 27.81C79.70 28.98 79.70 29.10 79.70 30.86C79.70 34.13 79.70 34.37 79.58 36.36C79.23 40.69 79.23 40.69 79.11 42.44C76.89 42.44 76.77 42.44 76.54 42.44C67.30 42.44 61.80 41.97 54.89 40.80ZM78.41 84.91C78.53 93.69 79.00 100.59 80.40 109.14C77.36 111.48 74.78 112.53 71.98 112.53C68.23 112.53 66.13 109.60 66.13 104.69C66.13 97.20 70.57 90.18 78.41 84.91ZM93.16 79.06C96.55 77.78 100.41 77.19 104.27 77.19C106.38 77.19 106.38 77.19 107.55 77.43C104.04 85.38 101.23 89.83 94.09 98.60C93.51 92.52 93.27 87.96 93.16 79.06Z"/></g>
+</g>
+</svg>
+        <div id="wordmark">Araso</div>
+        <div id="tagline">흐름대로 써진다 · 流れるままに · Type as it flows</div>
+      </div>
+    </div>
+    <script>
+      // Film time = page clip time + PAGE (the page clip starts at 6.2 s).
+      const PAGE = 6.2;
+      const keys = window.DEMO_KEYS;
+      // What each word came out as, in order (the words are the runs of letters in keys.js).
+      const languages = ["en", "en", "en", "en+ko", "ko", "ko", "ja", "ko", "ko", "ko", "en", "en+ja"];
+      const labels = { en: "EN", ko: "한", ja: "あ", "en+ko": "EN + 한", "en+ja": "EN + あ" };
+
+      // Lay out a keycap per key and a tag under each word.
+      const track = document.getElementById("track");
+      const caps = [], tags = [];
+      let x = 0, word = null, words = 0;
+      const glyph = { " ": "", "⏎": "⏎" };
+      keys.forEach((key, i) => {
+        const letter = /[A-Za-z]/.test(key.k);
+        const width = key.k === " " ? 140 : key.k === "⏎" ? 88 : 54;
+        const el = document.createElement("div");
+        el.className = "key";
+        el.textContent = key.k in glyph ? glyph[key.k] : key.k;
+        el.style.left = x + "px";
+        el.style.width = width + "px";
+        track.appendChild(el);
+        caps.push({ el, x, width, t: key.t });
+        if (letter && !word) word = {};
+        if (!letter && word) {
+          const lang = languages[words++];
+          const tag = document.createElement("div");
+          tag.className = "tag " + (lang.includes("+") ? "mix" : lang);
+          tag.textContent = labels[lang];
+          tag.style.left = x - 6 + "px"; // right edge at the word's last letter
+          track.appendChild(tag);
+          tags.push({ el: tag, t: key.t });
+          word = null;
+        }
+        x += width + 6;
+      });
+
+      // Keys fill the strip from LEFT; when one would pass RIGHT, the strip slides in one move to
+      // put it at MID (few moving frames, which keeps the GIF small).
+      const LEFT = 160, RIGHT = 1280, MID = 400, SLIDE = 0.2;
+      const slides = [];
+      let offset = LEFT;
+      for (const cap of caps) {
+        if (cap.x + cap.width + offset > RIGHT) {
+          const to = MID - (cap.x + cap.width);
+          slides.push({ t: cap.t - 0.02, from: offset, to });
+          offset = to;
+        }
+      }
+      function render(t) {
+        let pos = LEFT;
+        for (const slide of slides) {
+          if (slide.t > t) break;
+          const p = Math.min(1, (t - slide.t) / SLIDE);
+          pos = slide.from + (slide.to - slide.from) * (1 - Math.pow(1 - p, 3));
+        }
+        track.style.transform = `translateX(${pos}px)`;
+        // A key shows up the moment it's pressed (each change costs GIF bytes, so nothing more).
+        for (const cap of caps) cap.el.style.opacity = t >= cap.t ? 1 : 0;
+        for (const tag of tags) {
+          const p = Math.min(1, Math.max(0, (t - tag.t - 0.05) / 0.2));
+          const e = 1 - Math.pow(1 - p, 3);
+          tag.el.style.opacity = e;
+          tag.el.style.transform = "translateX(-100%)";
+        }
+      }
+
+      gsap.set(["#page-card", "#keys"], { opacity: 0 });
+      const tl = gsap.timeline({ paused: true });
+
+      // Scene 1: the menu bar, a ring on the input menu, the menu (shown while it's open in the
+      // footage: 2.67–4.7 s of the clip, which starts at 0.3 s).
+      tl.fromTo("#menu-group", { opacity: 0, y: 24, scale: 1.25 }, { opacity: 1, y: 0, scale: 1.25, duration: 0.6, ease: "power3.out" }, 0);
+      tl.fromTo("#menu-ring", { opacity: 0, scale: 1.25 }, { opacity: 1, scale: 1, duration: 0.45, ease: "power2.out" }, 1.0);
+      tl.to("#menu-ring", { opacity: 0, duration: 0.3 }, 2.7);
+      tl.set("#menu-drop", { opacity: 1 }, 2.97);
+      tl.to("#menu-drop", { opacity: 0, duration: 0.1 }, 4.95);
+      tl.fromTo("#menu-ring", { opacity: 0, scale: 1.25 }, { opacity: 1, scale: 1, duration: 0.4, ease: "power2.out", immediateRender: false }, 5.15);
+      // The menu bar steps back as the page comes up.
+      tl.to("#menu-ring", { opacity: 0, duration: 0.3 }, 5.6);
+      tl.to("#menu-group", { opacity: 0, y: -30, duration: 0.45, ease: "power2.in" }, 5.75);
+
+      // Scene 2.
+      tl.fromTo("#keys", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 6.6);
+      tl.fromTo("#page-card", { opacity: 0, y: 40, scale: 0.97 }, { opacity: 1, y: 0, scale: 1, duration: 0.7, ease: "power3.out" }, 6.2);
+      const driver = { t: 0 };
+      tl.fromTo(driver, { t: 0 }, { t: 33.5 - PAGE, duration: 33.5 - PAGE, ease: "none", onUpdate: () => render(driver.t) }, PAGE);
+      render(0);
+
+      // Close.
+      tl.to(["#page-card", "#keys"], { opacity: 0, duration: 0.3, ease: "power1.in" }, 29.2);
+      tl.fromTo("#lockup", { opacity: 0 }, { opacity: 1, duration: 0.01 }, 29.6);
+      tl.fromTo("#logo", { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.6, ease: "back.out(1.6)" }, 29.6);
+      tl.fromTo("#wordmark", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 29.85);
+      tl.fromTo("#tagline", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 30.05);
+      // The logo's glyph: A → 아 → あ → the seamed A, as in the README's logo.
+      const glyphs = ["#logo-a", "#logo-ah", "#logo-a-kana", "#logo-seam"];
+      gsap.set(glyphs.slice(1), { opacity: 0 });
+      glyphs.slice(1).forEach((g, i) => {
+        const at = 30.3 + i * 0.55;
+        tl.to(glyphs[i], { opacity: 0, duration: 0.2, ease: "sine.inOut" }, at);
+        tl.fromTo(g, { opacity: 0 }, { opacity: 1, duration: 0.2, ease: "sine.inOut" }, at + 0.1);
+      });
+
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>
