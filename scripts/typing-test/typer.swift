@@ -21,7 +21,7 @@ let keyCodes: [Character: (CGKeyCode, Bool)] = {
     let digits: [Character: CGKeyCode] = ["1": 18, "2": 19, "3": 20, "4": 21, "6": 22, "5": 23, "9": 25, "7": 26, "8": 28, "0": 29]
     for (c, k) in digits { m[c] = (k, false) }
     m[" "] = (49, false); m[","] = (43, false); m["."] = (47, false); m["/"] = (44, false); m["?"] = (44, true)
-    m["!"] = (18, true); m["-"] = (27, false); m["'"] = (39, false)
+    m["!"] = (18, true); m["-"] = (27, false); m["'"] = (39, false); m[";"] = (41, false)
     m["@"] = (19, true); m["_"] = (27, true); m["("] = (25, true); m[")"] = (29, true)
     m["⏎"] = (36, false); m["⎋"] = (53, false); m["⇧"] = (53, true); m["⌫"] = (51, false)
     m["←"] = (123, false); m["→"] = (124, false)

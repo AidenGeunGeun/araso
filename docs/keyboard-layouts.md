@@ -47,8 +47,10 @@ collisions; Colemak's are a different set of about the same size. A word that ke
 wrong is fixed the usual way: switched twice, the dictionary keeps it.
 
 **What doesn't carry over.** The dictionary stores keys as typed, so words learned on one layout
-don't match on another (their keys differ). Typing tests (`scripts/typing-test`) post QWERTY key
-codes and run on QWERTY.
+don't match on another (their keys differ).
+
+**Typing test.** `scripts/typing-test/colemak.tsv` runs on Colemak through the installed app; its
+scripts are the QWERTY keys pressed (`hkuu;` for hello), so the key-code path is covered too.
 
 ## Dvorak (not done)
 
