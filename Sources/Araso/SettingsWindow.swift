@@ -25,7 +25,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
     /// One line under the pane's title: what it's for.
     var subtitle: String {
         switch self {
-        case .general: return L("Which languages each word is decided between, and how Japanese types.")
+        case .general: return L("Which languages each word is decided between, the layouts they are typed on, and how Japanese types.")
         case .keys: return L("The keys that change a word's language, and a few more.")
         case .apps: return L("How sure a word must be to convert, and apps that work differently.")
         case .learning: return L("Keys that always come out one way.")
@@ -580,40 +580,44 @@ private struct GeneralPane: View {
                               detail: L("Off: keys go to the app as typed, as with the ABC layout. Apps can differ, under Apps."),
                               isOn: Binding(get: { model.defaultPolicy.enabled },
                                             set: { value in model.setDefault { $0.enabled = value } }))
-                // One row per language, each with the layout it is typed on: every key is read by
-                // each language through its own layout.
-                SeamRow(title: L("Korean"),
-                        detail: L("Always on. 3-set types jamo on the digit and symbol keys too; a number on its own stays a number.")) {
-                    Picker(L("Korean layout"), selection: Binding(get: { model.settings.koreanLayout },
-                                                                  set: { model.set(\.koreanLayout, $0) })) {
+                SeamRow(title: L("Korean · English")) {
+                    Text(L("Always on")).font(.system(size: 13)).foregroundStyle(Seam.ink3)
+                }
+                SeamToggleRow(title: L("Japanese"),
+                              detail: L("Type Japanese with romaji; Space converts to kanji."),
+                              isOn: binding(\.japanese))
+            }
+            // The layouts together: each language reads every key through its own.
+            SeamCard(title: L("Layouts")) {
+                SeamRow(title: L("Hangul"),
+                        detail: L("3-set types jamo on the digit and symbol keys too; a number on its own stays a number.")) {
+                    Picker(L("Hangul"), selection: Binding(get: { model.settings.koreanLayout },
+                                                           set: { model.set(\.koreanLayout, $0) })) {
                         Text(L("2-set")).tag(KoreanLayout.dubeolsik)
                         Text(L("3-set final")).tag(KoreanLayout.sebeolsikFinal)
                     }
                     .labelsHidden()
                     .fixedSize()
                 }
-                SeamRow(title: L("English"), detail: L("Always on.")) {
-                    Picker(L("English layout"), selection: Binding(get: { model.settings.latinLayout },
-                                                                   set: { model.set(\.latinLayout, $0) })) {
+                SeamRow(title: L("English letters")) {
+                    Picker(L("English letters"), selection: Binding(get: { model.settings.latinLayout },
+                                                                    set: { model.set(\.latinLayout, $0) })) {
                         ForEach(LatinLayout.allCases, id: \.self) { Text(verbatim: $0.name).tag($0) }
                     }
                     .labelsHidden()
                     .fixedSize()
                 }
-                SeamToggleRow(title: L("Japanese"),
-                              detail: L("Type Japanese with romaji; Space converts to kanji."),
-                              isOn: binding(\.japanese))
-                if model.settings.japanese {
-                    SeamRow(title: L("Romaji layout")) {
-                        Picker(L("Romaji layout"), selection: Binding(get: { model.settings.japaneseLayout },
-                                                                      set: { model.set(\.japaneseLayout, $0) })) {
-                            Text(String(format: L("Same as English (%@)"), model.settings.latinLayout.name))
-                                .tag(LatinLayout?.none)
-                            ForEach(LatinLayout.allCases, id: \.self) { Text(verbatim: $0.name).tag(LatinLayout?.some($0)) }
-                        }
-                        .labelsHidden()
-                        .fixedSize()
+                SeamRow(title: L("Romaji"),
+                        detail: model.settings.japanese ? nil : L("Used with Japanese on.")) {
+                    Picker(L("Romaji"), selection: Binding(get: { model.settings.japaneseLayout },
+                                                           set: { model.set(\.japaneseLayout, $0) })) {
+                        Text(String(format: L("Same as English (%@)"), model.settings.latinLayout.name))
+                            .tag(LatinLayout?.none)
+                        ForEach(LatinLayout.allCases, id: \.self) { Text(verbatim: $0.name).tag(LatinLayout?.some($0)) }
                     }
+                    .labelsHidden()
+                    .fixedSize()
+                    .disabled(!model.settings.japanese)
                 }
             }
             if model.settings.japanese {

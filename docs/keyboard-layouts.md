@@ -31,7 +31,7 @@ for its own task with `LatinLayout.$override.withValue(.colemak) { … }`; `aras
 `ARASO_LAYOUT=colemak`.
 
 **Romaji can have its own layout.** `settings.json`'s `"japaneseLayout"` (absent: English's);
-the Languages pane's Romaji layout menu, under Japanese. Keys stay English's letters, and
+the Romaji menu of the Languages pane's Layouts card (with Hangul and English). Keys stay English's letters, and
 `RomajiComposer.compose`, which every Japanese reading goes through, first turns each into
 romaji's letter on the same key (`LatinLayout.romajiKeys`), as 2-set looks through to the key. A
 key romaji's layout has a letter on is part of a word (`isLetterSeat`): QWERTY's `;` when romaji is

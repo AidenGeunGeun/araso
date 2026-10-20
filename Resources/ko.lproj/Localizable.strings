@@ -202,7 +202,7 @@
 "Save" = "저장";
 
 /* 설정 창: 탭 머리 */
-"Which languages each word is decided between, and how Japanese types." = "단어마다 어느 언어로 판단할지, 일본어는 어떻게 칠지 정합니다.";
+"Which languages each word is decided between, the layouts they are typed on, and how Japanese types." = "단어마다 어느 언어로 판단할지, 어느 자판으로 칠지, 일본어는 어떻게 칠지 정합니다.";
 "The keys that change a word's language, and a few more." = "단어의 언어를 바꾸는 키와 그 밖의 키를 정합니다.";
 "How sure a word must be to convert, and apps that work differently." = "얼마나 확실해야 바꿀지, 다르게 동작할 앱을 정합니다.";
 "Keys that always come out one way." = "늘 같은 글자로 나오는 키입니다.";
@@ -244,11 +244,14 @@
 "MIT, with open source notices for the data it uses." = "MIT 라이선스입니다. 쓰는 데이터의 오픈 소스 고지도 함께 있습니다.";
 "Open Notices" = "고지 열기";
 "Update" = "업데이트";
-"English layout" = "영문 자판";
-"Korean layout" = "한글 자판";
-"Always on. 3-set types jamo on the digit and symbol keys too; a number on its own stays a number." = "항상 켜져 있습니다. 세벌식은 숫자·기호 키로도 자모를 칩니다. 숫자만 친 것은 숫자로 둡니다.";
-"Always on." = "항상 켜져 있습니다.";
-"Romaji layout" = "로마자 자판";
-"Same as English (%@)" = "영어와 같게 (%@)";
+"Korean · English" = "한국어 · 영어";
+"Always on" = "항상 켜짐";
+"Layouts" = "자판";
+"Hangul" = "한글";
+"English letters" = "영문";
+"Romaji" = "로마자";
+"Used with Japanese on." = "일본어를 켜면 씁니다.";
+"3-set types jamo on the digit and symbol keys too; a number on its own stays a number." = "세벌식은 숫자·기호 키로도 자모를 칩니다. 숫자만 친 것은 숫자로 둡니다.";
+"Same as English (%@)" = "영문과 같게 (%@)";
 "2-set" = "두벌식";
 "3-set final" = "세벌식 최종";
