@@ -400,21 +400,50 @@ struct SeamMark: View {
     }
 
     /// Each letter shows only in its own row of the letters' height, with a thin gap between rows.
+    /// The seams are gentle waves, as in the README logo (`make-readme-logo.swift`).
     private var joinedMark: some View {
         // Letters grown so their outlines fill the rows, as in the menu-bar icon.
         let band = height * 0.62, gap = height * 0.03, grow: CGFloat = 1.32
         let row = (band - gap * CGFloat(letters.count - 1)) / CGFloat(letters.count)
+        let last = letters.count - 1
         return ZStack {
             ForEach(Array(letters.enumerated()), id: \.offset) { i, item in
+                let top = height / 2 - band / 2 + CGFloat(i) * (row + gap) + height * 0.01
                 letter(item)
                     .scaleEffect(grow)
                     .frame(width: height * 1.25, height: height)
-                    .mask {
-                        Rectangle()
-                            .frame(height: row)
-                            .offset(y: -band / 2 + row / 2 + CGFloat(i) * (row + gap) + height * 0.01)
-                    }
+                    .mask { WaveRow(top: i == 0 ? nil : top, bottom: i == last ? nil : top + row) }
             }
+        }
+    }
+
+    /// One row of the joined mark: the band between two wavy seams, or the edge of the plate
+    /// where a side has none. Amplitude 2% of the height, a wavelength of half the width.
+    private struct WaveRow: Shape {
+        let top: CGFloat?, bottom: CGFloat?
+
+        func path(in rect: CGRect) -> Path {
+            let amplitude = rect.height * 0.02, wavelength = rect.width * 0.5
+            func y(_ seam: CGFloat, _ x: CGFloat) -> CGFloat {
+                seam + amplitude * sin(2 * .pi * (x - rect.width / 4) / wavelength)
+            }
+            let xs = Array(stride(from: rect.minX, through: rect.maxX, by: max(rect.width / 40, 0.5)))
+            var path = Path()
+            if let top {
+                path.move(to: CGPoint(x: xs[0], y: y(top, xs[0])))
+                for x in xs.dropFirst() { path.addLine(to: CGPoint(x: x, y: y(top, x))) }
+            } else {
+                path.move(to: CGPoint(x: rect.minX, y: rect.minY))
+                path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
+            }
+            if let bottom {
+                for x in xs.reversed() { path.addLine(to: CGPoint(x: x, y: y(bottom, x))) }
+            } else {
+                path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+                path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
+            }
+            path.closeSubpath()
+            return path
         }
     }
 
