@@ -246,3 +246,5 @@
 "MIT, with open source notices for the data it uses." = "MIT 라이선스입니다. 쓰는 데이터의 오픈 소스 고지도 함께 있습니다.";
 "Open Notices" = "고지 열기";
 "Update" = "업데이트";
+"English layout" = "영문 자판";
+"The layout you type English and romaji on. Korean 2-set stays on its usual keys." = "영어와 일본어 로마자를 치는 자판입니다. 한글 두벌식은 자판과 상관없이 늘 같은 자리에 있습니다.";

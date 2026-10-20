@@ -254,6 +254,16 @@ final class InputController: IMKInputController {
         case KeyCode.up: return .up
         default: break
         }
+        // On another English layout the letter comes from the key, not from whatever layout macOS
+        // hands the input method: the setting decides. Colemak's ; (on the p key, 2-set's ㅔ) is
+        // part of a word too.
+        let layout = LatinLayout.current
+        if layout != .qwerty, let ch = layout.character(keyCode: event.keyCode,
+                                                        shift: event.modifierFlags.contains(.shift),
+                                                        capsLock: event.modifierFlags.contains(.capsLock)),
+           ch.isLetter || layout.isLetterSeat(ch) {
+            return .letter(ch)
+        }
         guard let chars = event.characters, chars.unicodeScalars.count == 1,
               let ch = chars.first, let value = chars.unicodeScalars.first?.value else { return .other }
         if ch.isASCII && ch.isLetter { return .letter(ch) }

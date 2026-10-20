@@ -22,6 +22,7 @@ final class Runtime {
     private init() {
         AppPolicies.migrateSwitchKey()
         settings = Settings.load()
+        LatinLayout.active = settings.latinLayout
         engine = Self.makeEngine(japanese: settings.japanese)
         converter = settings.japanese ? Self.makeConverter(settings) : nil
         let center = DistributedNotificationCenter.default()
@@ -119,6 +120,7 @@ final class Runtime {
             converter = Self.makeConverter(new)
         }
         settings = new
+        LatinLayout.active = new.latinLayout
         generation += 1
     }
 

@@ -8,8 +8,12 @@ import Foundation
 //   araso-cli --compose < keys.txt                  print "keys<TAB>hangul" per line
 //   araso-cli --decide < keys_prev.tsv              heuristic verdict for "keys<TAB>previous" lines
 //   araso-cli --type [--japanese] < keys.txt        "keys<TAB>text" after typing keys + Space into a session
+// ARASO_LAYOUT=colemak (or colemakDH): keys are that layout's letters, as settings.json's latinLayout.
 
 var args = Array(CommandLine.arguments.dropFirst())
+if let name = ProcessInfo.processInfo.environment["ARASO_LAYOUT"], let layout = LatinLayout(rawValue: name) {
+    LatinLayout.active = layout
+}
 
 switch args.first {
 case "--compose":

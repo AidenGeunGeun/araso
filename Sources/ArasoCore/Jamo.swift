@@ -60,7 +60,10 @@ public enum DubeolsikLayout {
 
     /// Keys whose shifted form produces a different jamo. Shift on any other
     /// letter is a signal the user is typing English.
-    public static func isKoreanShiftKey(_ key: Character) -> Bool { shifted[key] != nil }
+    public static func isKoreanShiftKey(_ key: Character) -> Bool { shifted[seat(key)] != nil }
+
+    /// The QWERTY key `key` was typed on (`LatinLayout`): 2-set Korean goes by key, not letter.
+    private static func seat(_ key: Character) -> Character { LatinLayout.current.seat(of: key) }
 
     /// A capital on a key with no shifted jamo, not counting a lingering Shift: Shift still down
     /// for the one key right after a Korean shift key (어떤 typed fast is djEJs, 바뀌 is qkRNl:
@@ -69,9 +72,9 @@ public enum DubeolsikLayout {
     /// between lowercase keys, so a word typed in capitals throughout (TM, RN, TL: acronyms) gets
     /// no such allowance, nor does ㅒ/ㅖ with no consonant before it (PDF, OAuth).
     public static func hasEnglishOnlyCapital(_ keys: String) -> Bool {
-        let chars = Array(keys)
+        let chars = keys.map(seat)
         let hasLowercase = chars.contains(where: \.isLowercase)
-        for (i, key) in chars.enumerated() where key.isUppercase && !isKoreanShiftKey(key) {
+        for (i, key) in chars.enumerated() where key.isUppercase && shifted[key] == nil {
             if hasLowercase, i >= 1, lingers(after: chars[i - 1], twoBack: i >= 2 ? chars[i - 2] : nil, on: key) { continue }
             return true
         }
@@ -83,8 +86,9 @@ public enum DubeolsikLayout {
     /// (a vowel key before it), the next syllable's consonant (dlTDj, 있어). After ㅒ or ㅖ typed on a
     /// consonant comes a consonant (dPFmf, 예를); at the start of a word (PDF, OAuth) nothing lingers.
     /// The key before has to be lowercase: a capital there (RPA, TPS) was Shift on purpose.
+    /// Takes seats (`hasEnglishOnlyCapital` translated them).
     private static func lingers(after shiftKey: Character, twoBack: Character?, on key: Character) -> Bool {
-        let before = twoBack.flatMap { $0.isLowercase ? jamo(for: $0) : nil }
+        let before = twoBack.flatMap { $0.isLowercase ? jamo(onSeat: $0) : nil }
         switch shifted[shiftKey] {
         case "ㅃ", "ㅉ", "ㄸ", "ㄲ", "ㅆ":
             if isVowelKey(key) { return true }
@@ -96,13 +100,15 @@ public enum DubeolsikLayout {
         }
     }
 
-    private static func isVowelKey(_ key: Character) -> Bool { jamo(for: key).map(Jamo.isVowel) ?? false }
-    private static func isConsonantKey(_ key: Character) -> Bool { jamo(for: key).map(Jamo.isConsonant) ?? false }
+    private static func isVowelKey(_ seat: Character) -> Bool { jamo(onSeat: seat).map(Jamo.isVowel) ?? false }
+    private static func isConsonantKey(_ seat: Character) -> Bool { jamo(onSeat: seat).map(Jamo.isConsonant) ?? false }
 
     /// The jamo a key produces, or nil for non-letters.
     /// Uppercase letters without a shifted jamo fall back to the lowercase jamo,
     /// mirroring how the macOS 2-set keyboard behaves.
-    public static func jamo(for key: Character) -> Character? {
+    public static func jamo(for key: Character) -> Character? { jamo(onSeat: seat(key)) }
+
+    private static func jamo(onSeat key: Character) -> Character? {
         if let j = shifted[key] { return j }
         guard key.isASCII, let lowered = key.lowercased().first else { return nil }
         return lower[lowered]

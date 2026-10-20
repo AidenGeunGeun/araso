@@ -28,10 +28,14 @@ public struct Settings: Codable, Equatable, Sendable {
     public var fullWidthDigits: Bool = false
     /// With Japanese on: a space after Japanese text is full-width (⇧Space types the other width).
     public var fullWidthSpace: Bool = false
+    /// The layout English and romaji are typed on: "qwerty", "colemak" or "colemakDH". Korean
+    /// 2-set stays on its keys either way (`LatinLayout`).
+    public var latinLayout: LatinLayout = .qwerty
 
     public init(japanese: Bool = false, liveConversion: Bool = false, pauseKey: PauseKey = .standard,
                 returnConfirmsOnly: Bool = true, checkForUpdates: Bool = true, japaneseEngine: String = "apple",
-                fullWidthDigits: Bool = false, fullWidthSpace: Bool = false) {
+                fullWidthDigits: Bool = false, fullWidthSpace: Bool = false, latinLayout: LatinLayout = .qwerty) {
+        self.latinLayout = latinLayout
         self.fullWidthDigits = fullWidthDigits
         self.fullWidthSpace = fullWidthSpace
         self.japanese = japanese
@@ -58,6 +62,7 @@ public struct Settings: Codable, Equatable, Sendable {
         japaneseEngine = value(.japaneseEngine, "apple")
         fullWidthDigits = value(.fullWidthDigits, false)
         fullWidthSpace = value(.fullWidthSpace, false)
+        latinLayout = value(.latinLayout, .qwerty)
     }
 
     private enum LegacyKeys: String, CodingKey { case rightCommandPause }

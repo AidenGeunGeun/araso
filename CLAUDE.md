@@ -161,6 +161,12 @@ runtime.
 ## Conventions and pitfalls
 
 - **Logging:** never log typed text. The input logger records the key kind and app only.
+- **Layouts** (`LatinLayout`, docs/keyboard-layouts.md): keys are the English layout's letters
+  (`settings.json`'s `latinLayout`: qwerty, colemak, colemakDH); English and romaji read them as
+  they are, and `DubeolsikLayout` turns each into its QWERTY seat before 2-set looks it up, so
+  Korean reads keys only there. With a layout other than QWERTY, `InputController` takes the letter
+  from the key code. Tests switch layouts with `LatinLayout.$override.withValue`, the CLI with
+  `ARASO_LAYOUT`; `tools/layout_eval.py` rewrites eval.tsv's Korean rows for a layout.
 - **UI strings:** they go through `L("English key")`, with Korean in
   `Resources/ko.lproj/Localizable.strings`. The input source's name comes from
   `Resources/*.lproj/InfoPlist.strings`.

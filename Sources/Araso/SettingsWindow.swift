@@ -576,6 +576,17 @@ private struct GeneralPane: View {
                 SeamRow(title: L("Korean · English")) {
                     Text(L("Always on")).font(.system(size: 13)).foregroundStyle(Seam.ink3)
                 }
+                SeamRow(title: L("English layout"),
+                        detail: L("The layout you type English and romaji on. Korean 2-set stays on its usual keys.")) {
+                    Picker(L("English layout"), selection: Binding(get: { model.settings.latinLayout },
+                                                                   set: { model.set(\.latinLayout, $0) })) {
+                        Text(verbatim: "QWERTY").tag(LatinLayout.qwerty)
+                        Text(verbatim: "Colemak").tag(LatinLayout.colemak)
+                        Text(verbatim: "Colemak-DH").tag(LatinLayout.colemakDH)
+                    }
+                    .labelsHidden()
+                    .fixedSize()
+                }
                 SeamToggleRow(title: L("Japanese"),
                               detail: L("Type Japanese with romaji; Space converts to kanji."),
                               isOn: binding(\.japanese))
