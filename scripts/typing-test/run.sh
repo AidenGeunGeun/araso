@@ -6,11 +6,11 @@
 #
 # Each suite runs with its own settings.json: cases.tsv with Japanese on, live.tsv with live
 # conversion too, fullwidth.tsv with full-width numbers and spaces, colemak.tsv on Colemak (its
-# keys written as the QWERTY keys pressed). Esc and ⇧Esc are the switch keys throughout
-# (apps.json), as the cases switch with Esc. The user's settings, apps and learning files (the
-# cases' Esc corrections would be learned like any other; so would its kanji choices) are backed
-# up first and restored afterwards. Araso keeps running: it reads changed files when told, as from
-# the settings window.
+# keys written as the QWERTY keys pressed), sebeolsik.tsv with Korean on 3-set final. Esc and
+# ⇧Esc are the switch keys throughout (apps.json), as the cases switch with Esc. The user's
+# settings, apps and learning files (the cases' Esc corrections would be learned like any other;
+# so would its kanji choices) are backed up first and restored afterwards. Araso keeps running: it
+# reads changed files when told, as from the settings window.
 #
 #   scripts/typing-test/run.sh
 set -euo pipefail
@@ -66,4 +66,5 @@ suite cases.tsv '{ "japanese": true }'
 suite live.tsv '{ "japanese": true, "liveConversion": true }'
 suite fullwidth.tsv '{ "japanese": true, "fullWidthDigits": true, "fullWidthSpace": true }'
 suite colemak.tsv '{ "japanese": true, "latinLayout": "colemak" }'
+suite sebeolsik.tsv '{ "japanese": true, "koreanLayout": "sebeolsikFinal" }'
 exit $failed

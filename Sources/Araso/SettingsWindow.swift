@@ -158,7 +158,13 @@ final class SettingsModel: ObservableObject {
 
     /// Read again on each switch: words learned while trying the typing pane show in Dictionary.
     @Published var tab: SettingsTab { didSet { if tab != oldValue { reload() } } }
-    @Published private(set) var settings = ArasoCore.Settings.load()
+    /// The layouts go to this process too: the Dictionary pane reads keys as the IME does.
+    @Published private(set) var settings = ArasoCore.Settings.load() {
+        didSet {
+            LatinLayout.active = settings.latinLayout
+            KoreanLayout.active = settings.koreanLayout
+        }
+    }
     @Published private(set) var defaultPolicy = AppPolicy.standard
     @Published private(set) var apps: [AppRow] = []
     /// dictionary.json: the user's words first, then learned ones, each by keys.

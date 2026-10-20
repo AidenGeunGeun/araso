@@ -75,6 +75,24 @@ import Testing
         #expect(Self.type("mr2uf. ") == "했다. ")
     }
 
+    @Test func deleteTakesBackTheLastJamo() {
+        KoreanLayout.$override.withValue(.sebeolsikFinal) {
+            let field = FakeTextField()
+            let store = FileManager.default.temporaryDirectory.appendingPathComponent("araso-3set-\(UUID().uuidString).json")
+            let engine = DictionaryEngine(base: SplittingEngine(base: sharedEngine, english: sharedEngine.english), storeURL: store)
+            let session = InputSession(engine: engine, policies: AppPolicies(overrides: [:]))
+            for ch in "kf2uf" {
+                let key: InputSession.Key = ch.isLetter ? .letter(ch) : .printable(ch)
+                if !session.handle(key, client: field) { field.insertText(String(ch), replacing: nil) }
+            }
+            _ = session.handle(.delete, client: field)
+            #expect(field.text == "갔ㄷ")
+            _ = session.handle(.delete, client: field)
+            _ = session.handle(.delete, client: field)
+            #expect(field.text == "가")
+        }
+    }
+
     @Test func symbolsThatDontFitEndTheWord() {
         #expect(Self.type("jfshea! ") == "안녕! ")    // ㄲ can't follow 녕's ㅇ: it is the !
         #expect(Self.type("jfsheamfncj4! ") == "안녕하세요! ") // 욖 isn't a syllable anyone types
@@ -82,6 +100,7 @@ import Testing
         #expect(Self.type("hello! ") == "hello! ")
         #expect(Self.type("100 ") == "100 ")          // a number stays a number
         #expect(Self.type("2026 ") == "2026 ")
+        #expect(Self.type("2026 0tpd ") == "2026 커피 ") // after a space 0 starts a word again
         #expect(Self.type("it's ") == "it's ")
     }
 }
