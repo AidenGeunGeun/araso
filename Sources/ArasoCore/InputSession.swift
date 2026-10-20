@@ -504,10 +504,13 @@ public final class InputSession {
     /// app that acts on the shortcut itself never shows the input method the key (Ghostty's
     /// ⌘V is its own keybinding) and would paste over the underlined text. A word without a
     /// boundary keeps composing: a ⌘ pressed and let go must not split the next letters off
-    /// into a new word.
+    /// into a new word. As after any shortcut, what comes next isn't known (the paste never
+    /// reaches the input method either), so the run is read again from the field.
     public func commandPressed(client: TextClient) {
         guard heldBoundary != nil else { return }
         commit(client: client)
+        previousLanguage = nil
+        resetRun()
     }
 
     /// Commits whatever is in progress as-is (focus change, shortcut, deactivation).

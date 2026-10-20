@@ -211,6 +211,24 @@ import Testing
         #expect(field.text == "안녕 " && marked == "안녕 ")
     }
 
+    /// Ghostty's ⌘V reaches the input method only as ⌘ going down, so the pasted text is read
+    /// from the field: a pasted URL makes the next segment typed English.
+    @Test func aURLPastedAfterCommandCounts() {
+        type("dkssud ")
+        session.commandPressed(client: field)
+        field.insertText("https://x.io/", replacing: nil) // the app's paste
+        type("dl ")
+        #expect(field.text == "안녕 https://x.io/dl ")
+    }
+
+    /// After ⌘ the word is in the app: a switch key no longer changes it.
+    @Test func aSwitchKeyAfterCommandLeavesTheWordAsItWent() {
+        type("dkssud ")
+        session.commandPressed(client: field)
+        session.handle(.cycle, client: field)
+        #expect(field.text == "안녕 " && marked == nil)
+    }
+
     @Test func commandGoingDownWithNothingTypedDoesNothing() {
         session.commandPressed(client: field)
         #expect(field.text == "" && field.insertions.isEmpty)
