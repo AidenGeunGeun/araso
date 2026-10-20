@@ -2,26 +2,26 @@
 import PackageDescription
 
 let package = Package(
-    name: "Legato",
+    name: "Araso",
     platforms: [.macOS(.v13)],
     products: [
-        .library(name: "LegatoCore", targets: ["LegatoCore"]),
-        .executable(name: "Legato", targets: ["Legato"]),
-        .executable(name: "legato-cli", targets: ["legato-cli"]),
+        .library(name: "ArasoCore", targets: ["ArasoCore"]),
+        .executable(name: "Araso", targets: ["Araso"]),
+        .executable(name: "araso-cli", targets: ["araso-cli"]),
     ],
     dependencies: [
         // Kana-kanji conversion. Code MIT, dictionary Apache-2.0. No Zenzai (neural) trait.
         .package(url: "https://github.com/azooKey/AzooKeyKanaKanjiConverter", .upToNextMinor(from: "0.8.0")),
     ],
     targets: [
-        .target(name: "LegatoCore", dependencies: [
-            // The dictionary is shipped in Legato.app/Contents/Resources and passed by path
+        .target(name: "ArasoCore", dependencies: [
+            // The dictionary is shipped in Araso.app/Contents/Resources and passed by path
             // (see JapaneseConverter), not through an SPM resource bundle.
             .product(name: "KanaKanjiConverterModule", package: "AzooKeyKanaKanjiConverter"),
         ]),
-        .executableTarget(name: "Legato", dependencies: ["LegatoCore"]),
-        .executableTarget(name: "legato-cli", dependencies: ["LegatoCore"]),
-        .testTarget(name: "LegatoCoreTests", dependencies: ["LegatoCore"]),
+        .executableTarget(name: "Araso", dependencies: ["ArasoCore"]),
+        .executableTarget(name: "araso-cli", dependencies: ["ArasoCore"]),
+        .testTarget(name: "ArasoCoreTests", dependencies: ["ArasoCore"]),
     ],
     swiftLanguageModes: [.v5]
 )

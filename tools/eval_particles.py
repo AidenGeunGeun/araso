@@ -1,11 +1,11 @@
-"""English word + particle accuracy, typed through a real session (legato-cli --type).
+"""English word + particle accuracy, typed through a real session (araso-cli --type).
 
 English words (300 common ones from en_50k, tech words, names and acronyms typed with their
 capitals) with a Korean particle (github에) or a Japanese one (githubで) and Space; the word
 alone must stay English. Korean particles are typed with Japanese off and on, Japanese ones
 with Japanese on. Japanese is checked as kana (no converter).
 
-usage: python3 eval_particles.py <legato-cli> <en_50k.txt> [failures per row]
+usage: python3 eval_particles.py <araso-cli> <en_50k.txt> [failures per row]
 """
 import random
 import re

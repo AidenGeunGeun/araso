@@ -5,18 +5,18 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>Legato</string>
+	<string>Araso</string>
 	<key>CFBundleExecutable</key>
-	<string>Legato</string>
+	<string>Araso</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.nyttastudio.inputmethod.Legato</string>
+	<string>com.nyttastudio.inputmethod.Araso</string>
 	<key>CFBundleLocalizations</key>
 	<array>
 		<string>en</string>
 		<string>ko</string>
 	</array>
 	<key>CFBundleName</key>
-	<string>Legato</string>
+	<string>Araso</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -24,9 +24,9 @@
 	<key>CFBundleVersion</key>
 	<string>21</string>
 	<key>InputMethodConnectionName</key>
-	<string>com.nyttastudio.inputmethod.Legato_Connection</string>
+	<string>com.nyttastudio.inputmethod.Araso_Connection</string>
 	<key>InputMethodServerControllerClass</key>
-	<string>LegatoInputController</string>
+	<string>ArasoInputController</string>
 	<key>LSBackgroundOnly</key>
 	<true/>
 	<key>LSMinimumSystemVersion</key>
@@ -38,7 +38,7 @@
 	<key>TISIconIsTemplate</key>
 	<true/>
 	<key>TISInputSourceID</key>
-	<string>com.nyttastudio.inputmethod.Legato</string>
+	<string>com.nyttastudio.inputmethod.Araso</string>
 	<key>TISIntendedLanguage</key>
 	<string>ko</string>
 	<key>tsInputMethodCharacterRepertoireKey</key>
@@ -47,6 +47,6 @@
 		<string>Hang</string>
 	</array>
 	<key>tsInputMethodIconFileKey</key>
-	<string>Legato.tiff</string>
+	<string>Araso.tiff</string>
 </dict>
 </plist>

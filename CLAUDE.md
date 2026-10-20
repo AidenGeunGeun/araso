@@ -2,11 +2,11 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-Legato is a macOS InputMethodKit input method: the user types on QWERTY and Legato decides per
+Araso is a macOS InputMethodKit input method: the user types on QWERTY and Araso decides per
 word whether it is English, Korean (2-set) or Japanese romaji (kanji through macOS's own engine, AzooKey where it can't be loaded). README.md
 (Korean, the main one) and README.en.md (English) cover the keys, settings files, accuracy numbers
 and data licenses; read one before changing behavior users see, and keep both in step. The website,
-https://nyttastudio.com/legato/ (Korean only), lives in `legato/` of the nyttastudio/nyttastudio.com
+https://nyttastudio.com/araso/ (Korean only), lives in `araso/` of the nyttastudio/nyttastudio.com
 repo (Cloudflare Pages); keep its copy in step too.
 
 ## Commands
@@ -18,14 +18,14 @@ swift test --filter MixedWordTests           # one suite; --filter 'MixedWordTes
 scripts/install.sh                           # release build + --selftest, install to ~/Library/Input Methods, enable, restart menu agent
                                              # (asks reinstall/clean/uninstall when already installed and a tty exists;
                                              #  --reinstall | --clean | --uninstall [--delete-data] to choose)
-scripts/release.sh                           # universal build → build/release/Legato{,-<version>}.{zip,pkg}
-                                             # (LEGATO_APP_SIGN / LEGATO_PKG_SIGN / LEGATO_NOTARY_PROFILE: Developer ID, notarization)
-swift run legato-cli -v "dkssud hello"     # English/Korean decision with scores
-printf 'keys\tprevious\n' | swift run legato-cli --decide --japanese   # previous: english|korean|japanese|empty
-printf 'きょうは\n' | swift run legato-cli --convert                    # AzooKey candidates (LEGATO_ENGINE=apple: macOS's)
+scripts/release.sh                           # universal build → build/release/Araso{,-<version>}.{zip,pkg}
+                                             # (ARASO_APP_SIGN / ARASO_PKG_SIGN / ARASO_NOTARY_PROFILE: Developer ID, notarization)
+swift run araso-cli -v "dkssud hello"     # English/Korean decision with scores
+printf 'keys\tprevious\n' | swift run araso-cli --decide --japanese   # previous: english|korean|japanese|empty
+printf 'きょうは\n' | swift run araso-cli --convert                    # AzooKey candidates (ARASO_ENGINE=apple: macOS's)
 tools/prepare.sh [--models]                  # held-out accuracy (downloads into tools/data, gitignored)
 scripts/typing-test/run.sh                   # real key events into the settings window's typing pane through the installed app
-/usr/bin/log show --last 10m --predicate 'subsystem == "com.nyttastudio.inputmethod.Legato"' --info --debug
+/usr/bin/log show --last 10m --predicate 'subsystem == "com.nyttastudio.inputmethod.Araso"' --info --debug
 ```
 
 - `scripts/typing-test/run.sh` takes over the keyboard and focus for about a minute. Don't run it
@@ -36,8 +36,8 @@ scripts/typing-test/run.sh                   # real key events into the settings
 
 ## Architecture
 
-**Targets.** `LegatoCore` holds all the typing logic and is what the tests cover. `Legato`
-is a thin IMK layer over it. `legato-cli` is for tuning and evaluation.
+**Targets.** `ArasoCore` holds all the typing logic and is what the tests cover. `Araso`
+is a thin IMK layer over it. `araso-cli` is for tuning and evaluation.
 
 **Decision chain** (built in `Runtime.makeEngine`): `DictionaryEngine` (`UserDictionary.swift`,
 dictionary.json: a correction made twice or a word added by hand wins; one correction is `weak`,
@@ -91,7 +91,7 @@ tests use `FakeTextField`). It owns the preview and hysteresis, commits, Esc rea
   entry's `escapeToApp` (0.1.8 and earlier) still applies until the entry names its own `switchKeys`.
 - Return on an underlined word only confirms it (`returnConfirmsOnly`, on by default); off, the
   app gets the Return too, except after Japanese.
-- Vim reports its modes through `scripts/vim/legato.{lua,vim}` (`Legato --vim <mode> --app
+- Vim reports its modes through `scripts/vim/araso.{lua,vim}` (`Araso --vim <mode> --app
   $__CFBundleIdentifier`, a distributed notification). `Runtime` hands it to the active controller,
   which takes it only if vim runs in its app (a signal without `--app`, only where Esc isn't a
   switch key). Outside insert mode every key passes straight through, and while
@@ -126,20 +126,20 @@ tests use `FakeTextField`). It owns the preview and hysteresis, commits, Esc rea
   the IME consumed while composing, which is what makes this work there; it reports its mouse
   selection as the caret, so the post-commit flip window can't.
 
-**`Runtime`** (`Sources/Legato`) is a process-wide singleton holding settings, engine and
+**`Runtime`** (`Sources/Araso`) is a process-wide singleton holding settings, engine and
 converter, plus a `generation` counter. Controllers swap in a fresh session when the generation
 changes, so a settings change applies without a restart.
 
-**Settings window.** It is a separate process, `Legato --settings <tab>`, because the IME is
-`LSBackgroundOnly`. It edits the JSON files in `~/Library/Application Support/Legato/` and posts
-the distributed notification `com.nyttastudio.inputmethod.Legato.settingsChanged`; the IME reloads
+**Settings window.** It is a separate process, `Araso --settings <tab>`, because the IME is
+`LSBackgroundOnly`. It edits the JSON files in `~/Library/Application Support/Araso/` and posts
+the distributed notification `com.nyttastudio.inputmethod.Araso.settingsChanged`; the IME reloads
 on it. About's Uninstall… (`Uninstaller.swift`, shown only in a copy under an Input Methods folder)
 deletes both installed copies and the pkg receipt, so testing it uninstalls the real input method:
 run `scripts/install.sh` again afterwards.
 - The Dictionary tab (`DictionaryPane.swift`, tab id `learning`) takes keys in `KeyCaptureView`, an
   NSView that isn't a text view, so no input method sees them. To look at a change, run
-  `build/Legato.app/Contents/MacOS/Legato --settings learning` with `LEGATO_SUPPORT_DIR`
-  set to a scratch folder (never `open` it), then `lsregister -u build/Legato.app`. A
+  `build/Araso.app/Contents/MacOS/Araso --settings learning` with `ARASO_SUPPORT_DIR`
+  set to a scratch folder (never `open` it), then `lsregister -u build/Araso.app`. A
   `.fixedSize(horizontal: false, vertical: true)` text above its `List` left the whole window blank.
 
 **Per-app policy** (`AppPolicy.swift`): in `apps.json`, `"*"` is the user's default and an app
@@ -149,9 +149,9 @@ built-in app list, so add an entry only when the user asks for one.
 **Resources.** Data files are found by `Resources.swift`: `Contents/Resources` in the app, the
 source tree in development. SPM resource bundles are avoided on purpose, because they'd sit outside
 the signed `Contents`. `build-app.sh` copies each data file explicitly, so a new file under
-`Sources/LegatoCore/Data` has to be added there too.
+`Sources/ArasoCore/Data` has to be added there too.
 
-**Menu icon.** The system reads it from `Legato.tiff` (drawn by `scripts/make-icon.swift`),
+**Menu icon.** The system reads it from `Araso.tiff` (drawn by `scripts/make-icon.swift`),
 and it's fixed: the bundle is signed (Developer ID for releases), so nothing inside it may change at
 runtime.
 
@@ -164,13 +164,13 @@ runtime.
 - **New split or heuristic rules:** check them for wrong splits, not just the target case.
   - Run every keys row of `tools/data/eval.tsv` (English, Korean, Japanese) through an
     `InputSession` with Japanese on, and count Hangul next to kana.
-  - For English, also run `tools/data/en_50k.txt` through `legato-cli -v`.
+  - For English, also run `tools/data/en_50k.txt` through `araso-cli -v`.
   - For a remembered word + particle (`DictionaryEngine.withParticle`), `DictionarySplitCheckTests`
     fills the dictionary with every eval.tsv word, and with en_50k's top 20k as English, and
-    requires no eval.tsv row to split (skipped without tools/data; `LEGATO_TOOLS_DATA=<main
+    requires no eval.tsv row to split (skipped without tools/data; `ARASO_TOOLS_DATA=<main
     checkout>/tools/data` from a worktree).
   - For English + particle, `tools/eval_particles.py` types word × particle through a session
-    (`legato-cli --type`) and reports accuracy per kind, plus words that must stay English.
+    (`araso-cli --type`) and reports accuracy per kind, plus words that must stay English.
   - The CLI only shows the engine's decision, so also test through a session: an earlier split
     looked right in the CLI but never reached real typing.
 - **Install refreshes:** after a reinstall, the input menu keeps its old list until
@@ -179,12 +179,12 @@ runtime.
   paths SIGKILL them). A fresh process can still take 10–30 s to see the source as enabled, hence
   `enable-input-source.swift --check` with retries.
 - **Releases** are signed with the Developer ID and notarized, the app and the pkg alike; run
-  `release.sh` with `LEGATO_APP_SIGN="Developer ID Application: Dongbin Lee (2UZ65T3U82)"`,
-  `LEGATO_PKG_SIGN="Developer ID Installer: Dongbin Lee (2UZ65T3U82)"` and
-  `LEGATO_NOTARY_PROFILE=seamtype` (this keychain's profile kept its old name), or the assets come
-  out ad hoc and unsigned. Upload `Legato.pkg` (the website's download button) and `Legato.zip`
+  `release.sh` with `ARASO_APP_SIGN="Developer ID Application: Dongbin Lee (2UZ65T3U82)"`,
+  `ARASO_PKG_SIGN="Developer ID Installer: Dongbin Lee (2UZ65T3U82)"` and
+  `ARASO_NOTARY_PROFILE=seamtype` (this keychain's profile kept its old name), or the assets come
+  out ad hoc and unsigned. Upload `Araso.pkg` (the website's download button) and `Araso.zip`
   (`scripts/get.sh`) under those names for `releases/latest/download/`, plus the versioned copies,
-  and the same two as `Seamtype.pkg`/`Seamtype.zip` (see Seamtype below).
+  and the same two as `Legato.*` and `Seamtype.*` (see Earlier names below).
   To release, run the Release workflow from the Actions tab with the new version
   (`gh workflow run release.yml -f version=0.1.11`): its `bump` job sets the version in
   `Resources/Info.plist` (and the build number one up), runs the tests and pushes that commit to
@@ -206,40 +206,41 @@ runtime.
   - 설명: About cuts it at two lines (about 70–80 Korean characters), so the first sentence says
     what changed; examples, exceptions and setting keys come after it.
   - What a user notices, not how it was built; a fix says what works now. 3–5 items, biggest first.
-  `LEGATO_ZIP=build/release/Legato.zip sh scripts/get.sh` tries the zip locally (get.sh runs
+  `ARASO_ZIP=build/release/Araso.zip sh scripts/get.sh` tries the zip locally (get.sh runs
   nothing from a zip whose app isn't Developer ID signed by team 2UZ65T3U82 and notarized; an ad hoc
-  build needs `LEGATO_UNSIGNED=1`). The pkg installs
+  build needs `ARASO_UNSIGNED=1`). The pkg installs
   into `/Library/Input Methods` and is not relocatable. Its payload lands in
-  `/Library/Application Support/Legato/Install` and the postinstall rsyncs it into the existing
+  `/Library/Application Support/Araso/Install` and the postinstall rsyncs it into the existing
   bundle (see Ad hoc builds for what the -50 it was meant to avoid really is). Then the postinstall runs
-  `lsregister -f` and `Legato --register` as the logged-in user, until `Legato --registered`
+  `lsregister -f` and `Araso --register` as the logged-in user, until `Araso --registered`
   sees the source (users have no Swift toolchain, so registration can't use the scripts).
   `release.sh` signs the app with the hardened runtime even ad hoc (it has `build-app.sh` sign
-  ad hoc too unless `LEGATO_APP_SIGN` is set, not with a keychain identity), and `build-app.sh` runs the
+  ad hoc too unless `ARASO_APP_SIGN` is set, not with a keychain identity), and `build-app.sh` runs the
   self-test under Rosetta too for a universal build.
 - **Reinstalling** (the pattern of vChewing's installer): put the new bundle in place first, then
-  stop Legato (SIGTERM, wait, SIGKILL, wait); stopping it earlier only lets macOS start the old
+  stop Araso (SIGTERM, wait, SIGKILL, wait); stopping it earlier only lets macOS start the old
   code again. Then the new copy's `--register` (`Registration.swift`) unregisters other copies from
   LaunchServices and registers/enables the source only if macOS doesn't list/enable it yet.
   Don't kill `imklaunchagent` (every app that was typing loses all input methods until it
-  restarts), and don't start Legato yourself (`open`): apps that held the old process report its
+  restarts), and don't start Araso yourself (`open`): apps that held the old process report its
   endpoint invalid and the new one's endpoint is dropped with it, so keys go nowhere.
   `--uninstall [--delete-data]` runs `Uninstaller` for the scripts. The pkg's postinstall also
   removes the console user's `~/Library/Input Methods` copy; its Customize pane offers a clean
   reinstall (`scripts/Distribution.xml`, the payload-free `scripts/pkg-reset` package).
 - **Updates** (`Updater.swift`, `Release.swift`): the IME checks GitHub's latest release once a day
   (and the settings window on open and on Check Now); the result is shared through the bundle's
-  user defaults. Install downloads `Legato.pkg`, requires `pkgutil --check-signature` to show
+  user defaults. Install downloads `Araso.pkg`, requires `pkgutil --check-signature` to show
   the Developer ID Installer of team 2UZ65T3U82 and notarization, then opens it in Installer. So
-  a release must keep the `Legato.pkg` asset name and a `v<version>` tag. The repository is
-  nyttastudio/legato; installed copies ask the names it had (aimdevlee/seamtype up to 0.1.19,
-  nyttastudio/seamtype in 0.2.0), which GitHub redirects: never create a repository under either. About lists the items of
+  a release must keep the `Araso.pkg` asset name and a `v<version>` tag. The repository is
+  nyttastudio/araso; installed copies ask the names it had (aimdevlee/seamtype up to 0.1.19,
+  nyttastudio/seamtype in 0.2.0; it was also nyttastudio/legato for a day), which GitHub redirects:
+  never create a repository under any of them. About lists the items of
   the notes' first `## ` section as what changed (see Release notes).
   To try an update before publishing (drafts aren't visible to it), point the check at a file in
-  GitHub's format: `defaults write com.nyttastudio.inputmethod.Legato updateFeed file:///…/latest.json`
+  GitHub's format: `defaults write com.nyttastudio.inputmethod.Araso updateFeed file:///…/latest.json`
   (its `browser_download_url` may be a file URL to a signed pkg); `defaults delete … updateFeed` after.
 - **Ad hoc builds don't start again after a reinstall.** launchd runs the input method as a job
-  named after the inodes of the bundle and of `Contents/MacOS/Legato`, and every reinstall (a
+  named after the inodes of the bundle and of `Contents/MacOS/Araso`, and every reinstall (a
   swapped folder, rsync, even the same bytes copied to a new file) gives the executable a new one.
   A copy signed with an identity then starts again by itself (in 2–3 s, or about a minute after
   the kill); an ad hoc one gets `LaunchInputMethod() Error, status=-50` from imklaunchagent and stays
@@ -247,27 +248,30 @@ runtime.
   `lsregister -f`, `TISRegisterInputSource`, `LSRegisterURL`, disabling and enabling the source and
   a LaunchServices check-in don't bring it back (all tried, 2026-10-19). Any identity works:
   Developer ID (the pkg updates fine), and an Apple Development certificate of another, free team
-  too, without notarization. So `build-app.sh` signs with `LEGATO_APP_SIGN`, else the keychain's
+  too, without notarization. So `build-app.sh` signs with `ARASO_APP_SIGN`, else the keychain's
   Apple Development, else its Developer ID Application identity, and only then ad hoc;
   `install.sh` says to re-add the source (and opens the pane) when it replaced a copy with an ad
-  hoc one. A single -50 line isn't proof by itself: it shows up while Legato runs too; no
+  hoc one. A single -50 line isn't proof by itself: it shows up while Araso runs too; no
   process and keys not reaching it are. To check, have a text field ask for it (the typing test),
   not just an input source switch, and wait past the minute.
 - **One install method while developing:** `scripts/install.sh` (`~/Library`) or a signed
   pkg (`/Library`), not both. After trying a pkg, run its copy's `--uninstall` before going back to
   `install.sh`; without a terminal `install.sh` refuses to install while the pkg's copy is there
   (two copies are one input method twice). Never install an ad-hoc pkg (`release.sh` without
-  `LEGATO_APP_SIGN`): Gatekeeper rejects a copy the installer put down, so it is selectable but
+  `ARASO_APP_SIGN`): Gatekeeper rejects a copy the installer put down, so it is selectable but
   never starts. A move between the two folders, or an uninstall, drops the input source; re-add it
   in System Settings (− then +) or log out.
-- **Seamtype:** Legato was Seamtype until 0.2.0, under the bundle identifier
-  `com.aimdevlee.inputmethod.Seamtype`, so macOS takes Legato for another input method, and no installer
-  may turn a new one on: the user adds it once (the pkg's postinstall opens Keyboard settings). `Predecessor` (LegatoCore) names what an update from it cleans up:
-  the pkg's postinstall, get.sh and install.sh remove both `Seamtype.app` copies (after registering
-  Legato), forget its receipt and stop its process; `Registration` selects Legato when Seamtype was
-  the input source in use; `Uninstaller` removes leftovers of either; `SupportDirectory` moves
-  `Application Support/Seamtype` to `Legato` on the first read. Releases upload `Seamtype.pkg` and
-  `Seamtype.zip` too, since 0.1.x's update check and get.sh look for those names: keep them while
-  0.1.x copies are around. Old `seamtype.lua`/`.vim` scripts find no `Seamtype.app` and do nothing.
+- **Earlier names:** Araso was Seamtype (`com.aimdevlee.inputmethod.Seamtype`) until 0.2.0 and
+  Legato (`com.nyttastudio.inputmethod.Legato`) in 0.2.0. Each bundle identifier is another input
+  method to macOS, and no installer may turn a new one on: the user adds Araso once (the pkg's
+  postinstall opens Keyboard settings; if it isn't listed or has no name, a restart, not a logout).
+  `Predecessor.all` (ArasoCore, newest first) names what an update cleans up: the pkg's postinstall,
+  get.sh and install.sh remove both copies of each (after registering Araso), forget their receipts
+  and stop their processes; `Registration` selects Araso when one of them was the input source in
+  use; `Uninstaller` removes leftovers of any; `SupportDirectory` moves the newest of
+  `Application Support/Legato` and `/Seamtype` to `Araso` on the first read, in the app only (not in
+  tests, the CLI or `--selftest`). Releases upload `Legato.pkg`/`.zip` and `Seamtype.pkg`/`.zip` too,
+  since those versions' update check and get.sh look for their own names: keep them while such copies
+  are around. Old `seamtype.*`/`legato.*` vim scripts find no app and do nothing.
 - **Stale registrations:** extra copies of the app registered with LaunchServices (`build/`,
   the old `AutoIME.app`) can make macOS launch the wrong one. `build-app.sh` unregisters its copy.

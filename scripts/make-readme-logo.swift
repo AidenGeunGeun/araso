@@ -123,7 +123,7 @@ func svg(tile: String, ink: String) -> String {
     @media (prefers-reduced-motion:reduce){.s{animation:none;opacity:0}.s3{opacity:1}}
     """
     return """
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 \(Int(W)) \(Int(H))" width="\(Int(W))" height="\(Int(H))" role="img" aria-label="Legato">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 \(Int(W)) \(Int(H))" width="\(Int(W))" height="\(Int(H))" role="img" aria-label="Araso">
     <style>
     \(css)
     </style>

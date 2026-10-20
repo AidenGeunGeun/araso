@@ -1,6 +1,6 @@
 #!/bin/zsh
-# Types test cases with real key events into the typing pane of Legato's settings window,
-# through the installed Legato, and compares the text. The pane switches to Legato itself when
+# Types test cases with real key events into the typing pane of Araso's settings window,
+# through the installed Araso, and compares the text. The pane switches to Araso itself when
 # another input source is in use. Needs Accessibility permission for the terminal. The settings
 # window takes the focus for about a minute.
 #
@@ -8,19 +8,19 @@
 # conversion too, fullwidth.tsv with full-width numbers and spaces. Esc and ⇧Esc are the switch
 # keys throughout (apps.json), as the cases switch with Esc. The user's settings, apps and
 # learning files (the cases' Esc corrections would be learned like any other; so would its kanji
-# choices) are backed up first and restored afterwards. Legato keeps running: it reads changed
+# choices) are backed up first and restored afterwards. Araso keeps running: it reads changed
 # files when told, as from the settings window.
 #
 #   scripts/typing-test/run.sh
 set -euo pipefail
 here="${0:A:h}"
-support="$HOME/Library/Application Support/Legato"
+support="$HOME/Library/Application Support/Araso"
 files=(settings.json apps.json dictionary.json lexicon.json apple-learning.json)
 app=""
-for candidate in "$HOME/Library/Input Methods/Legato.app" "/Library/Input Methods/Legato.app"; do
+for candidate in "$HOME/Library/Input Methods/Araso.app" "/Library/Input Methods/Araso.app"; do
   [[ -d "$candidate" ]] && { app=$candidate; break; }
 done
-[[ -n "$app" ]] || { echo "Legato isn't installed"; exit 1; }
+[[ -n "$app" ]] || { echo "Araso isn't installed"; exit 1; }
 dirs=(azooKey)  # AzooKey's kanji learning
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
@@ -36,7 +36,7 @@ for d in $dirs; do
 done
 restore() {
   # Drop what the run learned in memory first, so nothing saves it over the restored copies,
-  # then put them back and have Legato read them.
+  # then put them back and have Araso read them.
   "$work/notify" kanjiReset
   sleep 1
   for f in $files; do

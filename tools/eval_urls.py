@@ -1,11 +1,11 @@
-"""Segments of URLs and paths, typed through a real session (legato-cli --type): how many go
+"""Segments of URLs and paths, typed through a real session (araso-cli --type): how many go
 in as something other than what was typed (docs/url-run.md).
 
 Each template's {} is a segment: one of the top 5,000 en_50k words of 2–8 letters, or one of all
 676 two-letter combinations (query keys, IDs, short paths: not words). A line counts as wrong when
 the field doesn't end up with exactly the keys, with Japanese off and on.
 
-usage: python3 eval_urls.py <legato-cli> <en_50k.txt> [failures per row]
+usage: python3 eval_urls.py <araso-cli> <en_50k.txt> [failures per row]
 """
 import itertools
 import re

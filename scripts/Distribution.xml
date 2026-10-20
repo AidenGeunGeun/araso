@@ -1,24 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- release.sh fills in @VERSION@. Customize offers a clean reinstall: the optional reset package
-     runs after Legato's and deletes the settings and learned words. -->
+     runs after Araso's and deletes the settings and learned words. -->
 <installer-gui-script minSpecVersion="2">
-    <title>Legato</title>
+    <title>Araso</title>
     <options customize="allow" require-scripts="false" hostArchitectures="x86_64,arm64"/>
     <domains enable_localSystem="true"/>
     <!-- Info.plist's LSMinimumSystemVersion: on an older macOS it would install and never start. -->
     <allowed-os-versions><os-version min="13.0"/></allowed-os-versions>
     <choices-outline>
-        <line choice="legato"/>
+        <line choice="araso"/>
         <line choice="reset"/>
     </choices-outline>
-    <choice id="legato" title="Legato" enabled="false" selected="true"
-            description="Installs Legato into /Library/Input Methods, replacing any earlier copy (also one in ~/Library/Input Methods). Settings and learned words stay. 설정과 학습한 단어는 그대로 남습니다.">
-        <pkg-ref id="com.nyttastudio.inputmethod.Legato.pkg"/>
+    <choice id="araso" title="Araso" enabled="false" selected="true"
+            description="Installs Araso into /Library/Input Methods, replacing any earlier copy (also one in ~/Library/Input Methods). Settings and learned words stay. 설정과 학습한 단어는 그대로 남습니다.">
+        <pkg-ref id="com.nyttastudio.inputmethod.Araso.pkg"/>
     </choice>
     <choice id="reset" title="Reset settings and learned words · 설정과 학습한 단어 초기화" start_selected="false"
-            description="Deletes ~/Library/Application Support/Legato for a clean reinstall. 깨끗이 다시 설치하려면 체크하세요. ~/Library/Application Support/Legato를 지웁니다.">
-        <pkg-ref id="com.nyttastudio.inputmethod.Legato.reset"/>
+            description="Deletes ~/Library/Application Support/Araso for a clean reinstall. 깨끗이 다시 설치하려면 체크하세요. ~/Library/Application Support/Araso를 지웁니다.">
+        <pkg-ref id="com.nyttastudio.inputmethod.Araso.reset"/>
     </choice>
-    <pkg-ref id="com.nyttastudio.inputmethod.Legato.pkg" version="@VERSION@" onConclusion="none">Legato-component.pkg</pkg-ref>
-    <pkg-ref id="com.nyttastudio.inputmethod.Legato.reset" version="@VERSION@" onConclusion="none">Legato-reset.pkg</pkg-ref>
+    <pkg-ref id="com.nyttastudio.inputmethod.Araso.pkg" version="@VERSION@" onConclusion="none">Araso-component.pkg</pkg-ref>
+    <pkg-ref id="com.nyttastudio.inputmethod.Araso.reset" version="@VERSION@" onConclusion="none">Araso-reset.pkg</pkg-ref>
 </installer-gui-script>

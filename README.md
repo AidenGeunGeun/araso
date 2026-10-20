@@ -1,33 +1,33 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/media/logo-dark.svg">
-    <img src="docs/media/logo-light.svg" width="150" alt="Legato: A, 아, あ">
+    <img src="docs/media/logo-light.svg" width="150" alt="Araso: A, 아, あ">
   </picture>
 </p>
 
-<h1 align="center">Legato</h1>
+<h1 align="center">Araso</h1>
 
 <p align="center"><b>흐름대로 써진다 · 流れるままに · Type as it flows</b></p>
 
-<p align="center">레가토(legato)는 음을 끊지 않고 이어 연주하라는 음악 기호입니다. 언어가 바뀌어도 손을 멈추지 않고 이어서 치세요.<br>
-<sub>0.2.0 전의 이름은 Seamtype이었습니다. 쓰고 있었다면 <a href="#from-seamtype">Seamtype에서 옮겨 오기</a>를 보세요.</sub></p>
+<p align="center">아라소(Araso)는 '알아서'에서 왔습니다. 무슨 언어로 치든 알아서 골라 넣습니다.<br>
+<sub>예전 이름은 Seamtype(0.1.x)과 Legato(0.2.0)였습니다. 쓰고 있었다면 <a href="#from-seamtype">예전 이름에서 옮겨 오기</a>를 보세요.</sub></p>
 
 <p align="center">
-  <a href="https://github.com/nyttastudio/legato/releases/latest"><img src="https://img.shields.io/github/v/release/nyttastudio/legato?style=flat-square&label=release" alt="최신 릴리스"></a>
-  <a href="https://github.com/nyttastudio/legato/releases"><img src="https://img.shields.io/github/downloads/nyttastudio/legato/total?style=flat-square" alt="다운로드 수"></a>
+  <a href="https://github.com/nyttastudio/araso/releases/latest"><img src="https://img.shields.io/github/v/release/nyttastudio/araso?style=flat-square&label=release" alt="최신 릴리스"></a>
+  <a href="https://github.com/nyttastudio/araso/releases"><img src="https://img.shields.io/github/downloads/nyttastudio/araso/total?style=flat-square" alt="다운로드 수"></a>
   <img src="https://img.shields.io/badge/macOS-13%2B-555?style=flat-square&logo=apple" alt="macOS 13 이상">
   <img src="https://img.shields.io/badge/Apple%20Silicon%20%7C%20Intel-555?style=flat-square" alt="Apple Silicon과 Intel">
-  <a href="https://github.com/nyttastudio/legato/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/nyttastudio/legato/ci.yml?branch=main&style=flat-square&label=tests" alt="테스트"></a>
+  <a href="https://github.com/nyttastudio/araso/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/nyttastudio/araso/ci.yml?branch=main&style=flat-square&label=tests" alt="테스트"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" alt="MIT 라이선스"></a>
 </p>
 
-<p align="center"><a href="https://nyttastudio.com/legato/">웹사이트</a> · 한국어 · <a href="README.en.md">English</a></p>
+<p align="center"><a href="https://nyttastudio.com/araso/">웹사이트</a> · 한국어 · <a href="README.en.md">English</a></p>
 
 <h3 align="center">한/영 키는 이제 누르지 않아도 됩니다.</h3>
 
 <p align="center">
 모든 글을 영문(QWERTY) 자판으로 치세요.<br>
-Legato가 <b>단어마다</b> 영어인지, 한국어(두벌식)인지, 켜 두었다면 일본어(로마자)인지 알아보고 맞는 글자로 넣습니다.
+Araso가 <b>단어마다</b> 영어인지, 한국어(두벌식)인지, 켜 두었다면 일본어(로마자)인지 알아보고 맞는 글자로 넣습니다.
 </p>
 
 ```
@@ -37,11 +37,11 @@ Hello, worldhasaishonopuroguramudesu␣.           →  Hello, worldは最初の
 ```
 
 <p align="center">
-  <a href="https://github.com/nyttastudio/legato/releases/latest/download/Legato.pkg"><img src="https://img.shields.io/badge/Legato.pkg%20%EB%B0%9B%EA%B8%B0-0071e3?style=for-the-badge&logo=apple&logoColor=white" width="222" alt="Legato.pkg 받기"></a>
+  <a href="https://github.com/nyttastudio/araso/releases/latest/download/Araso.pkg"><img src="https://img.shields.io/badge/Araso.pkg%20%EB%B0%9B%EA%B8%B0-0071e3?style=for-the-badge&logo=apple&logoColor=white" width="222" alt="Araso.pkg 받기"></a>
 </p>
 
 <p align="center">
-  <img src="docs/media/demo.gif" width="720" alt="입력 메뉴에서 Legato를 한 번 고른 뒤, 입력 소스를 다시 바꾸지 않고 Safari에 QWERTY로 치는 모습: Stay hungry, stay foolish는 잡스의 말이다. / 吾輩は猫である는 소세키의 소설이다. / Hello, worldは最初のプログラムです。">
+  <img src="docs/media/demo.gif" width="720" alt="입력 메뉴에서 Araso를 한 번 고른 뒤, 입력 소스를 다시 바꾸지 않고 Safari에 QWERTY로 치는 모습: Stay hungry, stay foolish는 잡스의 말이다. / 吾輩は猫である는 소세키의 소설이다. / Hello, worldは最初のプログラムです。">
 </p>
 
 ## 한눈에 보기
@@ -58,7 +58,7 @@ Hello, worldhasaishonopuroguramudesu␣.           →  Hello, worldは最初の
 ## 목차
 
 - [만든 이유](#만든-이유)
-- [설치](#설치) · [업데이트](#업데이트) · [Seamtype에서 옮겨 오기](#from-seamtype) · [제거](#제거)
+- [설치](#설치) · [업데이트](#업데이트) · [예전 이름에서 옮겨 오기](#from-seamtype) · [제거](#제거)
 - [키](#키) · [언어 바꾸기 키](#언어-바꾸기-키) · [확정한 뒤에 고치기와 학습](#확정한-뒤에-고치기와-학습) · [텍스트 대치](#텍스트-대치) · [일시정지](#일시정지) · [vim](#vim)
 - [설정](#설정) · [설정 파일](#설정-파일)
 - [판단 방식](#판단-방식) · [평가 결과](#평가-결과-학습에-쓰지-않은-데이터)
@@ -74,16 +74,16 @@ Hello, worldhasaishonopuroguramudesu␣.           →  Hello, worldは最初の
 
 ## 설치
 
-1. [`Legato.pkg`](https://github.com/nyttastudio/legato/releases/latest/download/Legato.pkg)를 받아 열고
+1. [`Araso.pkg`](https://github.com/nyttastudio/araso/releases/latest/download/Araso.pkg)를 받아 열고
    안내대로 설치하세요. `/Library/Input Methods`에 설치하고 입력 소스로 등록까지 합니다.
-2. 메뉴 막대의 입력 메뉴에서 **Legato**를 고르세요.
+2. 메뉴 막대의 입력 메뉴에서 **Araso**를 고르세요.
 3. 일본어도 섞어 쓰려면 입력 메뉴에서 **일본어 입력**을 켜세요. **일본어는 기본으로 꺼져 있습니다.**
 
 macOS 13 이상의 Apple Silicon과 Intel Mac에서 돌아가고, Apple 공증을 받았습니다. 메모리는 ~50 MB(일본어를
 켜면 일본어 사전 ~35 MB 추가), 앱 크기는 ~47 MB이고, 따로 실행되는 프로그램은 없습니다.
 
 > [!TIP]
-> 입력 메뉴에 Legato가 없으면 **시스템 설정 → 키보드 → 입력 소스 → 편집… → + → 한국어 → Legato**를
+> 입력 메뉴에 Araso가 없으면 **시스템 설정 → 키보드 → 입력 소스 → 편집… → + → 한국어 → Araso**를
 > 추가하세요. 그래도 없으면 한 번 로그아웃했다가 다시 로그인하세요.
 
 <details>
@@ -93,7 +93,7 @@ pkg 대신 최신 릴리스를 `~/Library/Input Methods`에 설치하고 등록�
 묻습니다.
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/nyttastudio/legato/main/scripts/get.sh | sh
+curl -fsSL https://raw.githubusercontent.com/nyttastudio/araso/main/scripts/get.sh | sh
 ```
 
 물을 것 없이 고르려면 `| sh -s -- --reinstall`(설정과 학습한 단어는 남김), `--clean`(모두 지우고 새로 설치),
@@ -103,44 +103,45 @@ curl -fsSL https://raw.githubusercontent.com/nyttastudio/legato/main/scripts/get
 
 ### 업데이트
 
-새 버전이 나오면 입력 메뉴에 <b>Legato … 로 업데이트…</b>가 생깁니다. 설정 창의 **정보**에서 바뀐 것을 보고
+새 버전이 나오면 입력 메뉴에 <b>Araso … 로 업데이트…</b>가 생깁니다. 설정 창의 **정보**에서 바뀐 것을 보고
 설치할 수 있고, **지금 확인**으로 직접 확인할 수도 있습니다. 설치 파일을 받아 서명을 확인한 뒤 설치 프로그램을
 열어 주므로 암호만 넣으면 됩니다.
 
 - 확인은 하루 한 번, 그리고 설정 창을 열 때 합니다. GitHub에 최신 버전 번호만 물을 뿐 입력한 내용은 보내지
   않습니다. 정보의 **업데이트 자동 확인**으로 끌 수 있습니다.
-- 새 `Legato.pkg`를 직접 받아 설치해도 됩니다. 앱만 바꾸고 설정과 학습한 단어는 남기며, 로그아웃이나 재시동은
+- 새 `Araso.pkg`를 직접 받아 설치해도 됩니다. 앱만 바꾸고 설정과 학습한 단어는 남기며, 로그아웃이나 재시동은
   필요 없습니다.
 - 깨끗이 다시 설치하려면 설치 프로그램의 **사용자화**에서 **설정과 학습한 단어 초기화**를 체크하세요.
 
-<a id="from-seamtype"></a>
+<a id="from-seamtype"></a><a id="from-legato"></a>
 
-### Seamtype에서 옮겨 오기
+### 예전 이름에서 옮겨 오기
 
-0.2.0부터 이름이 Seamtype에서 Legato로 바뀌었고, macOS에는 다른 입력기로 보입니다. 한 번만 아래를 해 주세요.
+Seamtype(0.1.x)은 0.2.0에서 Legato로, 0.2.1에서 Araso로 이름이 바뀌었습니다. 이름이 바뀔 때마다 macOS에는 다른
+입력기로 보여서, Seamtype이나 Legato를 쓰고 있었다면 한 번만 아래를 해 주세요.
 
-1. Seamtype의 입력 메뉴나 설정 창 **정보**에서 업데이트하거나, 새 `Legato.pkg`를 받아 설치하세요. 설치 프로그램이
-   Seamtype을 지우고 Legato를 등록합니다. 설정, 앱별 규칙, 사전, 한자 학습은 Legato가 처음 실행될 때 그대로
+1. 입력 메뉴나 설정 창 **정보**에서 업데이트하거나, 새 `Araso.pkg`를 받아 설치하세요. 설치 프로그램이
+   Seamtype·Legato를 지우고 Araso를 등록합니다. 설정, 앱별 규칙, 사전, 한자 학습은 Araso가 처음 실행될 때 그대로
    옮겨 옵니다.
-2. **시스템 설정 → 키보드 → 입력 소스 → 편집… → + → 한국어 → Legato**를 추가하세요(설치가 끝나면 키보드 설정이
-   열립니다). macOS는 설치 프로그램이 새 입력기를 켜도록 두지 않아서 이 단계는 직접 해야 합니다. 목록에 Seamtype이
-   남아 있으면 −로 빼고, 입력 메뉴에서 **Legato**를 고르세요. 목록에 Legato가 없거나 이름이 비어 있으면 한 번
+2. **시스템 설정 → 키보드 → 입력 소스 → 편집… → + → 한국어 → Araso**를 추가하세요(설치가 끝나면 키보드 설정이
+   열립니다). macOS는 설치 프로그램이 새 입력기를 켜도록 두지 않아서 이 단계는 직접 해야 합니다. 목록에 Seamtype이나
+   Legato가 남아 있으면 −로 빼고, 입력 메뉴에서 **Araso**를 고르세요. 목록에 Araso가 없거나 이름이 비어 있으면 한 번
    재시동하세요(로그아웃만으로는 안 되기도 했습니다).
-3. 입력 소스에 걸어 둔 단축키나 다른 앱의 입력 소스 설정은 Legato로 다시 정하세요.
-4. vim 연동을 쓰고 있었다면 `seamtype.lua`·`seamtype.vim`을 지우고 새 [`legato.lua`·`legato.vim`](#vim)으로
-   바꾸세요. 예전 스크립트는 Seamtype.app을 찾지 못해 아무 일도 하지 않습니다.
+3. 입력 소스에 걸어 둔 단축키나 다른 앱의 입력 소스 설정은 Araso로 다시 정하세요.
+4. vim 연동을 쓰고 있었다면 `seamtype.*`·`legato.*`를 지우고 새 [`araso.lua`·`araso.vim`](#vim)으로
+   바꾸세요. 예전 스크립트는 예전 앱을 찾지 못해 아무 일도 하지 않습니다.
 
-터미널로 설치했어도(`get.sh`) 같습니다. 새 `get.sh`가 Seamtype을 지우고, `/Library`에 있는 사본은 암호를 물은 뒤
+터미널로 설치했어도(`get.sh`) 같습니다. 새 `get.sh`가 Seamtype·Legato를 지우고, `/Library`에 있는 사본은 암호를 물은 뒤
 지웁니다.
 
 ### 제거
 
-설정 창의 <b>정보 → Legato 제거 → 제거…</b>를 누르세요. 두 Input Methods 폴더의 Legato를 모두 지우고(pkg로
+설정 창의 <b>정보 → Araso 제거 → 제거…</b>를 누르세요. 두 Input Methods 폴더의 Araso를 모두 지우고(pkg로
 설치했다면 macOS가 암호를 묻습니다) 다른 입력 소스로 바꿉니다. 설정과 학습한 단어는 확인 창에서 체크했을 때만
 지웁니다.
 
-- 제거한 뒤에도 시스템 설정의 입력 소스 목록에 Legato가 보이면, 한 번 로그아웃했다가 다시 로그인하면 사라집니다.
-- 제거한 뒤 다시 설치했는데 입력 메뉴에 없으면, 그 목록에서 Legato를 −로 뺐다가 +로 다시 추가하세요.
+- 제거한 뒤에도 시스템 설정의 입력 소스 목록에 Araso가 보이면, 한 번 로그아웃했다가 다시 로그인하면 사라집니다.
+- 제거한 뒤 다시 설치했는데 입력 메뉴에 없으면, 그 목록에서 Araso를 −로 뺐다가 +로 다시 추가하세요.
 
 <details>
 <summary>터미널에서 지우기</summary>
@@ -148,14 +149,14 @@ curl -fsSL https://raw.githubusercontent.com/nyttastudio/legato/main/scripts/get
 설정 창과 같은 일을 합니다. `--delete-data`는 설정과 학습한 단어까지 지울 때만 붙이세요.
 
 ```sh
-"/Library/Input Methods/Legato.app/Contents/MacOS/Legato" --uninstall --delete-data
+"/Library/Input Methods/Araso.app/Contents/MacOS/Araso" --uninstall --delete-data
 ```
 
 </details>
 
 ## 키
 
-치고 있는 단어에는 밑줄이 그어지고, Legato가 예상한 언어로 보입니다.
+치고 있는 단어에는 밑줄이 그어지고, Araso가 예상한 언어로 보입니다.
 
 | 키 | 영어·한국어 단어 | 일본어 구절 |
 | --- | --- | --- |
@@ -233,7 +234,7 @@ Space나 문장부호로 단어를 확정한 직후 언어 바꾸기 키를 누�
 
 한 번 고친 단어는 다음부터 그쪽으로 조금 기웁니다. 애매한 단어(`so`/`내`)만 바뀌고 확실한 단어는 그대로라,
 실수로 바꾼 것이 크게 남지 않습니다. 30일 동안 다시 고치거나 그대로 치지 않으면 잊습니다. 같은 키를 같은 쪽으로
-두 번 고치면 그때부터 늘 그렇게 쓰고(뒤에 조사가 붙어도: `ghostty`를 기억하면 `ghostty에`), Legato가 고른 쪽으로 되돌리면 잊습니다. 문장을 통째로 바꾼 것처럼 긴
+두 번 고치면 그때부터 늘 그렇게 쓰고(뒤에 조사가 붙어도: `ghostty`를 기억하면 `ghostty에`), Araso가 고른 쪽으로 되돌리면 잊습니다. 문장을 통째로 바꾼 것처럼 긴
 토큰(20키 넘게)은 기억하지 않습니다.
 
 <details>
@@ -270,7 +271,7 @@ Space나 문장부호로 단어를 확정한 직후 언어 바꾸기 키를 누�
 확정하고, 그 입력창에서는 키를 친 그대로 넘깁니다. 한 번 더 누르거나, 다른 앱·입력창으로 가거나, 설정을 바꾸면
 다시 켜집니다.
 
-누를 때마다 입력 소스를 바꿀 때처럼 커서 아래에 Legato 아이콘이 잠깐 뜨고, 일시정지하면 빗금이 쳐져
+누를 때마다 입력 소스를 바꿀 때처럼 커서 아래에 Araso 아이콘이 잠깐 뜨고, 일시정지하면 빗금이 쳐져
 있습니다. 메뉴 막대 아이콘은 바뀌지 않으므로, 나중에 확인하려면 입력 메뉴의 체크 표시를 보세요.
 
 일시정지 키는 설정 창의 **키**에서 바꿉니다. 오른쪽 ⌘·⌥·⇧·⌃ 중 하나를 단독으로 누르거나, 단축키(⌃⌥P처럼
@@ -280,30 +281,30 @@ Space나 문장부호로 단어를 확정한 직후 언어 바꾸기 키를 누�
 
 ### vim
 
-neovim은 [`scripts/vim/legato.lua`](scripts/vim/legato.lua)를 `~/.config/nvim/plugin/`에, Vim(8.2 이상,
-`+job`)은 [`scripts/vim/legato.vim`](scripts/vim/legato.vim)을 `~/.vim/plugin/`에 넣으세요.
+neovim은 [`scripts/vim/araso.lua`](scripts/vim/araso.lua)를 `~/.config/nvim/plugin/`에, Vim(8.2 이상,
+`+job`)은 [`scripts/vim/araso.vim`](scripts/vim/araso.vim)을 `~/.vim/plugin/`에 넣으세요.
 
-vim이 모드가 바뀔 때마다 Legato에 알려 주므로, 입력 모드에서만 단어를 판단하고 노멀·비주얼·명령줄 모드에서는
+vim이 모드가 바뀔 때마다 Araso에 알려 주므로, 입력 모드에서만 단어를 판단하고 노멀·비주얼·명령줄 모드에서는
 키를 바로 vim에 보냅니다. `s`, `dd`, `ciw`, `:wq⏎`가 키마다 바로 실행됩니다. vim 안에서는 Esc가 늘 vim으로
 가므로 앱별 설정은 필요 없고, vim을 끝내면 셸에서 다시 단어를 판단합니다.
 
 <details>
 <summary>동작 방식과 주의할 점</summary>
 
-- 신호는 `Legato --vim insert|normal|off --app <번들 ID>`입니다. 키마다가 아니라 모드가 바뀔 때(입력 모드
+- 신호는 `Araso --vim insert|normal|off --app <번들 ID>`입니다. 키마다가 아니라 모드가 바뀔 때(입력 모드
   들어가기·나오기, 시작, 끝, 포커스)만 보냅니다.
 - 번들 ID는 macOS가 앱마다 넣어 주는 `$__CFBundleIdentifier`입니다. 그래서 터미널(Ghostty, Terminal, iTerm2,
   VS Code 등)마다 따로 설정할 것이 없고, 신호는 그 앱의 입력창에만 갑니다. `--app` 없는 신호는 Esc가 언어 바꾸기
   키가 아닌 앱에서만 받습니다.
 - tmux 서버를 띄운 터미널과 다른 터미널에서 붙으면 번들 ID가 달라 신호가 무시됩니다.
-- Vim이 터미널의 포커스 변화를 모르면, vim 패널에서 셸 패널로 옮겨도 Legato는 알 수 없습니다. 그럴 때는
+- Vim이 터미널의 포커스 변화를 모르면, vim 패널에서 셸 패널로 옮겨도 Araso는 알 수 없습니다. 그럴 때는
   ⇧Esc(언어 바꾸기 키로 골랐을 때)를 누르면 다시 단어를 판단합니다.
 
 </details>
 
 ## 설정
 
-입력 메뉴(Legato를 고른 상태의 메뉴 막대)에서 할 수 있는 것:
+입력 메뉴(Araso를 고른 상태의 메뉴 막대)에서 할 수 있는 것:
 
 - 이 입력창에서 일시정지(일시정지 키와 같음)
 - 지금 앞에 있는 앱의 단어 변환 켜고 끄기, 그 앱의 변환 기준(보통·엄격하게), Esc로 언어 바꾸기, Space·문장부호
@@ -324,10 +325,10 @@ vim이 모드가 바뀔 때마다 Legato에 알려 주므로, 입력 모드에�
 
 ### 설정 파일
 
-메뉴와 설정 창 모두 `~/Library/Application Support/Legato/`의 JSON 파일에 씁니다. 직접 고쳐도 되고, 없는
+메뉴와 설정 창 모두 `~/Library/Application Support/Araso/`의 JSON 파일에 씁니다. 직접 고쳐도 되고, 없는
 항목이나 형식이 틀린 값(`"true"`처럼 따옴표 친 값)은 기본값을 따릅니다. JSON으로 읽을 수 없는 파일은 덮어쓰지
 않고 `settings.json.unreadable`처럼 옮겨 둡니다(`apps.json`, `dictionary.json`도 같습니다). 파일을 직접 고친
-뒤에는 입력기를 다시 시작하세요: `pkill -x Legato`.
+뒤에는 입력기를 다시 시작하세요: `pkill -x Araso`.
 
 <details>
 <summary><code>settings.json</code>: 전체 설정</summary>
@@ -454,7 +455,7 @@ URL·경로 안에서는 이 판단을 하지 않습니다. 띄어 쓰지 않은
 **한자 변환**은 macOS 일본어 입력기가 쓰는 변환 엔진(libmecabra)에서 나오고, 일본어 문어 글자 3-그램 모델로 맨
 앞 후보를 다시 고릅니다. 그래서 `髙` 같은 이체자(`たか`, `たかはし` → `髙橋`), 고유명사의 영어 표기
 (`とぅいっち` → `Twitch`), 읽기 앞부분으로 고르는 예측 후보(`ゆーちゅ` → `YouTube`, 맨 앞 후보 다음)가 기본
-입력기처럼 나옵니다. 고른 후보는 Legato가 읽기별로 기억해 다음에 맨 앞에 둡니다. 이 엔진은 공개되지 않은
+입력기처럼 나옵니다. 고른 후보는 Araso가 읽기별로 기억해 다음에 맨 앞에 둡니다. 이 엔진은 공개되지 않은
 macOS 내부 기능이라, 불러오지 못하는 macOS에서는 앱에 든
 [AzooKey](https://github.com/azooKey/AzooKeyKanaKanjiConverter) 사전 변환기를 대신 씁니다.
 
@@ -512,27 +513,27 @@ SCOWL 목록, 한국어 단어 목록, 언어 전환을 고려한 기울기를 �
 ```sh
 swift test                     # 테스트: 조합기, 엔진, 세션, 설정, 처음부터 끝까지
 scripts/install.sh             # 빌드하고 자체 점검한 뒤 ~/Library/Input Methods에 설치(개발용; pkg 사본이 있으면 멈춤)
-scripts/typing-test/run.sh     # 설치된 Legato로 설정 창의 입력해 보기 칸에 실제 키 입력
+scripts/typing-test/run.sh     # 설치된 Araso로 설정 창의 입력해 보기 칸에 실제 키 입력
 swift scripts/make-readme-logo.swift docs/media  # README 로고(애니메이션 SVG)
 scripts/release.sh             # 릴리스용 범용(arm64 + x86_64) zip과 pkg; Developer ID가 있으면 서명·공증(앱과 pkg 모두)
 tools/prepare.sh               # 정확도 (단어 목록, Tatoeba, SCOWL을 처음 한 번 내려받음)
-tools/prepare.sh --models      # 먼저 Sources/LegatoCore/Data의 데이터를 다시 만듦(korean_vocabulary.txt 빼고)
-LEGATO_TIMING=1 swift run -c release legato-cli --decide --japanese < keys.tsv  # + 판단당 시간
-swift run legato-cli -v "dkssud gksrmf hello"               # 영어/한국어, 점수와 함께
-printf 'kyouhagoogledekensaku\t\n' | swift run legato-cli --decide --japanese
-printf 'きょうはいいてんきですね\n' | swift run legato-cli --convert
+tools/prepare.sh --models      # 먼저 Sources/ArasoCore/Data의 데이터를 다시 만듦(korean_vocabulary.txt 빼고)
+ARASO_TIMING=1 swift run -c release araso-cli --decide --japanese < keys.tsv  # + 판단당 시간
+swift run araso-cli -v "dkssud gksrmf hello"               # 영어/한국어, 점수와 함께
+printf 'kyouhagoogledekensaku\t\n' | swift run araso-cli --decide --japanese
+printf 'きょうはいいてんきですね\n' | swift run araso-cli --convert
 ```
 
 | 경로 | 내용 |
 | --- | --- |
-| `Sources/LegatoCore` | 조합기, 엔진, 변환, `InputSession` (입력 로직 전부) |
-| `Sources/Legato` | InputMethodKit 서버, `InputSession` 위의 얇은 컨트롤러, 후보 창, 설정 창 |
-| `Sources/LegatoCore/Data` | 가나·일본어 문어 3-그램, 한국어 음절과 단어, 영어 단어 |
+| `Sources/ArasoCore` | 조합기, 엔진, 변환, `InputSession` (입력 로직 전부) |
+| `Sources/Araso` | InputMethodKit 서버, `InputSession` 위의 얇은 컨트롤러, 후보 창, 설정 창 |
+| `Sources/ArasoCore/Data` | 가나·일본어 문어 3-그램, 한국어 음절과 단어, 영어 단어 |
 | `tools/` | 말뭉치 → 로마자, 모델 생성, 평가 데이터와 정확도 (python3, 추가 패키지 없음) |
 
 ## 라이선스와 데이터
 
-Legato는 MIT 라이선스입니다([LICENSE](LICENSE)). 앱에 컴파일되거나 복사된 모든 것의 라이선스는
+Araso는 MIT 라이선스입니다([LICENSE](LICENSE)). 앱에 컴파일되거나 복사된 모든 것의 라이선스는
 `Contents/Resources/ThirdPartyNotices.txt`에 들어 있고, `scripts/build-app.sh`가 모읍니다.
 
 - 한자 변환: macOS에 들어 있는 일본어 변환 엔진을 실행할 때 불러 씁니다(앱에 포함하지 않음).

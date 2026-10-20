@@ -1,4 +1,4 @@
 /* The name System Settings and the input menu show for the input source. */
-CFBundleName = "Legato";
-CFBundleDisplayName = "Legato";
-"com.nyttastudio.inputmethod.Legato" = "Legato";
+CFBundleName = "Araso";
+CFBundleDisplayName = "Araso";
+"com.nyttastudio.inputmethod.Araso" = "Araso";

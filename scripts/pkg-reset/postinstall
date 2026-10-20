@@ -1,15 +1,15 @@
 #!/bin/sh
 # The installer's optional "Reset settings and learned words" (Customize): a clean reinstall.
-# Runs after Legato's own postinstall has stopped the old process; stops one started since,
-# then deletes the logged-in user's ~/Library/Application Support/Legato (and Seamtype's, the name
-# before 0.2.0, in case it hasn't been moved yet). Never fails the install.
-pkill -x Legato 2>/dev/null || true
-i=0; while pgrep -x Legato >/dev/null && [ $i -lt 30 ]; do sleep 0.1; i=$((i+1)); done
-pkill -9 -x Legato 2>/dev/null || true
+# Runs after Araso's own postinstall has stopped the old process; stops one started since,
+# then deletes the logged-in user's ~/Library/Application Support/Araso (and Legato's and Seamtype's,
+# its earlier names, in case one hasn't been moved yet). Never fails the install.
+pkill -x Araso 2>/dev/null || true
+i=0; while pgrep -x Araso >/dev/null && [ $i -lt 30 ]; do sleep 0.1; i=$((i+1)); done
+pkill -9 -x Araso 2>/dev/null || true
 user=$(stat -f %Su /dev/console)
 if [ -n "$user" ] && [ "$user" != root ]; then
   # dscacheutil, not dscl | awk: dscl puts a home with a space on a line of its own.
   home=$(dscacheutil -q user -a name "$user" | sed -n 's/^dir: //p' | head -1)
-  [ -n "$home" ] && rm -rf "$home/Library/Application Support/Legato" "$home/Library/Application Support/Seamtype"
+  [ -n "$home" ] && rm -rf "$home/Library/Application Support/Araso" "$home/Library/Application Support/Legato" "$home/Library/Application Support/Seamtype"
 fi
 exit 0

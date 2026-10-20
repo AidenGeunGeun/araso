@@ -1,11 +1,11 @@
-"""Build the kana trigram model Legato uses to judge how Japanese a romaji string reads,
+"""Build the kana trigram model Araso uses to judge how Japanese a romaji string reads,
 and a held-out set of Japanese phrases for evaluation.
 
 Input is ja_tokens.jsonl from tools/ja_romaji.swift (Tatoeba sentences, CC-BY 2.0 FR).
 Sentences are split 90/10 by a hash of their text: the model is counted only on the
 90%, phrases for evaluation come only from the 10%.
 
-usage: python build_kana_model.py <legato-cli> <ja_tokens.jsonl> <model_out.txt> <eval_out.tsv>
+usage: python build_kana_model.py <araso-cli> <ja_tokens.jsonl> <model_out.txt> <eval_out.tsv>
 model_out lines:  <a><b><c>\t<count>   (^ = start, $ = end; a,b,c single kana or marker)
 eval_out lines:   <romaji keys>\t<previous>\tjapanese\t<hiragana>
 """
